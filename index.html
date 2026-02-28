@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ElectroHogar Tacna — Catálogo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header>
+    <div class="logo-area">
+      <div class="logo-icon"></div>
+      <div class="logo-text"><span>ELECTRO</span>HOGAR</div>
+    </div>
+    <nav>
+      <a href="#lavadoras">Lavadoras</a>
+      <a href="#tvs">TVs</a>
+      <a href="#bano">Baño</a>
+      <a href="#cocina">Cocina</a>
+      <a href="#refrigeradoras">Refrigeradoras</a>
+      <a href="#audio">Audio</a>
+    </nav>
+    <button class="header-cta">📞 Contactar</button>
+  </header>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-tag">Tacna, Perú</div>
+      <h1>Tu Hogar<br><span>Inteligente</span><br>Empieza Aquí</h1>
+      <p>Los mejores electrodomésticos al mejor precio. Tecnología para cada rincón de tu hogar con garantía y servicio técnico.</p>
+      <div class="hero-btns">
+        <a href="#ofertas" class="btn-primary">Ver Ofertas </a>
+        <a href="#categorias" class="btn-secondary">Ver Catálogo</a>
+      </div>
+    </div>
+    <div class="hero-graphics">
+      <div class="hero-card"><div class="icon">🖥️</div><span>Smart TVs</span></div>
+      <div class="hero-card"><div class="icon">🫧</div><span>Lavadoras</span></div>
+      <div class="hero-card"><div class="icon">❄️</div><span>Refrigeradoras</span></div>
+      <div class="hero-card"><div class="icon">🍳</div><span>Cocina</span></div>
+    </div>
+  </section>
+
+  <!-- ===== CATEGORY NAV ===== -->
+  <div class="cat-nav" id="categorias">
+    <a href="#lavadoras"    class="cat-link"><span class="cat-ico">🫧</span> Lavadoras</a>
+    <a href="#tvs"          class="cat-link"><span class="cat-ico">🖥️</span> Smart TVs</a>
+    <a href="#bano"         class="cat-link"><span class="cat-ico">🚿</span> Baño</a>
+    <a href="#cocina"       class="cat-link"><span class="cat-ico">🍳</span> Cocina</a>
+    <a href="#refrigeradoras" class="cat-link"><span class="cat-ico">❄️</span> Refrigeradoras</a>
+    <a href="#audio"        class="cat-link"><span class="cat-ico">🔊</span> Audio</a>
+    <a href="#aspiradoras"  class="cat-link"><span class="cat-ico">🌀</span> Aspiradoras</a>
+    <a href="#plancha"      class="cat-link"><span class="cat-ico">👔</span> Planchas</a>
+  </div>
+
+  <!-- ===== OFERTAS CAROUSEL ===== -->
+  <section class="carousel-section" id="ofertas">
+    <div class="section-header">
+      <h2 class="section-title"> Ofertas <span>del Día</span></h2>
+      <a href="#" class="see-all">Ver todas →</a>
+    </div>
+    <div class="carousel-wrapper">
+      <button class="carousel-btn prev" data-target="ofertas-car">‹</button>
+      <div class="carousel" id="ofertas-car"></div>
+      <button class="carousel-btn next" data-target="ofertas-car">›</button>
+    </div>
+  </section>
+
+  <!-- ===== PROMO BANNER ===== -->
+  <div style="padding: 30px 0;">
+    <div class="promo-banner">
+      <div class="promo-text">
+        <div class="promo-tag">Oferta especial · Solo esta semana</div>
+        <div class="promo-title">Hasta 30% OFF<br>en Toda la Tienda</div>
+        <div class="promo-sub">Envío gratis en compras mayores a S/ 500 en Tacna</div>
+      </div>
+      <button class="promo-cta">Aprovechar Oferta →</button>
+    </div>
+  </div>
+
+  <!-- ===== CATEGORY SECTIONS (rendered by JS) ===== -->
+  <div id="sections-container"></div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="logo-area">
+          <div class="logo-icon"></div>
+          <div class="logo-text"><span>ELECTRO</span>HOGAR</div>
+        </div>
+        <p class="footer-desc">Tu tienda de electrodomésticos de confianza en Tacna, Perú. Calidad, garantía y el mejor servicio técnico post-venta.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Categorías</h4>
+        <ul>
+          <li><a href="#lavadoras">Lavadoras</a></li>
+          <li><a href="#tvs">Smart TVs</a></li>
+          <li><a href="#bano">Baño</a></li>
+          <li><a href="#cocina">Cocina</a></li>
+          <li><a href="#refrigeradoras">Refrigeradoras</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Información</h4>
+        <ul>
+          <li><a href="#">Sobre Nosotros</a></li>
+          <li><a href="#">Garantías</a></li>
+          <li><a href="#">Servicio Técnico</a></li>
+          <li><a href="#">Financiamiento</a></li>
+          <li><a href="#">Términos y Condiciones</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contacto</h4>
+        <ul>
+          <li><a href="#">📍 Tacna, Perú</a></li>
+          <li><a href="#">📞 (052) 123-456</a></li>
+          <li><a href="#">📱 WhatsApp</a></li>
+          <li><a href="#">✉️ ventas@electrohogar.pe</a></li>
+          <li><a href="#">🕐 Lun–Sab: 9am – 7pm</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 ElectroHogar Tacna. Todos los derechos reservados.</span>
+      <span></span>
+    </div>
+  </footer>
+
+  <script src="data/productos.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
