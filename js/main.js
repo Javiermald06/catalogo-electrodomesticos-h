@@ -6,8 +6,6 @@
 /* ──────────────────────────────────────────────────────────
    1. CONFIGURACIÓN DE SECCIONES
    Define el orden, id, icono y subtítulo de cada categoría.
-   Para agregar una nueva categoría: añade un objeto aquí
-   y agrega los productos correspondientes en productos.js
    ────────────────────────────────────────────────────────── */
 const SECCIONES = [
   { id: 'lavadoras',      titulo: 'Lavadoras',       icono: '🫧', subtitulo: 'Carga frontal, carga superior y secadoras' },
@@ -21,7 +19,51 @@ const SECCIONES = [
 ];
 
 /* ──────────────────────────────────────────────────────────
-   2. GENERACIÓN DE HTML PARA TARJETA DE PRODUCTO
+   2. LÓGICA DEL HERO SLIDER (CARRUSEL PRINCIPAL)
+   ────────────────────────────────────────────────────────── */
+let heroIndex = 0;
+let heroInterval;
+
+function initHeroSlider() {
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.dot');
+  
+  if (slides.length === 0) return;
+
+  // Función global para mostrar el slide específico
+  window.showHeroSlide = function(n) {
+    slides.forEach(s => s.classList.remove('active'));
+    dots.forEach(d => d.classList.remove('active'));
+    
+    heroIndex = (n + slides.length) % slides.length;
+    
+    slides[heroIndex].classList.add('active');
+    if(dots[heroIndex]) dots[heroIndex].classList.add('active');
+  };
+
+  // Función global para mover adelante/atrás
+  window.moveHeroSlide = function(n) {
+    showHeroSlide(heroIndex + n);
+    resetHeroInterval(); // Reiniciar contador al hacer click manual
+  };
+
+  // Función global para los puntos indicadores
+  window.setHeroSlide = function(n) {
+    showHeroSlide(n);
+    resetHeroInterval();
+  };
+
+  // Autoplay
+  function resetHeroInterval() {
+    clearInterval(heroInterval);
+    heroInterval = setInterval(() => moveHeroSlide(1), 5000); // Cambia cada 5 segundos
+  }
+
+  resetHeroInterval();
+}
+
+/* ──────────────────────────────────────────────────────────
+   3. GENERACIÓN DE HTML PARA TARJETA DE PRODUCTO
    ────────────────────────────────────────────────────────── */
 function crearTarjetaProducto(prod) {
   // Imagen: usa <img> si hay ruta, si no muestra emoji
@@ -59,7 +101,7 @@ function crearTarjetaProducto(prod) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   3. RENDERIZAR CARRUSEL DE OFERTAS
+   4. RENDERIZAR CARRUSEL DE OFERTAS
    ────────────────────────────────────────────────────────── */
 function renderCarruselOfertas() {
   const container = document.getElementById('ofertas-car');
@@ -70,7 +112,7 @@ function renderCarruselOfertas() {
 }
 
 /* ──────────────────────────────────────────────────────────
-   4. RENDERIZAR SECCIONES DE CATEGORÍAS
+   5. RENDERIZAR SECCIONES DE CATEGORÍAS
    ────────────────────────────────────────────────────────── */
 function renderSecciones() {
   const container = document.getElementById('sections-container');
@@ -99,7 +141,7 @@ function renderSecciones() {
 }
 
 /* ──────────────────────────────────────────────────────────
-   5. CARRUSEL: BOTONES PREV / NEXT
+   6. CARRUSEL PRODUCTOS: BOTONES PREV / NEXT
    ────────────────────────────────────────────────────────── */
 function initCarouselButtons() {
   document.querySelectorAll('.carousel-btn').forEach(btn => {
@@ -114,7 +156,7 @@ function initCarouselButtons() {
 }
 
 /* ──────────────────────────────────────────────────────────
-   6. ACTIVE LINK EN CAT-NAV AL HACER SCROLL
+   7. ACTIVE LINK EN CAT-NAV AL HACER SCROLL
    ────────────────────────────────────────────────────────── */
 function initScrollSpy() {
   const catLinks = document.querySelectorAll('.cat-link');
@@ -136,31 +178,30 @@ function initScrollSpy() {
 }
 
 /* ──────────────────────────────────────────────────────────
-   7. ACCIÓN: CONSULTAR PRECIO
-   Puedes reemplazar este alert por un modal, WhatsApp link, etc.
+   8. ACCIÓN: CONSULTAR PRECIO (WHATSAPP)
    ────────────────────────────────────────────────────────── */
 function consultarPrecio(productoId) {
   const prod = PRODUCTOS.find(p => p.id === productoId);
   if (!prod) return;
 
-  // Opción A: Abrir WhatsApp con mensaje prearmado
+  // Abrir WhatsApp con mensaje prearmado
   const mensaje = encodeURIComponent(
     `Hola, me interesa el producto: *${prod.nombre}* (${prod.marca}) — S/ ${prod.precio.toLocaleString()}. ¿Está disponible?`
   );
-  const whatsapp = `https://wa.me/51XXXXXXXXX?text=${mensaje}`; // ← Reemplaza con tu número
+  
+  // RECUERDA: Reemplazar XXXXXXXXX por tu número real de Tacna/Perú
+  const whatsapp = `https://wa.me/51XXXXXXXXX?text=${mensaje}`; 
 
   window.open(whatsapp, '_blank');
-
-  // Opción B (comentada): Solo un alert de prueba
-  // alert(`Producto: ${prod.nombre}\nPrecio: S/ ${prod.precio}`);
 }
 
 /* ──────────────────────────────────────────────────────────
-   8. INICIALIZACIÓN
+   9. INICIALIZACIÓN GENERAL
    ────────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-  renderCarruselOfertas();
-  renderSecciones();
-  initCarouselButtons();
-  initScrollSpy();
+  initHeroSlider();        // Inicia el nuevo carrusel principal
+  renderCarruselOfertas(); // Renderiza las ofertas del día
+  renderSecciones();       // Renderiza las categorías y productos
+  initCarouselButtons();   // Activa botones del carrusel de productos
+  initScrollSpy();         // Activa el resaltado de navegación
 });

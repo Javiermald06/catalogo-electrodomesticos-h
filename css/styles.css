@@ -28,7 +28,7 @@ body  {
 header {
   position: fixed;
   top: 0; left: 0; right: 0;
-  z-index: 100;
+  z-index: 1000;
   background: var(--dark);
   display: flex;
   align-items: center;
@@ -91,36 +91,42 @@ nav a:hover { background: var(--red); color: white; }
   box-shadow: 0 4px 15px rgba(232,35,42,0.4);
 }
 
-/* ===== HERO ===== */
-.hero {
+/* ===== HERO SLIDER (ESTILO EFE) ===== */
+.hero-slider {
   margin-top: 64px;
   height: 520px;
-  background: linear-gradient(135deg, var(--dark) 0%, var(--blue) 60%, var(--blue-light) 100%);
   position: relative;
   overflow: hidden;
+  background: var(--dark);
+}
+
+.slider-wrapper {
+  height: 100%;
+  width: 100%;
+}
+
+.slide {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  opacity: 0;
   display: flex;
   align-items: center;
   padding: 0 80px;
+  transition: opacity 0.8s ease-in-out;
+  z-index: 1;
 }
 
-.hero::before {
-  content: '';
-  position: absolute;
-  right: -100px; top: -100px;
-  width: 600px; height: 600px;
-  background: radial-gradient(circle, rgba(232,35,42,0.15) 0%, transparent 70%);
-  border-radius: 50%;
-}
-.hero::after {
-  content: '';
-  position: absolute;
-  right: 200px; bottom: -150px;
-  width: 400px; height: 400px;
-  border: 2px solid rgba(255,255,255,0.05);
-  border-radius: 50%;
+.slide.active {
+  opacity: 1;
+  z-index: 2;
 }
 
-.hero-content { max-width: 580px; z-index: 2; animation: fadeInUp 0.7s ease forwards; }
+.hero-content {
+  max-width: 580px;
+  z-index: 5;
+  animation: fadeInUp 0.7s ease forwards;
+}
 
 .hero-tag {
   display: inline-block;
@@ -136,7 +142,7 @@ nav a:hover { background: var(--red); color: white; }
   margin-bottom: 20px;
 }
 
-.hero h1 {
+.hero-content h1 {
   font-family: 'Rajdhani', sans-serif;
   font-size: 64px;
   font-weight: 700;
@@ -144,9 +150,9 @@ nav a:hover { background: var(--red); color: white; }
   line-height: 1.05;
   margin-bottom: 16px;
 }
-.hero h1 span { color: var(--red); }
+.hero-content h1 span { color: var(--red); }
 
-.hero p {
+.hero-content p {
   color: rgba(255,255,255,0.7);
   font-size: 16px;
   line-height: 1.7;
@@ -193,43 +199,51 @@ nav a:hover { background: var(--red); color: white; }
 }
 .btn-secondary:hover { border-color: white; background: rgba(255,255,255,0.1); }
 
-/* Hero floating cards */
-.hero-graphics {
+/* Controles del Slider */
+.slider-control {
   position: absolute;
-  right: 80px;
   top: 50%;
   transform: translateY(-50%);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  z-index: 2;
-  animation: fadeInUp 0.7s 0.2s ease both;
-}
-
-.hero-card {
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 16px;
-  padding: 20px;
-  width: 130px; height: 130px;
+  background: rgba(0,0,0,0.3);
+  color: white;
+  border: none;
+  width: 50px; height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  font-size: 20px;
+  transition: background 0.3s;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  backdrop-filter: blur(10px);
-  transition: transform 0.3s;
 }
-.hero-card:hover { transform: translateY(-5px); }
-.hero-card:nth-child(2) { margin-top: 30px; }
-.hero-card:nth-child(4) { margin-top: -20px; }
-.hero-card .icon { font-size: 36px; }
-.hero-card span {
-  font-size: 11px;
-  color: rgba(255,255,255,0.8);
-  font-weight: 500;
-  text-align: center;
-  letter-spacing: 0.5px;
+.slider-control:hover { background: var(--red); }
+.slider-control.prev { left: 20px; }
+.slider-control.next { right: 20px; }
+
+/* Puntos indicadores estilo Efe */
+.slider-dots {
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.dot {
+  width: 12px; height: 12px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.dot.active {
+  background: var(--red);
+  width: 30px; /* Efecto alargado */
+  border-radius: 10px;
 }
 
 /* ===== CATEGORY NAV BAR ===== */
@@ -269,7 +283,7 @@ nav a:hover { background: var(--red); color: white; }
 }
 .cat-link .cat-ico { font-size: 18px; }
 
-/* ===== CAROUSEL SECTION ===== */
+/* ===== CAROUSEL SECTION (OFERTAS) ===== */
 .carousel-section {
   padding: 50px 40px 40px;
   background: var(--gray);
@@ -378,7 +392,6 @@ nav a:hover { background: var(--red); color: white; }
   overflow: hidden;
 }
 
-/* When a real <img> is inside .product-img */
 .product-img img {
   width: 100%;
   height: 100%;
@@ -591,16 +604,18 @@ footer {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
-  .hero { padding: 40px; }
-  .hero h1 { font-size: 44px; }
-  .hero-graphics { display: none; }
+  .hero-slider { height: 450px; }
+  .hero-content h1 { font-size: 44px; }
   .footer-top { grid-template-columns: 1fr 1fr; }
   nav { display: none; }
   .promo-banner { flex-direction: column; gap: 24px; text-align: center; padding: 40px; }
+  .slide { padding: 0 40px; }
 }
 
 @media (max-width: 600px) {
-  .hero h1 { font-size: 36px; }
+  .hero-slider { height: 400px; }
+  .hero-content h1 { font-size: 36px; }
+  .slider-control { display: none; }
   .cat-section,
   .carousel-section { padding: 40px 20px; }
   .promo-banner { margin: 0 20px; }
