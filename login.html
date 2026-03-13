@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso Administrativo — ElectroHogar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/login.css">
+</head>
+<body class="login-body">
+
+  <div class="login-container">
+    <div class="login-header">
+      <div class="logo-area" style="justify-content: center; margin-bottom: 20px;">
+      <img src="assets/img/Logo-removebg-preview.png" alt="Logo ElectroHogar" style="width: 44px; height: 44px; object-fit: contain;">
+      <div class="logo-text" style="color: var(--dark);"><span>ELECTRO</span>HOGAR</div>
+  </div>
+      <h2>Panel de Control</h2>
+      <p>Ingrese sus credenciales de administrador</p>
+    </div>
+
+    <form id="login-form" onsubmit="validarLogin(event)">
+      <div class="input-group">
+        <label for="admin-user">Usuario</label>
+        <input type="text" id="admin-user" placeholder="Ej: admin" required autocomplete="username">
+      </div>
+      <div class="input-group">
+        <label for="admin-pass">Contraseña</label>
+        <input type="password" id="admin-pass" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      
+      <button type="submit" class="btn-primary" style="width: 100%; margin-top: 15px; padding: 14px;">
+        Ingresar al Sistema
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <a href="index.html">← Volver a la tienda</a>
+    </div>
+  </div>
+
+  <script src="js/login.js"></script>
+
+</body>
+</html>

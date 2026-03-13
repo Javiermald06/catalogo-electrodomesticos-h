@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración — ElectroHogar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar">
+<div class="logo-area" style="padding: 20px; justify-content: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
+  <img src="assets/img/Logo-removebg-preview.png" alt="Logo ElectroHogar" style="width: 40px; height: 40px; object-fit: contain;">
+  <div class="logo-text"><span>ELECTRO</span>HOGAR</div>
+</div>
+    
+    <nav class="admin-nav">
+      <a href="#" class="active">📊 Dashboard</a>
+      <a href="#">📦 Inventario</a>
+      <a href="#">📑 Categorías</a>
+      <a href="#">🖼️ Carrusel Start</a>
+    </nav>
+
+    <div class="admin-logout">
+      <a href="login.html">🚪 Cerrar Sesión</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    
+    <header class="admin-header">
+      <div class="admin-search">
+        <span>🔍</span>
+        <input type="text" id="admin-buscador" placeholder="Buscar en el inventario por modelo o marca..." onkeyup="filtrarTablaAdmin(this.value)">
+      </div>
+      <div class="admin-profile">
+        <span>Hola, Admin</span>
+        <div class="admin-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <h1 class="admin-title">Resumen de Inventario</h1>
+
+      <div class="admin-kpis">
+        <div class="kpi-card">
+          <h3>Total Productos</h3>
+          <p id="kpi-total">0</p>
+        </div>
+        <div class="kpi-card">
+          <h3>Categorías</h3>
+          <p id="kpi-cat">8</p>
+        </div>
+        <div class="kpi-card alert">
+          <h3>Sin Stock</h3>
+          <p id="kpi-stock">3</p>
+        </div>
+      </div>
+
+      <div class="admin-table-container">
+        <div class="table-header">
+          <h2>Lista de Productos</h2>
+          <button class="btn-primary" style="padding: 10px 20px; font-size: 14px;">+ Nuevo Producto</button>
+        </div>
+        
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Producto</th>
+              <th>Marca</th>
+              <th>Categoría</th>
+              <th>Precio</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="admin-table-body">
+            </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+<div class="admin-modal-overlay" id="product-modal">
+    <div class="admin-modal">
+      <div class="modal-header">
+        <h2 id="modal-title">Nuevo Producto</h2>
+        <button class="close-modal" onclick="cerrarModalProducto()">✕</button>
+      </div>
+      
+      <form id="product-form" class="modal-form">
+        <div class="form-grid">
+          <div class="input-group">
+            <label>Nombre del Producto</label>
+            <input type="text" id="prod-nombre" required placeholder="Ej: Lavadora LG 9kg">
+          </div>
+          <div class="input-group">
+            <label>Marca</label>
+            <input type="text" id="prod-marca" required placeholder="Ej: LG">
+          </div>
+          <div class="input-group">
+            <label>Categoría</label>
+            <select id="prod-categoria" required class="admin-select">
+              <option value="lavadoras">Lavadoras</option>
+              <option value="tvs">Smart TVs</option>
+              <option value="bano">Baño</option>
+              <option value="cocina">Cocina</option>
+              <option value="refrigeradoras">Refrigeradoras</option>
+              <option value="audio">Audio</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Precio (S/)</label>
+            <input type="number" id="prod-precio" required min="1" placeholder="Ej: 1500">
+          </div>
+          <div class="input-group" style="grid-column: span 2;">
+            <label>URL de Imagen o Emoji representativo</label>
+            <input type="text" id="prod-img" placeholder="ruta/de/imagen.jpg o un emoji 📺">
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" style="color: var(--dark);" onclick="cerrarModalProducto()">Cancelar</button>
+          <button type="submit" class="btn-primary" style="padding: 12px 24px;">Guardar Producto</button>
+        </div>
+      </form>
+    </div>
+</div>
+
+  <script src="data/productos.js"></script>
+  <script src="js/admin.js"></script>
+  
+</body>
+</html>

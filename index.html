@@ -3,108 +3,119 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Catálogo de electrodomésticos en Tacna. Las mejores marcas en línea blanca, TVs y tecnología para el hogar.">
   <title>ElectroHogar Tacna — Catálogo</title>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
-</head>
+  </head>
 <body>
 
   <header>
     <div class="logo-area">
-      <div class="logo-icon"></div>
+      <div class="logo-icon" aria-hidden="true"></div>
       <div class="logo-text"><span>ELECTRO</span>HOGAR</div>
     </div>
-    <nav>
-      <a href="#lavadoras">Lavadoras</a>
-      <a href="#tvs">TVs</a>
-      <a href="#bano">Baño</a>
-      <a href="#cocina">Cocina</a>
-      <a href="#refrigeradoras">Refrigeradoras</a>
-      <a href="#audio">Audio</a>
-    </nav>
-    <button class="header-cta">📞 Contactar</button>
+    
+    <div class="search-container">
+      <span class="search-icon" aria-hidden="true">🔍</span>
+      <input type="search" id="buscador" placeholder="Buscar productos, marcas..." aria-label="Buscar en el catálogo" onkeyup="buscarProducto(this.value)">
+    </div>
+
+    <div class="header-actions">
+      <button class="cart-btn" aria-label="Ver carrito" onclick="abrirCarrito()">
+        🛒 <span class="cart-counter">0</span>
+      </button>
+      <button class="header-cta">📞 Contactar</button>
+    </div>
+    
   </header>
 
-  <section class="hero-slider" id="main-slider">
-    <div class="slider-wrapper">
-      <div class="slide active" style="background: linear-gradient(135deg, var(--dark) 0%, var(--blue) 60%);">
-        <div class="hero-content">
-          <div class="hero-tag">Tacna, Perú</div>
-          <h1>Tu Hogar<br><span>Inteligente</span><br>Empieza Aquí</h1>
-          <p>Los mejores electrodomésticos al mejor precio con garantía y servicio técnico.</p>
-          <div class="hero-btns">
-            <a href="#ofertas" class="btn-primary">Ver Ofertas</a>
-            <a href="#categorias" class="btn-secondary">Ver Catálogo</a>
+  <main>
+    <section class="hero-slider" id="main-slider" aria-label="Destacados">
+      <div class="slider-wrapper">
+        <div class="slide active" style="background: linear-gradient(135deg, var(--dark) 0%, var(--blue) 60%);">
+          <div class="hero-content">
+            <span class="hero-tag">Tacna, Perú</span>
+            <h1>Tu Hogar<br><span>Inteligente</span><br>Empieza Aquí</h1>
+            <p>Los mejores electrodomésticos al mejor precio con garantía y servicio técnico.</p>
+            <div class="hero-btns">
+              <a href="#ofertas" class="btn-primary">Ver Ofertas</a>
+              <a href="#categorias" class="btn-secondary">Ver Catálogo</a>
+            </div>
+          </div>
+        </div>
+        <div class="slide" style="background: linear-gradient(135deg, #a01218 0%, var(--red) 100%);">
+          <div class="hero-content">
+            <span class="hero-tag">Línea Blanca</span>
+            <h1>Renueva tu<br><span>Cocina</span><br>Hoy Mismo</h1>
+            <p>Aprovecha descuentos exclusivos en refrigeradoras y cocinas Bosch y Samsung.</p>
+            <div class="hero-btns">
+              <a href="#cocina" class="btn-primary">Ver Cocinas</a>
+            </div>
           </div>
         </div>
       </div>
-      <div class="slide" style="background: linear-gradient(135deg, #a01218 0%, var(--red) 100%);">
-        <div class="hero-content">
-          <div class="hero-tag">Línea Blanca</div>
-          <h1>Renueva tu<br><span>Cocina</span><br>Hoy Mismo</h1>
-          <p>Aprovecha descuentos exclusivos en refrigeradoras y cocinas Bosch y Samsung.</p>
-          <div class="hero-btns">
-            <a href="#cocina" class="btn-primary">Ver Cocinas</a>
-          </div>
+
+      <button class="slider-control prev" aria-label="Anterior slide" onclick="moveHeroSlide(-1)">❮</button>
+      <button class="slider-control next" aria-label="Siguiente slide" onclick="moveHeroSlide(1)">❯</button>
+
+      <div class="slider-dots" aria-hidden="true">
+        <span class="dot active" onclick="setHeroSlide(0)"></span>
+        <span class="dot" onclick="setHeroSlide(1)"></span>
+      </div>
+    </section>
+
+    <nav class="cat-nav" id="categorias" aria-label="Categorías de productos">
+      <a href="#lavadoras"    class="cat-link"><span class="cat-ico" aria-hidden="true">🫧</span> Lavadoras</a>
+      <a href="#tvs"          class="cat-link"><span class="cat-ico" aria-hidden="true">🖥️</span> Smart TVs</a>
+      <a href="#bano"         class="cat-link"><span class="cat-ico" aria-hidden="true">🚿</span> Baño</a>
+      <a href="#cocina"       class="cat-link"><span class="cat-ico" aria-hidden="true">🍳</span> Cocina</a>
+      <a href="#refrigeradoras" class="cat-link"><span class="cat-ico" aria-hidden="true">❄️</span> Refrigeradoras</a>
+      <a href="#audio"        class="cat-link"><span class="cat-ico" aria-hidden="true">🔊</span> Audio</a>
+      <a href="#aspiradoras"  class="cat-link"><span class="cat-ico" aria-hidden="true">🌀</span> Aspiradoras</a>
+      <a href="#plancha"      class="cat-link"><span class="cat-ico" aria-hidden="true">👔</span> Planchas</a>
+    </nav>
+
+    <section class="carousel-section" id="ofertas" aria-labelledby="titulo-ofertas">
+      <div class="section-header">
+        <h2 id="titulo-ofertas" class="section-title"> Ofertas <span>del Día</span></h2>
+        <a href="#" class="see-all">Ver todas →</a>
+      </div>
+      <div class="carousel-wrapper">
+        <button class="carousel-btn prev" data-target="ofertas-car" aria-label="Desplazar ofertas a la izquierda">‹</button>
+        <div class="carousel" id="ofertas-car"></div>
+        <button class="carousel-btn next" data-target="ofertas-car" aria-label="Desplazar ofertas a la derecha">›</button>
+      </div>
+    </section>
+
+    <aside id="promo-container" style="padding: 30px 0;" aria-label="Promoción especial">
+      <div class="promo-banner">
+        <div class="promo-text">
+          <span class="promo-tag">Oferta especial · Solo esta semana</span>
+          <h3 class="promo-title">Hasta 30% OFF<br>en Toda la Tienda</h3>
+          <p class="promo-sub">Envío gratis en compras mayores a S/ 500 en Tacna</p>
         </div>
+        <button class="promo-cta">Aprovechar Oferta →</button>
       </div>
-    </div>
+    </aside>
 
-    <button class="slider-control prev" onclick="moveHeroSlide(-1)">❮</button>
-    <button class="slider-control next" onclick="moveHeroSlide(1)">❯</button>
+    <div id="sections-container"></div>
 
-    <div class="slider-dots">
-      <span class="dot active" onclick="setHeroSlide(0)"></span>
-      <span class="dot" onclick="setHeroSlide(1)"></span>
-    </div>
-  </section>
+    <section id="resultados-busqueda" style="display: none; padding: 40px; background: var(--gray); min-height: 50vh;" aria-live="polite"></section>
 
-  <div class="cat-nav" id="categorias">
-    <a href="#lavadoras"    class="cat-link"><span class="cat-ico">🫧</span> Lavadoras</a>
-    <a href="#tvs"          class="cat-link"><span class="cat-ico">🖥️</span> Smart TVs</a>
-    <a href="#bano"         class="cat-link"><span class="cat-ico">🚿</span> Baño</a>
-    <a href="#cocina"       class="cat-link"><span class="cat-ico">🍳</span> Cocina</a>
-    <a href="#refrigeradoras" class="cat-link"><span class="cat-ico">❄️</span> Refrigeradoras</a>
-    <a href="#audio"        class="cat-link"><span class="cat-ico">🔊</span> Audio</a>
-    <a href="#aspiradoras"  class="cat-link"><span class="cat-ico">🌀</span> Aspiradoras</a>
-    <a href="#plancha"      class="cat-link"><span class="cat-ico">👔</span> Planchas</a>
-  </div>
-
-  <section class="carousel-section" id="ofertas">
-    <div class="section-header">
-      <h2 class="section-title"> Ofertas <span>del Día</span></h2>
-      <a href="#" class="see-all">Ver todas →</a>
-    </div>
-    <div class="carousel-wrapper">
-      <button class="carousel-btn prev" data-target="ofertas-car">‹</button>
-      <div class="carousel" id="ofertas-car"></div>
-      <button class="carousel-btn next" data-target="ofertas-car">›</button>
-    </div>
-  </section>
-
-  <div style="padding: 30px 0;">
-    <div class="promo-banner">
-      <div class="promo-text">
-        <div class="promo-tag">Oferta especial · Solo esta semana</div>
-        <div class="promo-title">Hasta 30% OFF<br>en Toda la Tienda</div>
-        <div class="promo-sub">Envío gratis en compras mayores a S/ 500 en Tacna</div>
-      </div>
-      <button class="promo-cta">Aprovechar Oferta →</button>
-    </div>
-  </div>
-
-  <div id="sections-container"></div>
+    <article id="vista-detalle" style="display: none;" aria-live="assertive"></article>
+  </main>
 
   <footer>
     <div class="footer-top">
         <div class="footer-brand">
           <div class="logo-area">
-            <div class="logo-icon"></div>
+            <div class="logo-icon" aria-hidden="true"></div>
             <div class="logo-text"><span>ELECTRO</span>HOGAR</div>
           </div>
           <p class="footer-desc">Tu tienda de electrodomésticos de confianza en Tacna, Perú. Calidad, garantía y el mejor servicio técnico post-venta.</p>
         </div>
-        <div class="footer-col">
+        <nav class="footer-col" aria-label="Categorías pie de página">
           <h4>Categorías</h4>
           <ul>
             <li><a href="#lavadoras">Lavadoras</a></li>
@@ -113,8 +124,8 @@
             <li><a href="#cocina">Cocina</a></li>
             <li><a href="#refrigeradoras">Refrigeradoras</a></li>
           </ul>
-        </div>
-        <div class="footer-col">
+        </nav>
+        <nav class="footer-col" aria-label="Información legal">
           <h4>Información</h4>
           <ul>
             <li><a href="#">Sobre Nosotros</a></li>
@@ -123,22 +134,43 @@
             <li><a href="#">Financiamiento</a></li>
             <li><a href="#">Términos y Condiciones</a></li>
           </ul>
-        </div>
-        <div class="footer-col">
+        </nav>
+        <address class="footer-col">
           <h4>Contacto</h4>
           <ul>
-            <li><a href="#">📍 Tacna, Perú</a></li>
-            <li><a href="#">📞 (052) 123-456</a></li>
-            <li><a href="#">📱 WhatsApp</a></li>
-            <li><a href="#">✉️ ventas@electrohogar.pe</a></li>
-            <li><a href="#">🕐 Lun–Sab: 9am – 7pm</a></li>
+            <li>📍 Tacna, Perú</li>
+            <li>📞 <a href="tel:052123456" style="color: inherit; text-decoration: none;">(052) 123-456</a></li>
+            <li>📱 WhatsApp</li>
+            <li>✉️ <a href="mailto:ventas@electrohogar.pe" style="color: inherit; text-decoration: none;">ventas@electrohogar.pe</a></li>
+            <li>🕐 Lun–Sab: 9am – 7pm</li>
           </ul>
-        </div>
+        </address>
       </div>
       <div class="footer-bottom">
-        <span>© 2026 ElectroHogar Tacna. Todos los derechos reservados.</span>
+        <small>© 2026 ElectroHogar Tacna. Todos los derechos reservados.</small>
       </div>
   </footer>
+
+  <div class="cart-overlay" id="cart-overlay" onclick="cerrarCarrito()"></div>
+  <aside class="cart-sidebar" id="cart-sidebar" aria-label="Tu carrito de compras">
+    <div class="cart-header">
+      <h2>Tu Carrito</h2>
+      <button class="close-cart" onclick="cerrarCarrito()" aria-label="Cerrar carrito">✕</button>
+    </div>
+    
+    <div class="cart-items" id="cart-items">
+      </div>
+    
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span>Total Estimado:</span>
+        <span id="cart-total-price">S/ 0</span>
+      </div>
+      <button class="btn-buy-now" style="width: 100%; margin-top: 15px; padding: 16px;" onclick="enviarPedidoCarrito()">
+        📱 Enviar Pedido por WhatsApp
+      </button>
+    </div>
+  </aside>
 
   <script src="data/productos.js"></script>
   <script src="js/main.js"></script>

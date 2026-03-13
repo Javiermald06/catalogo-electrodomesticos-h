@@ -1,0 +1,66 @@
+/* ============================================================
+   login.css — Estilos Exclusivos para el Acceso
+   ============================================================ */
+
+/* 1. PALETA DE COLORES Y RESETEO BASE */
+:root {
+  --red:        #E8232A;
+  --blue:       #1B3A6B;
+  --blue-light: #2A5298;
+  --white:      #FFFFFF;
+  --gray:       #F8FAFC;
+  --dark:       #0F172A;
+  --text:       #334155;
+  --border:     rgba(0,0,0,0.1);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body.login-body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+  color: var(--text);
+}
+
+/* 2. DISEÑO DEL LOGO Y BOTÓN */
+.logo-area { display: flex; align-items: center; gap: 12px; }
+.logo-icon { width: 36px; height: 36px; background-image: url('../assets/img/logo-flecha.png'); background-size: contain; background-repeat: no-repeat; background-position: center; }
+.logo-text { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 24px; letter-spacing: 1px;}
+.logo-text span { color: var(--red); }
+
+.btn-primary { 
+  background: var(--red); color: white; border: none; border-radius: 12px; 
+  font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 15px; 
+  cursor: pointer; transition: all 0.3s ease; 
+}
+.btn-primary:hover { background: #c91e24; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(232,35,42,0.3); }
+
+/* 3. ESTRUCTURA DEL FORMULARIO */
+.login-container {
+  background: white; padding: 50px 40px; border-radius: 24px;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.4); width: 100%; max-width: 420px;
+  text-align: center; animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+.login-header h2 { font-family: 'Rajdhani', sans-serif; color: var(--blue); font-size: 28px; margin-bottom: 6px; }
+.login-header p { color: #64748b; font-size: 14px; margin-bottom: 30px; }
+
+.input-group { text-align: left; margin-bottom: 20px; }
+.input-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+.input-group input {
+  width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px;
+  font-family: 'Outfit', sans-serif; font-size: 15px; background: var(--gray); transition: all 0.3s;
+}
+.input-group input:focus { outline: none; border-color: var(--blue-light); background: white; box-shadow: 0 0 0 4px rgba(42, 82, 152, 0.1); }
+
+.login-footer { margin-top: 30px; }
+.login-footer a { color: #64748b; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+.login-footer a:hover { color: var(--red); }

@@ -1,119 +1,94 @@
 /* ============================================================
    main.js — Lógica principal del catálogo ElectroHogar Tacna
-   Depende de: data/productos.js (debe cargarse antes)
    ============================================================ */
 
-/* ──────────────────────────────────────────────────────────
-   1. CONFIGURACIÓN DE SECCIONES
-   Define el orden, id, icono y subtítulo de cada categoría.
-   ────────────────────────────────────────────────────────── */
 const SECCIONES = [
-  { id: 'lavadoras',      titulo: 'Lavadoras',       icono: '🫧', subtitulo: 'Carga frontal, carga superior y secadoras' },
-  { id: 'tvs',            titulo: 'Smart TVs',        icono: '🖥️', subtitulo: '4K, OLED, QLED y más tecnologías de pantalla' },
-  { id: 'bano',           titulo: 'Baño',             icono: '🚿', subtitulo: 'Calentadores, duchas y accesorios para el baño' },
-  { id: 'cocina',         titulo: 'Cocina',           icono: '🍳', subtitulo: 'Cocinas, hornos, microondas y pequeños electrodomésticos' },
-  { id: 'refrigeradoras', titulo: 'Refrigeradoras',   icono: '❄️', subtitulo: 'No Frost, Side by Side y Mini refrigeradoras' },
-  { id: 'audio',          titulo: 'Audio y Sonido',   icono: '🔊', subtitulo: 'Soundbars, parlantes, audífonos y sistemas de sonido' },
-  { id: 'aspiradoras',    titulo: 'Aspiradoras',      icono: '🌀', subtitulo: 'Robot aspiradoras, verticales y de arrastre' },
-  { id: 'plancha',        titulo: 'Planchas',         icono: '👔', subtitulo: 'Planchas a vapor, verticales y centros de planchado' },
+  { id: 'lavadoras', titulo: 'Lavadoras', icono: '🫧', subtitulo: 'Carga frontal, carga superior y secadoras' },
+  { id: 'tvs', titulo: 'Smart TVs', icono: '🖥️', subtitulo: '4K, OLED, QLED y más tecnologías de pantalla' },
+  { id: 'bano', titulo: 'Baño', icono: '🚿', subtitulo: 'Calentadores, duchas y accesorios para el baño' },
+  { id: 'cocina', titulo: 'Cocina', icono: '🍳', subtitulo: 'Cocinas, hornos, microondas y pequeños electrodomésticos' },
+  { id: 'refrigeradoras', titulo: 'Refrigeradoras', icono: '❄️', subtitulo: 'No Frost, Side by Side y Mini refrigeradoras' },
+  { id: 'audio', titulo: 'Audio y Sonido', icono: '🔊', subtitulo: 'Soundbars, parlantes, audífonos y sistemas de sonido' },
+  { id: 'aspiradoras', titulo: 'Aspiradoras', icono: '🌀', subtitulo: 'Robot aspiradoras, verticales y de arrastre' },
+  { id: 'plancha', titulo: 'Planchas', icono: '👔', subtitulo: 'Planchas a vapor, verticales y centros de planchado' },
 ];
 
-/* ──────────────────────────────────────────────────────────
-   2. LÓGICA DEL HERO SLIDER (CARRUSEL PRINCIPAL)
-   ────────────────────────────────────────────────────────── */
 let heroIndex = 0;
 let heroInterval;
 
 function initHeroSlider() {
   const slides = document.querySelectorAll('.slide');
   const dots = document.querySelectorAll('.dot');
-  
   if (slides.length === 0) return;
 
-  // Función global para mostrar el slide específico
   window.showHeroSlide = function(n) {
     slides.forEach(s => s.classList.remove('active'));
     dots.forEach(d => d.classList.remove('active'));
-    
     heroIndex = (n + slides.length) % slides.length;
-    
     slides[heroIndex].classList.add('active');
     if(dots[heroIndex]) dots[heroIndex].classList.add('active');
   };
 
-  // Función global para mover adelante/atrás
   window.moveHeroSlide = function(n) {
     showHeroSlide(heroIndex + n);
-    resetHeroInterval(); // Reiniciar contador al hacer click manual
+    resetHeroInterval(); 
   };
 
-  // Función global para los puntos indicadores
   window.setHeroSlide = function(n) {
     showHeroSlide(n);
     resetHeroInterval();
   };
 
-  // Autoplay
   function resetHeroInterval() {
     clearInterval(heroInterval);
-    heroInterval = setInterval(() => moveHeroSlide(1), 5000); // Cambia cada 5 segundos
+    heroInterval = setInterval(() => moveHeroSlide(1), 5000); 
   }
-
   resetHeroInterval();
 }
 
-/* ──────────────────────────────────────────────────────────
-   3. GENERACIÓN DE HTML PARA TARJETA DE PRODUCTO
-   ────────────────────────────────────────────────────────── */
+
 function crearTarjetaProducto(prod) {
-  // Imagen: usa <img> si hay ruta, si no muestra emoji
+  // BEM: Definimos clases para la imagen
   const imgContent = prod.img
-    ? `<img src="assets/img/${prod.img}" alt="${prod.nombre}" loading="lazy"
-            onerror="this.parentElement.innerHTML='${prod.emoji}'">`
+    ? `<img class="product-card__img" src="assets/img/${prod.img}" alt="${prod.nombre}" loading="lazy" onerror="this.parentElement.innerHTML='${prod.emoji}'">`
     : prod.emoji;
 
-  // Badge (etiqueta)
-  const badge = prod.badge
-    ? `<div class="product-badge ${prod.badge}">${prod.badgeText}</div>`
+  // BEM: El badge es un Elemento y el tipo ('new'/'sale') es un Modificador
+  const badge = prod.badge 
+    ? `<div class="product-card__badge product-card__badge--${prod.badge}">${prod.badgeText}</div>` 
     : '';
 
-  // Precio anterior tachado
-  const precioAntes = prod.precioAntes
-    ? `<span class="product-price-old">S/ ${prod.precioAntes.toLocaleString()}</span>`
+  // BEM: El precio anterior es un Modificador del precio normal
+  const precioAntes = prod.precioAntes 
+    ? `<span class="product-card__price product-card__price--old">S/ ${prod.precioAntes.toLocaleString()}</span>` 
     : '';
 
   return `
-    <div class="product-card" data-id="${prod.id}">
+    <article class="product-card" data-id="${prod.id}" onclick="mostrarDetalle('${prod.id}')">
       ${badge}
-      <div class="product-img">${imgContent}</div>
-      <div class="product-info">
-        <div class="product-brand">${prod.marca}</div>
-        <div class="product-name">${prod.nombre}</div>
-        <div>
-          <span class="product-price">S/ ${prod.precio.toLocaleString()}</span>
+      <div class="product-card__image-container">${imgContent}</div>
+      <div class="product-card__info">
+        <span class="product-card__brand">${prod.marca}</span>
+        <h3 class="product-card__title">${prod.nombre}</h3>
+        <div class="product-card__price-wrapper">
+          <span class="product-card__price">S/ ${prod.precio.toLocaleString()}</span>
           ${precioAntes}
         </div>
-        <button class="product-btn" onclick="consultarPrecio('${prod.id}')">
-          Consultar precio
+        <button class="product-card__btn" onclick="event.stopPropagation(); agregarAlCarrito('${prod.id}', false)">
+          🛒 Agregar al carrito
         </button>
       </div>
-    </div>`;
+    </article>`;
 }
 
-/* ──────────────────────────────────────────────────────────
-   4. RENDERIZAR CARRUSEL DE OFERTAS
-   ────────────────────────────────────────────────────────── */
+
 function renderCarruselOfertas() {
   const container = document.getElementById('ofertas-car');
   if (!container) return;
-
   const ofertas = getOfertas();
   container.innerHTML = ofertas.map(crearTarjetaProducto).join('');
 }
 
-/* ──────────────────────────────────────────────────────────
-   5. RENDERIZAR SECCIONES DE CATEGORÍAS
-   ────────────────────────────────────────────────────────── */
 function renderSecciones() {
   const container = document.getElementById('sections-container');
   if (!container) return;
@@ -121,9 +96,7 @@ function renderSecciones() {
   container.innerHTML = SECCIONES.map(sec => {
     const productos = getByCategoria(sec.id);
     if (!productos.length) return '';
-
     const tarjetas = productos.map(crearTarjetaProducto).join('');
-
     return `
       <section class="cat-section" id="${sec.id}">
         <div class="cat-section-header">
@@ -140,9 +113,6 @@ function renderSecciones() {
   }).join('');
 }
 
-/* ──────────────────────────────────────────────────────────
-   6. CARRUSEL PRODUCTOS: BOTONES PREV / NEXT
-   ────────────────────────────────────────────────────────── */
 function initCarouselButtons() {
   document.querySelectorAll('.carousel-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -155,12 +125,8 @@ function initCarouselButtons() {
   });
 }
 
-/* ──────────────────────────────────────────────────────────
-   7. ACTIVE LINK EN CAT-NAV AL HACER SCROLL
-   ────────────────────────────────────────────────────────── */
 function initScrollSpy() {
   const catLinks = document.querySelectorAll('.cat-link');
-
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -173,35 +139,329 @@ function initScrollSpy() {
       }
     });
   }, { threshold: 0.3 });
-
   document.querySelectorAll('[id]').forEach(el => observer.observe(el));
 }
 
-/* ──────────────────────────────────────────────────────────
-   8. ACCIÓN: CONSULTAR PRECIO (WHATSAPP)
-   ────────────────────────────────────────────────────────── */
 function consultarPrecio(productoId) {
   const prod = PRODUCTOS.find(p => p.id === productoId);
   if (!prod) return;
-
-  // Abrir WhatsApp con mensaje prearmado
-  const mensaje = encodeURIComponent(
-    `Hola, me interesa el producto: *${prod.nombre}* (${prod.marca}) — S/ ${prod.precio.toLocaleString()}. ¿Está disponible?`
-  );
-  
-  // RECUERDA: Reemplazar XXXXXXXXX por tu número real de Tacna/Perú
-  const whatsapp = `https://wa.me/51XXXXXXXXX?text=${mensaje}`; 
-
+  const mensaje = encodeURIComponent(`Hola, me interesa el producto: *${prod.nombre}* (${prod.marca}) — S/ ${prod.precio.toLocaleString()}. ¿Está disponible?`);
+  const whatsapp = `https://wa.me/51989919237?text=${mensaje}`; 
   window.open(whatsapp, '_blank');
 }
 
 /* ──────────────────────────────────────────────────────────
-   9. INICIALIZACIÓN GENERAL
+   SPA: MOSTRAR Y CERRAR DETALLE DE PRODUCTO
    ────────────────────────────────────────────────────────── */
+function mostrarDetalle(productoId) {
+  const prod = PRODUCTOS.find(p => p.id === productoId);
+  if (!prod) return;
+
+  // Ocultamos todo
+  document.getElementById('main-slider').style.display = 'none';
+  document.getElementById('categorias').style.display = 'none';
+  document.getElementById('ofertas').style.display = 'none';
+  document.getElementById('promo-container').style.display = 'none';
+  document.getElementById('sections-container').style.display = 'none';
+  document.getElementById('resultados-busqueda').style.display = 'none'; // NUEVO: ocultar búsqueda
+
+  const imgContent = prod.img ? `<img src="assets/img/${prod.img}" alt="${prod.nombre}">` : `<div style="font-size: 100px;">${prod.emoji}</div>`;
+  const precioAntes = prod.precioAntes ? `<span class="detail-old-price">Antes: S/ ${prod.precioAntes.toLocaleString()}</span>` : '';
+  const badge = prod.badge ? `<div class="product-badge ${prod.badge}" style="position: relative; top: 0; left: 0; display:inline-block; margin-left:10px;">${prod.badgeText}</div>` : '';
+  
+  const listaEspecificaciones = prod.especificaciones ? prod.especificaciones.map(detalle => `<li>${detalle}</li>`).join('') : `<li>📌 <strong>Marca:</strong> ${prod.marca}</li>`;
+  const mensaje = encodeURIComponent(`Hola, me interesa el producto: *${prod.nombre}* (${prod.marca}) — S/ ${prod.precio.toLocaleString()}. ¿Tienen stock?`);
+  const whatsappUrl = `https://wa.me/51989919237?text=${mensaje}`;
+
+  const detalleHtml = `
+    <div class="product-detail-container">
+      <div class="detail-back-bar" onclick="cerrarDetalle()">❮ Volver al catálogo principal</div>
+      <div class="detail-content-wrapper">
+        <div class="product-gallery">${imgContent}</div>
+        <div class="product-info-detail">
+          <span class="detail-category">${prod.categoria} / ${prod.marca}</span>
+          <h1 class="detail-title">${prod.nombre}</h1>
+          
+          <div class="detail-price-box">
+            ${precioAntes}
+            <h2 class="detail-current-price">S/ ${prod.precio.toLocaleString()} ${badge}</h2>
+          </div>
+
+          <div class="quantity-selector">
+            <span style="font-size: 14px; font-weight: 600; color: var(--text);">Cantidad:</span>
+            <button class="qty-btn" onclick="cambiarCantidad(-1)">-</button>
+            <input type="number" id="prod-cantidad" class="qty-input" value="1" min="1" readonly>
+            <button class="qty-btn" onclick="cambiarCantidad(1)">+</button>
+          </div>
+
+          <ul class="detail-features">
+            ${listaEspecificaciones}
+          </ul>
+          
+          <div class="detail-action-btns">
+          <ul class="detail-features">
+            ${listaEspecificaciones}
+          </ul>
+          
+          <button onclick="agregarAlCarrito('${prod.id}', true)" class="btn-primary" style="width: 100%; margin-top: 10px;">
+            🛒 Agregar al Carrito
+          </button>
+        </div>
+      </div>
+    </div>
+  
+          
+          <button onclick="comprarProductoDetalle('${prod.id}')" class="btn-whatsapp-large">
+            📱 Comprar por WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const vistaDetalle = document.getElementById('vista-detalle');
+  if (vistaDetalle) {
+    vistaDetalle.innerHTML = detalleHtml;
+    vistaDetalle.style.display = 'block';
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+}
+
+function cerrarDetalle() {
+  document.getElementById('vista-detalle').style.display = 'none';
+
+  const buscador = document.getElementById('buscador');
+  // Si hay algo escrito en el buscador, regresamos a la pantalla de resultados
+  if (buscador && buscador.value.trim() !== '') {
+    document.getElementById('resultados-busqueda').style.display = 'block';
+  } else {
+    // Si no, regresamos al catálogo principal
+    document.getElementById('main-slider').style.display = 'block';
+    document.getElementById('categorias').style.display = 'flex';
+    document.getElementById('ofertas').style.display = 'block';
+    document.getElementById('promo-container').style.display = 'block';
+    document.getElementById('sections-container').style.display = 'block';
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  initHeroSlider();        // Inicia el nuevo carrusel principal
-  renderCarruselOfertas(); // Renderiza las ofertas del día
-  renderSecciones();       // Renderiza las categorías y productos
-  initCarouselButtons();   // Activa botones del carrusel de productos
-  initScrollSpy();         // Activa el resaltado de navegación
+  initHeroSlider();        
+  renderCarruselOfertas(); 
+  renderSecciones();       
+  initCarouselButtons();   
+  initScrollSpy();         
 });
+
+/* ──────────────────────────────────────────────────────────
+   11. SPA: BUSCADOR EN TIEMPO REAL
+   ────────────────────────────────────────────────────────── */
+function buscarProducto(termino) {
+  const texto = termino.toLowerCase().trim();
+  const vistaResultados = document.getElementById('resultados-busqueda');
+  
+  if (texto === '') {
+    // Si borran el texto, cerramos la búsqueda y volveamos al catálogo
+    vistaResultados.style.display = 'none';
+    document.getElementById('main-slider').style.display = 'block';
+    document.getElementById('categorias').style.display = 'flex';
+    document.getElementById('ofertas').style.display = 'block';
+    document.getElementById('promo-container').style.display = 'block';
+    document.getElementById('sections-container').style.display = 'block';
+    return;
+  }
+
+  // Ocultamos el catálogo principal
+  document.getElementById('main-slider').style.display = 'none';
+  document.getElementById('categorias').style.display = 'none';
+  document.getElementById('ofertas').style.display = 'none';
+  document.getElementById('promo-container').style.display = 'none';
+  document.getElementById('sections-container').style.display = 'none';
+  document.getElementById('vista-detalle').style.display = 'none'; // Por si había un producto abierto
+
+  // Filtramos la base de datos (busca por nombre, marca o categoría)
+  const resultados = PRODUCTOS.filter(p => 
+    p.nombre.toLowerCase().includes(texto) || 
+    p.marca.toLowerCase().includes(texto) ||
+    p.categoria.toLowerCase().includes(texto)
+  );
+
+  // Dibujamos los resultados
+  let html = `<h2 class="resultados-header">Resultados para: <span>"${termino}"</span></h2>`;
+  
+  if (resultados.length > 0) {
+    html += `<div class="products-grid">` + resultados.map(crearTarjetaProducto).join('') + `</div>`;
+  } else {
+    html += `<p style="text-align:center; margin-top: 50px; font-size: 18px;">No se encontraron productos para esta búsqueda 😢</p>`;
+  }
+
+  vistaResultados.innerHTML = html;
+  vistaResultados.style.display = 'block';
+}
+
+/* ──────────────────────────────────────────────────────────
+   LÓGICA DE CANTIDAD Y CARRITO
+   ────────────────────────────────────────────────────────── */
+function cambiarCantidad(cambio) {
+  const input = document.getElementById('prod-cantidad');
+  if(!input) return;
+  let actual = parseInt(input.value);
+  let nuevo = actual + cambio;
+  
+  // Evitamos que bajen de 1 producto
+  if(nuevo >= 1) {
+    input.value = nuevo;
+  }
+}
+// Memoria del carrito de compras
+let carrito = [];
+
+function comprarProductoDetalle(productoId) {
+  const prod = PRODUCTOS.find(p => p.id === productoId);
+  if (!prod) return;
+  
+  const input = document.getElementById('prod-cantidad');
+  const cantidad = input ? parseInt(input.value) : 1;
+  const precioTotal = (prod.precio * cantidad).toLocaleString();
+  
+  const mensaje = encodeURIComponent(`Hola, me interesa comprar:\n*${cantidad}x ${prod.nombre}* (${prod.marca})\n💰 *Total Aprox: S/ ${precioTotal}*\n\n¿Tienen stock disponible?`);
+  
+  // Recuerda poner tu número aquí
+  const whatsappUrl = `https://wa.me/51989919237?text=${mensaje}`;
+  window.open(whatsappUrl, '_blank');
+}
+
+
+function agregarAlCarrito(productoId, desdeDetalle = false) {
+  const prod = PRODUCTOS.find(p => p.id === productoId);
+  if (!prod) return;
+
+  // Si estamos en la ventana de detalle, leemos el input. Si es desde el catálogo, suma 1.
+  let cantidadAAgregar = 1;
+  if (desdeDetalle) {
+    const input = document.getElementById('prod-cantidad');
+    cantidadAAgregar = input ? parseInt(input.value) : 1;
+  }
+
+  // Buscamos si el producto ya está en el carrito para no duplicarlo, solo sumar la cantidad
+  const itemExistente = carrito.find(item => item.id === productoId);
+  if (itemExistente) {
+    itemExistente.cantidad += cantidadAAgregar;
+  } else {
+    carrito.push({ ...prod, cantidad: cantidadAAgregar });
+  }
+
+  actualizarContadorCarrito();
+  
+  // Una pequeña alerta para confirmar la acción
+  alert(`¡Agregaste ${cantidadAAgregar}x ${prod.nombre} al carrito! 🛒`);
+}
+
+function actualizarContadorCarrito() {
+  const counter = document.querySelector('.cart-counter');
+  if (!counter) return;
+  
+  // Sumamos todas las cantidades de los productos en el carrito
+  const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+  counter.innerText = totalItems;
+}
+
+function abrirCarrito() {
+  renderizarCarrito(); // Dibuja los productos actualizados
+  document.getElementById('cart-overlay').classList.add('open');
+  document.getElementById('cart-sidebar').classList.add('open');
+}
+
+function cerrarCarrito() {
+  document.getElementById('cart-overlay').classList.remove('open');
+  document.getElementById('cart-sidebar').classList.remove('open');
+}
+
+function renderizarCarrito() {
+  const container = document.getElementById('cart-items');
+  const totalPriceEl = document.getElementById('cart-total-price');
+  
+  // Si está vacío, mostramos un mensaje amigable
+  if (carrito.length === 0) {
+    container.innerHTML = '<div style="text-align:center; color:#94a3b8; margin-top:40px; font-size: 16px;">Tu carrito está vacío 🛒<br>¡Agrega algo increíble!</div>';
+    totalPriceEl.innerText = 'S/ 0';
+    return;
+  }
+
+  let html = '';
+  let total = 0;
+
+  // Recorremos la memoria del carrito y creamos el HTML de cada producto
+  carrito.forEach((item, index) => {
+    const subtotal = item.precio * item.cantidad;
+    total += subtotal;
+
+    const imgContent = item.img ? `<img class="product-card__img" src="assets/img/${item.img}" alt="${item.nombre}">` : item.emoji;
+
+    html += `
+      <div class="cart-item">
+        <div class="cart-item-img">${imgContent}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-title">${item.nombre}</div>
+          <div class="cart-item-price">S/ ${item.precio.toLocaleString()}</div>
+          
+          <div class="cart-item-qty-controls">
+            <button class="cart-qty-btn" onclick="cambiarCantidadCarrito(${index}, -1)">-</button>
+            <span class="cart-qty-number">${item.cantidad}</span>
+            <button class="cart-qty-btn" onclick="cambiarCantidadCarrito(${index}, 1)">+</button>
+          </div>
+
+          <button class="cart-item-remove" onclick="eliminarDelCarrito(${index})">Eliminar</button>
+        </div>
+      </div>
+    `;
+  });
+
+  // ✨ AHORA ESTO SÍ ESTÁ EN EL LUGAR CORRECTO
+  container.innerHTML = html;
+  totalPriceEl.innerText = `S/ ${total.toLocaleString()}`;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Modificar cantidad directamente desde el carrito lateral
+   ────────────────────────────────────────────────────────── */
+function cambiarCantidadCarrito(index, cambio) {
+  if (carrito[index]) {
+    let nuevaCantidad = carrito[index].cantidad + cambio;
+    
+    // Si la cantidad llega a 0, se elimina
+    if (nuevaCantidad >= 1) {
+      carrito[index].cantidad = nuevaCantidad;
+    } else {
+      carrito.splice(index, 1);
+    }
+    
+    actualizarContadorCarrito(); // Actualiza la burbuja roja de arriba
+    renderizarCarrito(); // Vuelve a dibujar el panel lateral
+  }
+}
+
+function eliminarDelCarrito(index) {
+  carrito.splice(index, 1); // Borra 1 elemento en la posición "index"
+  actualizarContadorCarrito();
+  renderizarCarrito(); // Vuelve a dibujar la lista actualizada
+}
+
+function enviarPedidoCarrito() {
+  if (carrito.length === 0) return;
+
+  let total = 0;
+  let mensaje = "Hola ElectroHogar, me gustaría realizar el siguiente pedido:\n\n";
+
+  carrito.forEach(item => {
+    const subtotal = item.precio * item.cantidad;
+    total += subtotal;
+    mensaje += `🔹 ${item.cantidad}x *${item.nombre}* (S/ ${subtotal.toLocaleString()})\n`;
+  });
+
+  mensaje += `\n💰 *Total Estimado: S/ ${total.toLocaleString()}*\n\n¿Podrían confirmarme el stock y los métodos de pago para Tacna?`;
+
+  const whatsappUrl = `https://wa.me/51989919237?text=${encodeURIComponent(mensaje)}`;
+  window.open(whatsappUrl, '_blank');
+}

@@ -1,0 +1,46 @@
+/*
+/* ============================================================
+   mockup.css — Modo Prototipo (Mantiene funcionalidad y colores)
+   ============================================================ 
+
+/* 1. Ocultamos las imágenes reales, pero mantenemos su espacio 
+img {
+    visibility: hidden !important; 
+}
+
+/* 2. Ocultamos los emojis (haciendo su texto transparente) y les damos fondo de recuadro 
+.product-img, .product-gallery, .cat-section-icon, .logo-icon {
+    color: transparent !important; 
+    background: var(--gray) !important; 
+    border: 2px dashed var(--blue-light) !important; 
+    position: relative;
+    border-radius: 8px;
+}
+
+/* 3. Le ponemos un texto de "FOTO" encima a los recuadros para que parezca un Mockup de Figma 
+.product-img::after, .product-gallery::after {
+    content: '🖼️ Espacio para Foto';
+    position: absolute;
+    color: var(--blue-light);
+    font-size: 14px;
+    font-weight: bold;
+    font-family: 'Outfit', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+/* Ajuste para la galería grande de la ventana de detalles 
+.product-gallery::after {
+    font-size: 24px;
+}
+
+/* 4. Simplificamos el banner de promoción (quitamos adornos) 
+.promo-banner::before, .promo-banner::after {
+    display: none !important;
+}
+*/
