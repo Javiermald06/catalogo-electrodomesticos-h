@@ -16,10 +16,11 @@
       <div class="logo-text"><span>ELECTRO</span>HOGAR</div>
     </div>
     
-    <div class="search-container">
-      <span class="search-icon" aria-hidden="true">🔍</span>
-      <input type="search" id="buscador" placeholder="Buscar productos, marcas..." aria-label="Buscar en el catálogo" onkeyup="buscarProducto(this.value)">
-    </div>
+    <div class="search-container" style="position: relative; flex-grow: 1; max-width: 500px; margin: 0 20px;">
+        <input type="text" id="buscador-principal" class="search-input" placeholder="Buscar por modelo o marca..." autocomplete="off" onkeyup="mostrarSugerencias(this.value)">
+        <div id="caja-sugerencias" class="search-suggestions">
+          </div>
+      </div>
 
     <div class="header-actions">
       <button class="cart-btn" aria-label="Ver carrito" onclick="abrirCarrito()">

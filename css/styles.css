@@ -1027,4 +1027,56 @@ footer {
 }
 
 
+/* ============================================================
+   BUSCADOR PREDICTIVO (SUGERENCIAS)
+   ============================================================ */
+.search-suggestions {
+  position: absolute;
+  top: 100%; /* Se coloca justo debajo del input */
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  z-index: 2000;
+  display: none; /* Oculto por defecto */
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+/* Clase que JS agregará para mostrar la caja */
+.search-suggestions.active {
+  display: block;
+  animation: fadeInDown 0.2s ease;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.sugerencia-item {
+  padding: 14px 18px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text);
+  border-bottom: 1px solid #f1f5f9;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.sugerencia-item:last-child {
+  border-bottom: none;
+}
+
+.sugerencia-item:hover {
+  background: var(--gray);
+  color: var(--blue);
+  padding-left: 24px; /* Pequeño efecto de desplazamiento al pasar el mouse */
+  font-weight: 500;
+}
+
 
