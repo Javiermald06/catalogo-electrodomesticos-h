@@ -1,0 +1,94 @@
+/* ============================================================
+   catalogo.css — Diseño de la Tienda Pública (Filtros y Grid)
+   ============================================================ */
+:root {
+    --blue: #1B3A6B;         /* Azul ElectroHogar */
+    --blue-hover: #102A52;
+    --red: #E8232A;          /* Rojo ElectroHogar */
+    --discount: #ff8c00;     /* Naranja de descuentos */
+    --text-dark: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --bg-main: #ffffff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Outfit', sans-serif; background-color: var(--bg-main); color: var(--text-dark); }
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
+.max-w-container { max-width: 1280px; margin: 0 auto; width: 100%; padding: 0 24px; }
+
+/* ================= CABECERA Y MIGAS DE PAN ================= */
+.store-header { border-bottom: 1px solid var(--border); padding: 16px 0; }
+.header-content { display: flex; justify-content: space-between; align-items: center; }
+.logo { font-size: 24px; font-weight: 800; color: var(--blue); font-family: 'Rajdhani', sans-serif; display: flex; align-items: center; gap: 8px;}
+.logo img { height: 35px; }
+.search-bar input { width: 450px; padding: 12px 20px; border-radius: 999px; border: 1px solid var(--border); outline: none; transition: 0.2s; font-family: inherit; }
+.search-bar input:focus { border-color: var(--blue); }
+.breadcrumbs { padding: 24px 0; font-size: 14px; color: var(--text-muted); }
+.breadcrumbs strong { color: var(--blue); }
+
+/* ================= LAYOUT ================= */
+.catalog-layout { display: flex; gap: 32px; align-items: flex-start; margin-bottom: 64px; }
+.filters-sidebar { width: 260px; flex-shrink: 0; }
+.products-area { flex: 1; }
+
+/* ================= FILTROS LATERALES ================= */
+.filter-section { padding: 20px 0; }
+.border-top { border-top: 1px solid var(--border); }
+.filter-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 16px; }
+.filter-title { font-weight: 700; font-size: 16px; color: var(--text-dark); }
+.filter-icon { color: var(--blue); transition: transform 0.3s ease; width: 20px; }
+
+.filter-content { overflow: hidden; transition: 0.3s; display: block; }
+.filter-content.hidden { display: none; }
+
+/* Checkboxes personalizados redondos */
+.hidden-check { display: none; }
+.filter-option { display: flex; align-items: center; cursor: pointer; margin-bottom: 12px; }
+.custom-radio { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 50%; margin-right: 12px; position: relative; transition: 0.2s; flex-shrink: 0; }
+.hidden-check:checked + .custom-radio { border-color: var(--blue); }
+.hidden-check:checked + .custom-radio::after { content: ''; position: absolute; top: 3px; left: 3px; width: 8px; height: 8px; background: var(--blue); border-radius: 50%; }
+.option-text { font-size: 14px; color: #333; }
+.count { color: var(--text-muted); font-size: 13px; }
+
+.internal-search { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 16px; outline: none; font-family: inherit; }
+.ver-mas-link { color: var(--blue); font-size: 14px; font-weight: 600; text-decoration: underline; margin-top: 8px; }
+
+/* Rango de precio */
+.price-range-labels { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 12px; font-weight: 500; }
+.price-slider-track { height: 4px; background: var(--border); border-radius: 2px; position: relative; margin: 20px 0 30px 0; }
+.price-slider-fill { position: absolute; left: 0; right: 20%; height: 100%; background: var(--blue); }
+.slider-thumb { position: absolute; top: -6px; width: 16px; height: 16px; background: var(--blue); border-radius: 50%; cursor: pointer; }
+.slider-thumb.left { left: 0; }
+.slider-thumb.right { right: 20%; }
+.price-actions { display: flex; justify-content: space-between; align-items: center; }
+
+/* ================= GRID DE PRODUCTOS ================= */
+.products-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.view-options { display: flex; align-items: center; }
+.view-btn { padding: 6px; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); margin-right: 8px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+.view-btn.active { border-color: var(--blue); color: var(--blue); background: #eff6ff; }
+.sort-select { padding: 10px 16px; border: 1px solid var(--text-dark); border-radius: 6px; font-weight: 500; outline: none; font-family: inherit; cursor: pointer; }
+
+.products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+/* Tarjeta de Producto */
+.product-card { border: 1px solid var(--border); border-radius: 12px; padding: 24px; position: relative; display: flex; flex-direction: column; transition: box-shadow 0.3s; background: white; }
+.product-card:hover { box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+.discount-badge { position: absolute; top: 16px; left: 16px; background: var(--discount); color: white; font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 14px; z-index: 10; }
+.product-img { width: 100%; height: 220px; object-fit: contain; margin-bottom: 16px; }
+
+.product-brand { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+.product-name { font-size: 15px; font-weight: 600; color: var(--text-dark); margin-bottom: 16px; line-height: 1.4; height: 42px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.product-seller { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+
+.price-offer { font-size: 24px; font-weight: 800; color: var(--blue); display: flex; align-items: baseline; gap: 6px; }
+.price-offer span { font-size: 13px; font-weight: 500; color: var(--text-dark); }
+.price-regular { font-size: 13px; color: var(--text-muted); text-decoration: line-through; margin-bottom: 20px; }
+
+.card-actions { display: flex; gap: 12px; margin-top: auto; }
+.btn-primary { background: var(--blue); color: white; padding: 10px; border-radius: 6px; font-weight: 600; flex: 1; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+.btn-primary:hover { background: var(--blue-hover); }
+.btn-sm { padding: 6px 16px; font-size: 13px; flex: none; }
+.btn-fav { border: 1px solid var(--border); border-radius: 6px; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; color: var(--text-dark); transition: 0.2s; flex-shrink: 0; }
+.btn-fav:hover { color: var(--red); border-color: var(--red); }

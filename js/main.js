@@ -105,7 +105,22 @@ function renderSecciones() {
   container.innerHTML = SECCIONES.map(sec => {
     const productos = getByCategoria(sec.id);
     if (!productos.length) return '';
+    
+    // 1. Dibujamos las tarjetas reales que vienen de tu base de datos
     const tarjetas = productos.map(crearTarjetaProducto).join('');
+    
+    // 2. ✨ MODIFICACIÓN: Creamos la tarjeta visual de "Ver más"
+    // Le puse el nombre de la categoría dinámica (ej. "Ver todo en Smart TVs")
+    const tarjetaVerMas = `
+      <a href="catalogo.html" class="tarjeta-ver-mas">
+        <div class="contenido-ver-mas">
+          <span style="font-size: 36px; margin-bottom: 8px;">➔</span>
+          <span>Ver todo en<br>${sec.titulo}</span>
+        </div>
+      </a>
+    `;
+
+    // 3. Juntamos los productos + la tarjeta extra dentro del grid
     return `
       <section class="cat-section" id="${sec.id}">
         <div class="cat-section-header">
@@ -117,6 +132,7 @@ function renderSecciones() {
         </div>
         <div class="products-grid">
           ${tarjetas}
+          ${tarjetaVerMas}
         </div>
       </section>`;
   }).join('');
