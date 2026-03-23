@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroHogar - Catálogo de Lavadoras</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/catalogo.css">
+</head>
+<body>
+
+    <header class="store-header">
+        <div class="header-content max-w-container">
+            <div class="logo">
+                <img src="assets/img/Logo-removebg-preview.png" alt="Logo ElectroHogar" onerror="this.style.display='none'">
+                ElectroHogar
+            </div>
+            <div class="search-bar">
+                <input type="text" placeholder="¿Qué estás buscando hoy?">
+            </div>
+            <div class="header-actions">
+                <i data-lucide="shopping-cart" style="color: var(--blue); width: 28px; height: 28px; cursor: pointer;"></i>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs max-w-container">
+        Inicio > Electrohogar > Lavado > <strong>Lavadoras</strong>
+    </div>
+
+    <main class="catalog-layout max-w-container">
+        
+        <aside class="filters-sidebar">
+            
+            <div class="filter-section">
+                <div class="filter-header" onclick="toggleAccordion('filtro-precio', 'icon-precio')">
+                    <span class="filter-title">Precio</span>
+                    <i data-lucide="chevron-up" class="filter-icon" id="icon-precio"></i>
+                </div>
+                <div class="filter-content" id="filtro-precio">
+                    <div class="price-range-labels">
+                        <span>S/ 0.00</span>
+                        <span>S/ 3,999.99</span>
+                    </div>
+                    <div class="price-slider-track">
+                        <div class="price-slider-fill"></div>
+                        <div class="slider-thumb left"></div>
+                        <div class="slider-thumb right"></div>
+                    </div>
+                    <div class="price-actions">
+                        <span class="text-sm text-muted">204 productos</span>
+                        <button class="btn-primary btn-sm">Aplicar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-section border-top">
+                <div class="filter-header" onclick="toggleAccordion('filtro-color', 'icon-color')">
+                    <span class="filter-title">Color</span>
+                    <i data-lucide="chevron-up" class="filter-icon" id="icon-color"></i>
+                </div>
+                <div class="filter-content" id="filtro-color">
+                    <label class="filter-option"><input type="checkbox" class="hidden-check" checked><span class="custom-radio"></span><span class="option-text">Gris <span class="count">(48)</span></span></label>
+                    <label class="filter-option"><input type="checkbox" class="hidden-check" checked><span class="custom-radio"></span><span class="option-text">Negro <span class="count">(30)</span></span></label>
+                    <label class="filter-option"><input type="checkbox" class="hidden-check" checked><span class="custom-radio"></span><span class="option-text">Blanco <span class="count">(20)</span></span></label>
+                </div>
+            </div>
+
+            <div class="filter-section border-top">
+                <div class="filter-header" onclick="toggleAccordion('filtro-marca', 'icon-marca')">
+                    <span class="filter-title">Marca</span>
+                    <i data-lucide="chevron-up" class="filter-icon" id="icon-marca"></i>
+                </div>
+                <div class="filter-content" id="filtro-marca">
+                    <input type="text" class="internal-search" placeholder="Buscar (Bord, Coldex, ...)">
+                    <div id="lista-marcas">
+                        </div>
+                    <button class="ver-mas-link">Ver más</button>
+                </div>
+            </div>
+
+            <div class="filter-section border-top">
+                <div class="filter-header" onclick="toggleAccordion('filtro-capacidad', 'icon-capacidad')">
+                    <span class="filter-title">Capacidad Lavado</span>
+                    <i data-lucide="chevron-up" class="filter-icon" id="icon-capacidad"></i>
+                </div>
+                <div class="filter-content" id="filtro-capacidad">
+                    <label class="filter-option"><input type="checkbox" class="hidden-check"><span class="custom-radio"></span><span class="option-text">11 kg a 15 kg <span class="count">(35)</span></span></label>
+                    <label class="filter-option"><input type="checkbox" class="hidden-check"><span class="custom-radio"></span><span class="option-text">16 kg a 20 kg <span class="count">(55)</span></span></label>
+                </div>
+            </div>
+        </aside>
+
+        <section class="products-area">
+            
+            <div class="products-toolbar">
+                <div class="view-options">
+                    <button class="view-btn active"><i data-lucide="grid" style="width: 20px;"></i></button>
+                    <button class="view-btn"><i data-lucide="list" style="width: 20px;"></i></button>
+                    <span class="text-sm text-muted" style="margin-left: 12px;">Se muestran <strong>1-24</strong> productos de 204</span>
+                </div>
+                <div>
+                    <select class="sort-select">
+                        <option>Relevancia</option>
+                        <option selected>Menor Precio</option>
+                        <option>Mayor Precio</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="products-grid" id="catalogo-grid">
+                </div>
+
+        </section>
+    </main>
+
+    <script src="js/catalogo.js"></script>
+</body>
+</html>

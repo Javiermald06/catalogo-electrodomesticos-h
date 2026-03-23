@@ -4,7 +4,7 @@ $host = 'electro-hogar-proyecto-practica-electrohogar13-8038.b.aivencloud.com';
 $port = '26873';
 $dbname = 'defaultdb';
 $username = 'avnadmin';
-$password = 'AVNS_Fwf7wKQJzyI6s9iq2cp';
+$password = '';
 
 try {
     $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8";

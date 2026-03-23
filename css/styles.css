@@ -1080,3 +1080,45 @@ footer {
 }
 
 
+/* ============================================================
+   Tarjeta "Ver Más" del Catálogo
+   ============================================================ */
+.tarjeta-ver-mas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #F8FAFC; /* Gris muy clarito */
+    border: 2px dashed #CBD5E1; /* Borde punteado */
+    border-radius: 12px;
+    text-decoration: none;
+    color: #1B3A6B; /* Azul ElectroHogar */
+    transition: all 0.3s ease;
+    min-width: 220px; 
+    padding: 24px;
+    cursor: pointer;
+}
+
+.tarjeta-ver-mas:hover {
+    background-color: #EFF6FF;
+    border-color: #1B3A6B;
+    color: #E8232A; /* Rojo ElectroHogar */
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.contenido-ver-mas {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.contenido-ver-mas span:first-child {
+    transition: transform 0.2s ease;
+}
+
+.tarjeta-ver-mas:hover .contenido-ver-mas span:first-child {
+    transform: translateX(5px); /* La flecha se mueve a la derecha */
+}
