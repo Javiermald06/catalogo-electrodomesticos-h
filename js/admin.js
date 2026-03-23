@@ -202,3 +202,33 @@ const switchTab = (tabId) => {
 };
 
 document.addEventListener('DOMContentLoaded', () => { renderDashboard(); });
+
+
+// Función para cargar productos desde la API PHP
+async function cargarProductos() {
+    const response = await fetch('includes/api/listar_productos.php');
+    const result = await response.json();
+
+    if(result.status === 'success') {
+        const tabla = document.getElementById('tabla-productos-body');
+        tabla.innerHTML = ''; // Limpiar tabla
+        
+        result.data.forEach(prod => {
+            tabla.innerHTML += `
+                <tr>
+                    <td>${prod.sku}</td>
+                    <td>${prod.nombre}</td>
+                    <td>${prod.categoria}</td>
+                    <td>S/ ${prod.precio_regular}</td>
+                    <td>${prod.stock}</td>
+                    <td>
+                        <button onclick="editar(${prod.id_producto})">Edit</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+}
+
+// Llamar a la función al cargar la página
+document.addEventListener('DOMContentLoaded', cargarProductos);
