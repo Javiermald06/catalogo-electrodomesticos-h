@@ -1,78 +1,120 @@
 /* ============================================================
-   catalogo.js — Lógica de la Tienda Pública
+   catalogo.js — Gestión de Cuadrícula y Vista Detalle (Tipo Efe)
    ============================================================ */
+let PRODUCTOS = [];
+const urlParams = new URLSearchParams(window.location.search);
+const categoriaActiva = urlParams.get('categoria');
 
-const formatearMoneda = (monto) => `S/ ${monto.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`;
+async function cargarCatalogo() {
+    try {
+        const response = await fetch('includes/api/listar_productos.php');
+        const result = await response.json();
 
-// ================= LÓGICA DE LOS ACORDEONES =================
-function toggleAccordion(contentId, iconId) {
-    const content = document.getElementById(contentId);
-    const icon = document.getElementById(iconId);
-    
-    if (content.classList.contains('hidden')) {
-        content.classList.remove('hidden');
-        icon.style.transform = 'rotate(0deg)';
-    } else {
-        content.classList.add('hidden');
-        icon.style.transform = 'rotate(180deg)';
+        if (result.status === 'success') {
+            // Adaptar datos básicos
+            PRODUCTOS = result.data.map(p => ({
+                ...p,
+                id: p.id_producto,
+                // Precio lógico: Oferta si existe, sino Regular
+                precio: parseFloat(p.precio_oferta) > 0 ? parseFloat(p.precio_oferta) : parseFloat(p.precio_regular),
+                precioAntes: parseFloat(p.precio_oferta) > 0 ? parseFloat(p.precio_regular) : null
+            }));
+
+            // Filtrar por categoría de la URL
+            const productosFiltrados = PRODUCTOS.filter(p => p.categoria === categoriaActiva);
+
+            // Actualizar Breadcrumbs dinámicamente
+            document.title = `ElectroHogar - ${categoriaActiva || 'Catálogo'}`;
+            const breadSub = document.getElementById('categoria-actual-bread');
+            if (breadSub) breadSub.innerText = categoriaActiva || "Todos";
+
+            // Inicializar motor de filtros laterales (filtros.js)
+            if (typeof inicializarFiltrosDinamicos === 'function') {
+                inicializarFiltrosDinamicos(productosFiltrados);
+            }
+            
+            // Dibujar la cuadrícula inicial
+            renderProductosGrid(productosFiltrados);
+        }
+    } catch (e) {
+        console.error("Error cargando el catálogo:", e);
     }
 }
 
-// ================= BASE DE DATOS SIMULADA =================
-const marcasDB = [
-    { nombre: 'Electrolux', cantidad: 19 },
-    { nombre: 'LG', cantidad: 45 },
-    { nombre: 'Samsung', cantidad: 60 },
-    { nombre: 'Hyundai', cantidad: 8 },
-    { nombre: 'Indurama', cantidad: 24 }
-];
-
-const productosCat = [
-    { id: 1, marca: 'Electrolux', nombre: 'Lavadora Inverter Electrolux 18KG Blanca', regular: 1649.00, oferta: 1099.00, dcto: 33, img: 'https://electrohogar.com.pe/wp-content/uploads/2023/10/L18IX-min.png' },
-    { id: 2, marca: 'LG', nombre: 'Lavadora LG 16KG TurboDrum WT16BVTB Negro...', regular: 2015.00, oferta: 1399.00, dcto: 31, img: 'https://www.lg.com/pe/images/lavadoras/md07519195/gallery/D-01.jpg' },
-    { id: 3, marca: 'Hyundai', nombre: 'Lavadora Hyundai 10KG HYSA102K Gris/Blanco', regular: 799.00, oferta: 599.00, dcto: 25, img: 'https://imagedelivery.net/4fYuQyy-r8_ixFjtRoCYnw/4c81f3b0-bd56-4b8c-8515-564d7df6cf00/public' },
-    { id: 4, marca: 'Samsung', nombre: 'Lavadora Samsung 19KG AI Wash EcoBubble...', regular: 1999.00, oferta: 1649.00, dcto: 18, img: 'https://images.samsung.com/is/image/samsung/p6pim/pe/wa19cg6745bveo/gallery/pe-top-load-washer-wa19cg6745bveo-wa19cg6745bveo-537443194?$650_519_PNG$' },
-    { id: 5, marca: 'Samsung', nombre: 'Lavadora de Carga Superior EcoBubble 13KG', regular: 1399.00, oferta: 1149.00, dcto: 18, img: 'https://images.samsung.com/is/image/samsung/p6pim/pe/wa13cg5441bweo/gallery/pe-top-load-washer-wa13cg5441bweo-wa13cg5441bweo-536069906?$650_519_PNG$' }
-];
-
-// ================= RENDERIZADO =================
-function renderFiltroMarcas() {
-    const contenedor = document.getElementById('lista-marcas');
-    contenedor.innerHTML = marcasDB.map(marca => `
-        <label class="filter-option">
-            <input type="checkbox" class="hidden-check">
-            <span class="custom-radio"></span>
-            <span class="option-text">${marca.nombre} <span class="count">(${marca.cantidad})</span></span>
-        </label>
-    `).join('');
-}
-
-function renderProductos() {
+// === RENDERIZADO DE LA CUADRÍCULA ===
+function renderProductosGrid(datos) {
     const grid = document.getElementById('catalogo-grid');
-    grid.innerHTML = productosCat.map(p => `
-        <div class="product-card">
-            <div class="discount-badge">-${p.dcto}%</div>
-            <img src="${p.img}" alt="${p.nombre}" class="product-img" onerror="this.src='https://via.placeholder.com/200?text=Lavadora'">
-            
-            <p class="product-brand">${p.marca}</p>
-            <h3 class="product-name">${p.nombre}</h3>
-            
-            <p class="product-seller">Por Electrohogar</p>
-            <div class="price-offer">${formatearMoneda(p.oferta)} <span>oferta</span></div>
-            <div class="price-regular">${formatearMoneda(p.regular)}</div>
-            
-            <div class="card-actions">
-                <button class="btn-primary" onclick="alert('Redirigiendo a WhatsApp con el pedido del producto...')">Agregar al carrito</button>
-                <button class="btn-fav" aria-label="Agregar a favoritos"><i data-lucide="heart" style="width: 20px;"></i></button>
+    if (!grid) return;
+
+    // Actualizar contador visual
+    const contador = document.getElementById('contador-productos');
+    if (contador) contador.innerText = datos.length;
+
+    if (datos.length === 0) {
+        grid.innerHTML = '<p class="empty-catalog-msg">No se encontraron productos con estos filtros.</p>';
+        return;
+    }
+
+    // Dibujar tarjetas. Fíjate en el onclick para abrir el detalle.
+    grid.innerHTML = datos.map(p => `
+        <div class="product-card-efe" onclick="window.location.href='producto.php?id=${p.id_producto}'">
+            <div class="product-card-efe__image">
+                <img src="assets/img/${p.img_principal || 'placeholder.png'}" alt="${p.nombre}" onerror="this.src='assets/img/placeholder.png'">
+            </div>
+            <div class="product-card-efe__info">
+                <span class="product-card-efe__brand">${p.marca.toUpperCase()}</span>
+                <h3 class="product-card-efe__title">${p.nombre}</h3>
+                <div class="product-card-efe__price">
+                    S/ ${parseFloat(p.precio).toLocaleString('es-PE', {minimumFractionDigits: 2})}
+                </div>
+                <button class="product-card-efe__btn" onclick="event.stopPropagation(); agregarAlCarrito('${p.id}')">
+                    <i data-lucide="shopping-cart" class="icon-sm"></i> Cotizar por WhatsApp
+                </button>
             </div>
         </div>
     `).join('');
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-// ================= INICIALIZACIÓN =================
+function cambiarQtyDetail(n) {
+    const input = document.getElementById('qty-detail');
+    if(!input) return;
+    let val = parseInt(input.value) + n;
+    if(val >= 1) input.value = val;
+}
+
+function cotizarActualPorWhatsApp(id) {
+    const input = document.getElementById('qty-detail');
+    const cant = input ? input.value : 1;
+    // Llamar a tu función global de carrito pasándole cantidad
+    if(typeof agregarAlCarrito === 'function') agregarAlCarrito(id, true, cant);
+}
+
+function configurarBotonesVista() {
+    const btnGrid = document.getElementById('view-grid');
+    const btnList = document.getElementById('view-list');
+    const gridContainer = document.getElementById('catalogo-grid');
+
+    if (btnGrid && btnList && gridContainer) {
+        // Al hacer clic en Cuadrícula
+        btnGrid.addEventListener('click', () => {
+            btnGrid.classList.add('active');
+            btnList.classList.remove('active');
+            gridContainer.classList.remove('list-view'); // Quita el modo lista
+        });
+
+        // Al hacer clic en Lista
+        btnList.addEventListener('click', () => {
+            btnList.classList.add('active');
+            btnGrid.classList.remove('active');
+            gridContainer.classList.add('list-view'); // Aplica el modo lista
+        });
+    }
+}
+
+// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
-    renderFiltroMarcas();
-    renderProductos();
-    // Renderiza los iconos de Lucide inyectados
-    lucide.createIcons();
+    cargarCatalogo(); // Tu función principal
+    configurarBotonesVista(); // Activamos los botones
 });

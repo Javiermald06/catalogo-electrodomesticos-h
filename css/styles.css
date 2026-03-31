@@ -34,34 +34,61 @@ header {
   align-items: center;
   justify-content: space-between;
   padding: 0 40px;
-  height: 64px;
+  height: 75px;
   box-shadow: 0 2px 20px rgba(0,0,0,0.3);
 }
 
 .logo-area {
+  padding-top: 5px;
+  padding-bottom: 10px;
+  padding-left: 35px;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: center; /* Alinea verticalmente icono y texto */
+  gap: 2px;           /* Espacio entre el icono y el texto */
+  text-decoration: none;
 }
 
 .logo-icon {
-  width: 44px;  /* Ajustamos ligeramente el ancho para que la imagen encaje bien */
-  height: 44px;
-  /* Eliminamos el clip-path y el background-color CSS antiguo */
-  background-image: url('../assets/img/Logo-removebg-preview.png');
+  width: 50px;  /* Ajusta según el tamaño de tu icono real */
+  height: 50px;
+  background-image: url('../assets/img/logo_electrohogar.png'); /* Ruta a tu icono */
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+  /* Si usas un borde o fondo temporal como en index.html, mantenlo aquí */
 }
 
 .logo-text {
-  font-family: 'Rajdhani', sans-serif;
-  font-weight: 700;
-  font-size: 22px;
-  color: var(--white);
+  padding-top: 15px;
+  font-family: 'Michroma', sans-serif;
+  display: flex;
+  flex-direction: column; /* Apila electro sobre HOGAR */
+  line-height: 1.0;      /* Ajuste de espacio vertical entre palabras */
+  text-transform: none;
+}
+
+.logo-electro {
+  font-size: 10px;        /* Vuelve al tamaño original pequeño */
+  font-weight: 700;       /* Negrita para que resalte dentro de su recuadro */
+  color: #ffffff;         /* Texto blanco para contrastar con el rojo */
+  background-color: var(--red); /* El fondo rojo que pediste */
+  padding: 1px 1.5px;       /* Espaciado interno para hacer el recuadro */
+  border-radius: 4px;     /* Bordes ligeramente redondeados */
+  margin-bottom: 0px;     /* Separación con HOGAR */
+  letter-spacing: 0.5px;
+  text-transform: uppercase; /* Para que quede como en la imagen */
+  line-height: 1; /* Mata el espacio transparente arriba y abajo del texto */
+  align-self: flex-start; /* Obliga a la caja a medir exactamente lo mismo que la palabra */
+}
+
+/* Estilo para "HOGAR" (grande, bold, blanco, abajo) */
+.logo-hogar {
+  font-size: 24px;      /* Ligeramente agrandado para mantener jerarquía */
+  font-weight: 800;     /* Muy negrita */
+  color: #29598C;   /* Blanco */
+  margin-top: 0;
   letter-spacing: 1px;
 }
-.logo-text span { color: var(--red); }
 
 nav { display: flex; gap: 6px; }
 nav a {
@@ -635,43 +662,61 @@ nav a:hover { background: var(--red); color: white; }
 
 /* ===== FOOTER ===== */
 footer {
-  background: var(--dark);
-  color: rgba(255,255,255,0.6);
-  padding: 50px 80px 30px;
+    background-color: var(--dark); /* Tu color azul oscuro */
+    color: rgba(255, 255, 255, 0.7); /* Texto gris claro */
+    padding: 60px 40px 20px;
 }
 
 .footer-top {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 40px;
-  margin-bottom: 40px;
-  padding-bottom: 40px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    justify-content: space-between; /* Distribuye las columnas a lo ancho */
+    flex-wrap: wrap; /* Permite que las columnas pasen a la siguiente línea en pantallas pequeñas */
+    gap: 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 40px;
 }
 
 .footer-desc {
-  margin-top: 12px;
-  font-size: 13px;
-  line-height: 1.7;
-  max-width: 280px;
+    margin-top: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 300px;
 }
 
 .footer-col h4 {
-  color: white;
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 16px;
-  letter-spacing: 0.5px;
+    color: var(--white);
+    font-family: 'Michroma', sans-serif; /* Mantenemos la fuente del logo para los títulos */
+    font-size: 16px;
+    margin-bottom: 20px;
 }
-.footer-col ul { list-style: none; }
-.footer-col ul li { margin-bottom: 8px; }
+
+.footer-col ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-col ul li {
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
 .footer-col ul li a {
-  color: rgba(255,255,255,0.5);
-  text-decoration: none;
-  font-size: 13px;
-  transition: color 0.2s;
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.3s ease;
 }
-.footer-col ul li a:hover { color: var(--red); }
+
+.footer-col ul li a:hover {
+    color: var(white); /* Hover rojo ElectroHogar */
+}
+
+address.footer-col ul li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
 .footer-bottom {
   display: flex;
@@ -690,7 +735,7 @@ footer {
 @media (max-width: 900px) {
   .hero-slider { height: 450px; }
   .hero-content h1 { font-size: 44px; }
-  .footer-top { grid-template-columns: 1fr 1fr; }
+  .footer-top { flex-direction: column; }
   nav { display: none; }
   .promo-banner { flex-direction: column; gap: 24px; text-align: center; padding: 40px; }
   .slide { padding: 0 40px; }
@@ -1121,4 +1166,83 @@ footer {
 
 .tarjeta-ver-mas:hover .contenido-ver-mas span:first-child {
     transform: translateX(5px); /* La flecha se mueve a la derecha */
+}
+
+/* VISTA DETALLE - ESTILO TIENDAS EFE */
+.product-detail-container { max-width: 1200px; margin: 80px auto; padding: 20px; }
+.detail-back-bar { cursor: pointer; color: var(--blue); font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 5px; }
+
+.detail-top-section { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 60px; }
+.detail-main-img-container { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 40px; display: flex; justify-content: center; }
+.detail-main-img { max-height: 400px; object-fit: contain; }
+
+.detail-brand-tag { color: var(--blue); font-weight: 700; text-transform: uppercase; font-size: 14px; }
+.detail-title { font-size: 32px; font-weight: 700; margin: 10px 0; color: var(--dark); }
+.detail-sku { color: #94a3b8; font-size: 13px; margin-bottom: 20px; }
+
+.detail-price-box { background: #f8fafc; padding: 25px; border-radius: 12px; margin-bottom: 30px; }
+.detail-old-price { text-decoration: line-through; color: #94a3b8; font-size: 18px; }
+.detail-current-price { font-size: 42px; font-weight: 800; color: var(--dark); }
+.detail-current-price--oferta { color: var(--red); }
+
+.detail-actions-box { display: flex; gap: 15px; }
+.quantity-selector-efe { display: flex; border: 2px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+.qty-btn-efe { padding: 10px 20px; background: #fff; border: none; cursor: pointer; font-weight: bold; font-size: 18px; }
+.qty-input-efe { width: 50px; text-align: center; border: none; font-size: 16px; font-weight: 600; }
+.btn-efe-primary { flex: 1; background: var(--red); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
+.btn-efe-primary:hover { background: #b91c1c; }
+
+/* TABLA CEBREADA (INTERCALADA) */
+.detail-specs-section { margin-top: 40px; border-top: 1px solid #eee; padding-top: 40px; }
+.specs-header-efe { border-bottom: 3px solid var(--blue); display: inline-block; margin-bottom: 20px; }
+.specs-header-efe h3 { color: var(--blue); padding-bottom: 5px; }
+
+.specs-table-efe { width: 100%; border-collapse: collapse; }
+.spec-row:nth-child(even) { background: #f8fafc; }
+.spec-row td { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; }
+.spec-name { font-weight: 700; color: var(--dark); width: 30%; }
+.spec-value { color: #64748b; }
+
+@media (max-width: 768px) {
+    .detail-top-section { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   GRILLA DE 5 PRODUCTOS PARA LA SECCIÓN DE RECOMENDADOS
+   ============================================================ */
+.recommended-section .products-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* Fuerza exactamente 5 columnas de igual tamaño */
+    gap: 15px; /* Reducimos la separación para ganar espacio */
+}
+
+/* Reducimos los elementos internos solo para estas tarjetas */
+.recommended-section .product-card__image-container {
+    height: 130px; /* Imagen un poco más baja */
+    padding: 10px;
+}
+
+.recommended-section .product-card__info {
+    padding: 15px; /* Menos relleno interno */
+}
+
+.recommended-section .product-card__title {
+    font-size: 14px; /* Título un poco más pequeño */
+    margin-bottom: 8px;
+}
+
+.recommended-section .product-card__price {
+    font-size: 20px; /* Precio adaptado al nuevo tamaño */
+}
+
+.recommended-section .product-card__brand {
+    font-size: 10px;
+}
+
+/* Responsive: Para que en pantallas pequeñas (Tablets/Celulares) no se aplasten los 5, 
+   les permitimos bajar de línea automáticamente */
+@media (max-width: 1100px) {
+    .recommended-section .products-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
 }

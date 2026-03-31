@@ -24,7 +24,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .logo img { height: 35px; }
 .search-bar input { width: 450px; padding: 12px 20px; border-radius: 999px; border: 1px solid var(--border); outline: none; transition: 0.2s; font-family: inherit; }
 .search-bar input:focus { border-color: var(--blue); }
-.breadcrumbs { padding: 24px 0; font-size: 14px; color: var(--text-muted); }
+.breadcrumbs { padding: 24px 0; font-size: 14px; color: var(--text-muted); margin-top: 100px;}
 .breadcrumbs strong { color: var(--blue); }
 
 /* ================= LAYOUT ================= */
@@ -92,3 +92,393 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .btn-sm { padding: 6px 16px; font-size: 13px; flex: none; }
 .btn-fav { border: 1px solid var(--border); border-radius: 6px; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; color: var(--text-dark); transition: 0.2s; flex-shrink: 0; }
 .btn-fav:hover { color: var(--red); border-color: var(--red); }
+
+.products-grid.list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.products-grid.list-view .product-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 20px;
+    gap: 30px;
+}
+
+.products-grid.list-view .product-card__image-container {
+    width: 200px;
+    height: 200px;
+}
+
+/* Estilo de Tarjeta Efe */
+.product-card-efe {
+    background: #fff;
+    border-radius: 16px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.3s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.product-card-efe:hover {
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.product-card-efe__image {
+    background: #f8fafc; /* Gris muy claro de fondo */
+    border-radius: 12px;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.product-card-efe__image img {
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain;
+}
+
+.product-card-efe__brand {
+    color: #1b3a6b;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.product-card-efe__title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 8px 0;
+    line-height: 1.3;
+    height: 36px;
+    overflow: hidden;
+}
+
+.product-card-efe__price {
+    font-size: 20px;
+    font-weight: 800;
+    color: #e8232a;
+    margin-bottom: 15px;
+}
+
+.product-card-efe__btn {
+    background: #f1f5f9; /* Botón gris claro como en la imagen */
+    color: #1b3a6b;
+    border-radius: 10px;
+    padding: 10px;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.product-card-efe__btn:hover {
+    background: #e2e8f0;
+}
+
+/* ============================================================
+   ESTILOS VISTA DETALLE - TIPO EFE
+   ============================================================ */
+#vista-detalle {
+    background: #fff;
+    min-height: 100vh;
+    padding-top: 100px; /* Ajustar según tu header fixed */
+}
+
+.product-detail-layout {
+    padding: 20px;
+}
+
+.detail-back-bar {
+    cursor: pointer;
+    color: var(--blue);
+    font-weight: 600;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+}
+
+/* Sección Superior (Flexbox 2 columnas) */
+.detail-top-section {
+    display: flex;
+    gap: 50px;
+    margin-bottom: 60px;
+}
+
+.detail-gallery-wrapper {
+    flex: 1.2; /* Un poco más de ancho para la imagen */
+    display: flex;
+    justify-content: center;
+}
+
+.detail-main-img-container {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+.detail-main-img {
+    max-height: 400px;
+    object-fit: contain;
+}
+
+.detail-purchase-panel {
+    flex: 1;
+}
+
+/* Panel de compra */
+.detail-brand-tag {
+    color: var(--blue);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.detail-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 10px 0 5px;
+    color: var(--dark);
+    line-height: 1.2;
+}
+
+.detail-sku {
+    color: #94a3b8;
+    font-size: 13px;
+    margin-bottom: 30px;
+}
+
+.detail-price-box {
+    background: #f8fafc;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+.detail-old-price {
+    text-decoration: line-through;
+    color: #94a3b8;
+    font-size: 18px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.detail-current-price {
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--dark);
+}
+
+.detail-current-price--oferta {
+    color: var(--red);
+}
+
+/* Acciones */
+.detail-actions-box {
+    display: flex;
+    gap: 20px;
+}
+
+.quantity-selector-efe {
+    display: flex;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.qty-btn-efe {
+    padding: 12px 20px;
+    background: #fff;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 18px;
+    color: var(--blue);
+}
+
+.qty-btn-efe:hover {
+    background: #f1f5f9;
+}
+
+.qty-input-efe {
+    width: 60px;
+    text-align: center;
+    border: none;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.btn-efe-primary {
+    flex: 1;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 17px;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-efe-primary:hover {
+    background: #b91c1c;
+}
+
+/* ============================================================
+   SECCIÓN FICHA TÉCNICA (Cebreada)
+   ============================================================ */
+.detail-specs-section {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 40px;
+    margin-bottom: 80px; /* 1. GRAN SEPARACIÓN CON EL FOOTER o LOS RECOMENDADOS */
+    max-width: 900px;    /* 2. Limitamos el ancho para que la tabla no se vea gigante */
+    margin-left: auto;   /* 3. Centramos el contenedor */
+    margin-right: auto;  /* 3. Centramos el contenedor */
+}
+
+/* Si quieres que el título "FICHA TÉCNICA" también se centre, agrega esto: */
+.specs-header-efe {
+    border-bottom: 4px solid var(--blue);
+    display: inline-block;
+    padding-bottom: 5px;
+    margin-bottom: 30px;
+    text-align: center; 
+    width: 100%;
+}
+
+.specs-header-efe h3 {
+    font-size: 20px;
+    color: var(--blue);
+    text-transform: uppercase;
+    display: inline-block; /* Ayuda al centrado */
+}
+
+.specs-table-wrapper {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.specs-table-efe {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+
+/* EFECTO CEBREADO (Filas Intercaladas) */
+.spec-row:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+.spec-row td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.spec-name {
+    font-weight: 700;
+    color: var(--dark);
+    width: 35%;
+}
+
+.spec-value {
+    color: #64748b;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .detail-top-section {
+        flex-direction: column;
+        gap: 30px;
+    }
+}
+
+.recommended-section {
+    margin-bottom: 100px; /* Separación de los recomendados con el footer */
+    padding-top: 60px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.recommended-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 32px;
+    color: var(--dark);
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+/* ============================================================
+   ESTILOS MIGAS DE PAN (ENLACES)
+   ============================================================ */
+.bread-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.bread-link:hover {
+    color: var(--blue);
+    text-decoration: underline;
+}
+
+/* ============================================================
+   VISTA DE LISTA (LIST VIEW)
+   ============================================================ */
+.products-grid.list-view {
+    display: flex;
+    flex-direction: column; /* Apila las tarjetas verticalmente */
+    gap: 20px;
+}
+
+.products-grid.list-view .product-card-efe {
+    flex-direction: row; /* Coloca imagen a la izquierda, texto a la derecha */
+    align-items: center;
+    gap: 30px;
+    padding: 25px;
+}
+
+.products-grid.list-view .product-card-efe__image {
+    width: 220px;
+    height: 220px;
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+
+.products-grid.list-view .product-card-efe__info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.products-grid.list-view .product-card-efe__btn {
+    width: auto;
+    align-self: flex-start;
+    padding: 12px 30px;
+    margin-top: 10px;
+}
