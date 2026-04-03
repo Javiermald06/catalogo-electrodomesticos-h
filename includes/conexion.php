@@ -16,5 +16,5 @@ try {
     $pdo = new PDO($dsn, $username, $password, $options);
 } catch(PDOException $e) {
     header('Content-Type: application/json');
-   /// die(json_encode(['status' => 'error', 'msg' => 'Error de conexión a la nube']));
+   // die(json_encode(['status' => 'error', 'msg' => 'Error de conexión a la nube']));
 }
