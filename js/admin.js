@@ -1,27 +1,29 @@
 /* ============================================================
-   admin.js — Motor Lógico Completo y Modales Dinámicos
+   admin.js — Motor Lógico 100% Conectado a Backend (MySQL/PHP)
    ============================================================ */
 
-// ================= DATOS SIMULADOS =================
-let productosDB = [
-    { id: 1, sku: 'QN55Q6FA', nombre: 'TV Samsung 55" QLED 4K', categoria: 'Televisores', marca: 'Samsung', regular: 2299, oferta: 1499, stock: 15, estado: 1 },
-    { id: 2, sku: 'WT16BVTB', nombre: 'Lavadora LG 16KG', categoria: 'Lavadoras', marca: 'LG', regular: 2015, oferta: 1399, stock: 8, estado: 1 },
-    { id: 3, sku: 'HYSA102K', nombre: 'Lavadora Hyundai 10KG', categoria: 'Lavadoras', marca: 'Hyundai', regular: 799, oferta: 599, stock: 0, estado: 0 }
-];
-let categoriasDB = [{ id: 1, nombre: 'Televisores', total_productos: 45, estado: 1 }, { id: 2, nombre: 'Lavadoras', total_productos: 32, estado: 1 }];
-let marcasDB = [{ id: 1, nombre: 'Samsung', total_productos: 60 }, { id: 2, nombre: 'LG', total_productos: 45 }];
-let bannersDB = [{ id: 1, nombre: 'Cyber Days Mayo', imagen: 'cyber_banner.jpg', orden: 1, estado: 1 }, { id: 2, nombre: 'Oferta Televisores', imagen: 'tv_promo.webp', orden: 2, estado: 1 }];
-let leadsDB = [
-    { id: 'L-1042', cliente: 'Carlos Mendoza', telefono: '987654321', fecha: '13 Mar 2026', detalles: [{ prod: 'TV Samsung', cant: 1, precio: 1499 }, { prod: 'Soporte', cant: 1, precio: 150 }] },
-    { id: 'L-1041', cliente: 'Ana Lucía Torres', telefono: '912345678', fecha: '12 Mar 2026', detalles: [{ prod: 'Lavadora LG', cant: 1, precio: 1399 }] }
-];
-let visitasData = [{ dia: 'Lun', visitas: 120 }, { dia: 'Mar', visitas: 250 }, { dia: 'Mié', visitas: 180 }, { dia: 'Jue', visitas: 300 }, { dia: 'Vie', visitas: 450 }, { dia: 'Sáb', visitas: 520 }, { dia: 'Dom', visitas: 380 }];
+// ================= ESTADO GLOBAL =================
+let state = {
+    productos: [],
+    categorias: [],
+    marcas: [],
+    banners: [],
+    leads: []
+};
 
-const formatearMoneda = (monto) => `S/ ${monto.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`;
+const formatearMoneda = (monto) => `S/ ${parseFloat(monto).toLocaleString('es-PE', { minimumFractionDigits: 2 })}`;
 
-const showNotification = (msg) => {
+const showNotification = (msg, error = false) => {
     const toast = document.getElementById('toast');
-    document.getElementById('toast-msg').innerText = msg;
+    
+    // Recreamos todo el contenido para evitar el conflicto con los SVG de Lucide
+    toast.innerHTML = `
+        <i data-lucide="${error ? 'alert-circle' : 'check-circle'}" style="color: ${error ? '#ef4444' : '#4ade80'}; width: 20px;"></i>
+        <span>${msg}</span>
+    `;
+    
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    
     toast.classList.remove('hidden');
     setTimeout(() => toast.classList.add('hidden'), 3000);
 };
@@ -31,169 +33,1069 @@ const openModal = (titulo, contenidoHTML, footerHTML, sizeClass = 'modal-md') =>
     document.getElementById('modal-title').innerHTML = titulo;
     document.getElementById('modal-body').innerHTML = contenidoHTML;
     document.getElementById('modal-footer').innerHTML = footerHTML;
-    
     document.getElementById('modal-box').className = `modal-box ${sizeClass} modal-enter`;
     document.getElementById('modal-container').classList.remove('hidden');
-    lucide.createIcons();
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 };
 
 const closeModal = () => document.getElementById('modal-container').classList.add('hidden');
-const handleSave = (msg) => { closeModal(); showNotification(msg); };
 
-// ================= PLANTILLAS EXACTAS DE LOS MODALES =================
+// ================= CARGA DE DATOS DESDE PHP (Segura) =================
 
-function abrirModalProducto() {
-    const titulo = `<i data-lucide="package" style="color: #2563eb;"></i> Registrar Nuevo Producto`;
+async function inicializarAdmin() {
+    const noCache = new Date().getTime();
+    const headers = { 'Cache-Control': 'no-cache, no-store, must-revalidate' };
+
+    // Promise.all descarga las 4 cosas AL MISMO TIEMPO (Máxima velocidad)
+    await Promise.all([
+        fetch('includes/api/listar_productos_admin.php?t=' + noCache, { headers })
+            .then(r => r.json()).then(d => { if(d.status === 'success') state.productos = d.data || []; }).catch(()=>{}),
+        fetch('includes/api/listar_categorias.php?t=' + noCache, { headers })
+            .then(r => r.json()).then(d => { if(d.status === 'success') state.categorias = d.data || []; }).catch(()=>{}),
+        fetch('includes/api/listar_marcas.php?t=' + noCache, { headers })
+            .then(r => r.json()).then(d => { if(d.status === 'success') state.marcas = d.data || []; }).catch(()=>{}),
+        // ¡Aquí está la carga de Banners integrada en paralelo!
+        fetch('includes/api/listar_banners.php?t=' + noCache, { headers })
+            .then(r => r.json()).then(d => { if(d.status === 'success') state.banners = d.data || []; }).catch(()=>{})
+    ]);
+
+    const tabActiva = document.querySelector('.nav-btn.active');
+    if (tabActiva) {
+        const id = tabActiva.id.replace('tab-', '');
+        if(id === 'dashboard') renderDashboard();
+        else if(id === 'productos') renderProductos();
+        else if(id === 'categorias') renderCategorias();
+        else if(id === 'banners') renderBanners();
+        else if(id === 'leads') renderLeads();
+    } else {
+        renderDashboard(); 
+    }
+}
+
+// Nueva función ligera: Solo descarga productos (evita gastar internet en categorías/marcas)
+async function refrescarSoloProductos() {
+    try {
+        const res = await fetch('includes/api/listar_productos_admin.php?t=' + new Date().getTime());
+        if(res.ok) {
+            const d = await res.json();
+            if(d.status === 'success') state.productos = d.data || [];
+        }
+    } catch(e) {}
+    
+    // Solo re-dibuja si estamos viendo la tabla de productos
+    const tabActiva = document.querySelector('.nav-btn.active');
+    if (tabActiva && tabActiva.id === 'tab-productos') {
+        renderProductos();
+    }
+}
+
+const productosProcesando = new Set();
+
+window.toggleEstadoProducto = async function(id, estadoActual) {
+    // Bloqueo de spam para evitar múltiples clics
+    if (productosProcesando.has(id)) return; 
+    productosProcesando.add(id);
+
+    const nuevoEstado = estadoActual == 1 ? 0 : 1; 
+    const mensajeInstantaneo = nuevoEstado == 1 ? 'Producto Visible' : 'Producto Oculto';
+
+    // 1. ACTUALIZACIÓN VISUAL Y MENSAJE INSTANTÁNEO
+    const index = state.productos.findIndex(p => p.id_producto == id);
+    if (index !== -1) {
+        state.productos[index].estado = nuevoEstado;
+        renderProductos(); 
+        showNotification(mensajeInstantaneo); // <--- El mensaje aparece AQUÍ, al instante
+    }
+
+    // 2. Sincronización silenciosa con la base de datos
+    try {
+        const formData = new FormData();
+        formData.append('id_producto', id);
+        formData.append('estado', nuevoEstado);
+
+        // La petición corre de fondo sin bloquear nada
+        await fetch('includes/api/cambiar_estado.php', { method: 'POST', body: formData });
+    } catch(e) {
+        showNotification("Error de conexión", true);
+        // Si falla de verdad, revertimos el cambio visual
+        if (index !== -1) { state.productos[index].estado = estadoActual; renderProductos(); }
+    } finally {
+        productosProcesando.delete(id);
+    }
+};
+// ================= MODAL PRODUCTOS Y GUARDADO =================
+window.abrirModalProducto = function(idProducto = null) {
+    const isEdit = idProducto !== null;
+    const prod = isEdit ? state.productos.find(p => p.id_producto == idProducto) : {};
+    
+    let opcionesCategorias = '<option value="">Seleccione...</option>';
+    if (state.categorias.length > 0) {
+        opcionesCategorias += state.categorias.map(c => `<option value="${c.id_categoria}" ${prod.id_categoria == c.id_categoria ? 'selected' : ''}>${c.nombre}</option>`).join('');
+    }
+    
+    let opcionesMarcas = '<option value="">Seleccione...</option>';
+    if (state.marcas.length > 0) {
+        opcionesMarcas += state.marcas.map(m => `<option value="${m.id_marca}" ${prod.id_marca == m.id_marca ? 'selected' : ''}>${m.nombre}</option>`).join('');
+    }
+
+    let specsInicialesHtml = '';
+    if (prod.especificaciones_agrupadas) {
+        const specs = prod.especificaciones_agrupadas.split('||');
+        specsInicialesHtml = specs.map(s => {
+            const partes = s.split(':');
+            if (partes.length >= 2) return crearFilaSpecHTML(partes[0], partes[1]);
+            return '';
+        }).join('');
+    }
+
+    const titulo = `<i data-lucide="package" style="color: #2563eb;"></i> ${isEdit ? 'Editar' : 'Registrar Nuevo'} Producto`;
+    
     const contenido = `
-        <div class="grid-2" style="gap: 32px; align-items: start;">
+        <form id="form-producto" class="grid-2" style="gap: 32px; align-items: start;">
+            <input type="hidden" id="prod-id" value="${prod.id_producto || ''}">
             <div style="display: flex; flex-direction: column; gap: 16px;">
-                <div><label class="form-label">Nombre del Producto</label><input type="text" class="form-input" placeholder="Ej: TV Samsung 55..."></div>
+                <div><label class="form-label">Nombre del Producto</label><input type="text" id="prod-nombre" class="form-input" value="${prod.nombre || ''}" required></div>
                 <div class="grid-2" style="gap: 16px;">
-                    <div><label class="form-label">SKU (Código único)</label><input type="text" class="form-input" placeholder="Ej: QN55Q6F..." style="font-family: monospace;"></div>
-                    <div><label class="form-label">Categoría</label><select class="form-input" style="cursor:pointer;"><option>Televisores</option><option>Lavadoras</option></select></div>
+                    <div><label class="form-label">SKU</label><input type="text" id="prod-sku" class="form-input" value="${prod.sku || ''}"></div>
+                    <div><label class="form-label">Categoría</label><select id="prod-categoria" class="form-input">${opcionesCategorias}</select></div>
                 </div>
                 <div class="grid-2" style="gap: 16px;">
-                    <div><label class="form-label">Marca</label><select class="form-input" style="cursor:pointer;"><option>Samsung</option><option>LG</option></select></div>
-                    <div>
-                        <label class="form-label">Stock</label>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <input type="number" class="form-input" value="0">
-                            <span style="color:#64748b; font-size:14px; font-weight:500;">un.</span>
-                        </div>
-                    </div>
+                    <div><label class="form-label">Marca</label><select id="prod-marca" class="form-input">${opcionesMarcas}</select></div>
+                    <div><label class="form-label">Stock</label><input type="number" id="prod-stock" class="form-input" value="${prod.stock || 0}"></div>
                 </div>
-                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                    <div>
-                        <label class="form-label" style="color: #475569; font-weight:normal;">Precio Regular (Sin dcto)</label>
-                        <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
-                            <span style="color:#64748b;">S/</span><input type="number" class="form-input" placeholder="0.00" style="background:white;">
-                        </div>
+                <div class="grid-2" style="gap: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px;">
+                    <div><label class="form-label">Precio Reg.</label><input type="number" id="prod-precio-reg" class="form-input" value="${prod.precio_regular || ''}" step="0.01"></div>
+                    <div><label class="form-label" style="color: #1d4ed8;">Precio Oferta</label><input type="number" id="prod-precio-ofe" class="form-input" value="${prod.precio_oferta || ''}" step="0.01"></div>
+                </div>
+                
+                <div>
+                    <label class="form-label">Imágenes del Producto (Máx. 5)</label>
+                    <div id="drop-zone" class="upload-box" onclick="document.getElementById('prod-imagenes').click()" style="padding: 20px; text-align: center; margin-bottom: 8px;">
+                        <i data-lucide="upload-cloud" style="color: #3b82f6; width: 32px; height: 32px; margin-bottom: 8px;"></i>
+                        <span style="font-size: 14px; color: #64748b;">Clic aquí o arrastra tus imágenes</span>
                     </div>
-                    <div>
-                        <label class="form-label" style="color: #1d4ed8; font-weight:bold;">Precio Oferta (Venta final)</label>
-                        <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
-                            <span style="color:#1d4ed8; font-weight:bold;">S/</span><input type="number" class="form-input" placeholder="0.00" style="background:white; font-weight:bold; border-color:#bfdbfe;">
-                        </div>
+                    <input type="file" id="prod-imagenes" class="hidden" accept="image/*" multiple onchange="previsualizarImagenes(this)">
+                    <div id="preview-imagenes" style="display:flex; gap:8px; flex-wrap:wrap;">
+                        ${prod.img_principal ? `<img src="../assets/img_productos/${prod.img_principal.split(',')[0]}" style="width:60px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #e2e8f0;">` : ''}
                     </div>
                 </div>
             </div>
+            <div style="background: var(--bg-gray); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+                <h3 style="font-weight:bold; margin-bottom:8px; font-size:16px;">Filtros / Especificaciones</h3>
+                <div id="contenedor-specs" style="display:flex; flex-direction:column; gap:8px; margin-bottom: 16px; max-height: 200px; overflow-y: auto;">${specsInicialesHtml}</div>
+                <div style="display:flex; gap:12px; align-items:center; border-top: 1px dashed var(--border); padding-top: 16px;">
+                    <input type="text" id="nueva-spec-atr" class="form-input" placeholder="Atributo" style="width:35%;">
+                    <input type="text" id="nueva-spec-val" class="form-input" placeholder="Valor" style="width:50%;">
+                    <button type="button" class="btn-primary" onclick="agregarSpecUI()"><i data-lucide="plus"></i></button>
+                </div>
+            </div>
+        </form>
+    `;
+    const footer = `<button onclick="closeModal()" class="btn-outline">Cancelar</button><button onclick="guardarProductoBD()" class="btn-primary">Guardar Producto</button>`;
+    
+    openModal(titulo, contenido, footer, 'modal-lg');
+
+    // ==========================================
+    // LÓGICA DE ARRASTRAR Y SOLTAR (DRAG & DROP)
+    // ==========================================
+    const dropZone = document.getElementById('drop-zone');
+    const inputImagenes = document.getElementById('prod-imagenes');
+
+    // Cuando la imagen está flotando encima de la caja (Efecto visual)
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#2563eb';
+        dropZone.style.background = '#eff6ff';
+    });
+
+    // Cuando la imagen sale de la caja sin soltarla
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--border)';
+        dropZone.style.background = 'white';
+    });
+
+    // Cuando sueltas la imagen dentro de la caja
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--border)';
+        dropZone.style.background = 'white';
+
+        // Si el usuario soltó archivos válidos
+        if (e.dataTransfer.files.length > 0) {
+            inputImagenes.files = e.dataTransfer.files; // Transferimos los archivos al input oculto
+            previsualizarImagenes(inputImagenes); // Llamamos a tu función para que dibuje las miniaturas
+        }
+    });
+};
+
+// ================= PREVISUALIZACIÓN DE IMÁGENES =================
+window.previsualizarImagenes = function(input) {
+    const previewContainer = document.getElementById('preview-imagenes');
+    previewContainer.innerHTML = ''; 
+    
+    if (input.files.length > 5) {
+        showNotification('Solo puedes subir un máximo de 5 imágenes', true);
+        const dt = new DataTransfer();
+        for(let i=0; i<5; i++) dt.items.add(input.files[i]);
+        input.files = dt.files; 
+    }
+
+    Array.from(input.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style = "width:60px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #e2e8f0;";
+            previewContainer.appendChild(img);
+        }
+        reader.readAsDataURL(file);
+    });
+};
+
+function crearFilaSpecHTML(atr, val) {
+    const idFila = 'spec-' + Math.random().toString(36).substr(2, 9);
+    return `<div id="${idFila}" class="spec-item" style="display:flex; gap:12px; align-items:center;"><input type="text" class="form-input spec-atr" value="${atr}" style="font-weight:bold; width:35%;"><input type="text" class="form-input spec-val" value="${val}" style="width:50%;"><button type="button" class="btn-icon danger" onclick="document.getElementById('${idFila}').remove()"><i data-lucide="trash-2"></i></button></div>`;
+}
+
+window.agregarSpecUI = function() {
+    const atrInput = document.getElementById('nueva-spec-atr');
+    const valInput = document.getElementById('nueva-spec-val');
+    if(!atrInput.value || !valInput.value) return showNotification('Ingresa Atributo y Valor', true);
+    document.getElementById('contenedor-specs').insertAdjacentHTML('beforeend', crearFilaSpecHTML(atrInput.value.trim(), valInput.value.trim()));
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    atrInput.value = ''; valInput.value = '';
+};
+
+// ================= CAMBIO A FORMDATA (BLINDADO) =================
+const comprimirImagenWebP = (file) => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1000; // Ancho máximo
+                let width = img.width;
+                let height = img.height;
+
+                // Achicamos si es muy grande
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Convertimos a WebP al 80% de calidad directamente en el navegador
+                canvas.toBlob((blob) => {
+                    const nuevoArchivo = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+                        type: 'image/webp',
+                        lastModified: Date.now()
+                    });
+                    resolve(nuevoArchivo);
+                }, 'image/webp', 0.8);
+            };
+        };
+    });
+};
+
+window.guardarProductoBD = function() {
+    // 1. Recolección rápida de especificaciones
+    let specs = [];
+    document.querySelectorAll('.spec-item').forEach(item => {
+        const atr = item.querySelector('.spec-atr').value.trim().replace(/:|\|\|/g, '');
+        const val = item.querySelector('.spec-val').value.trim().replace(/:|\|\|/g, '');
+        if(atr && val) specs.push(`${atr}:${val}`);
+    });
+
+    // 2. Recolección de variables principales
+    const idProducto = document.getElementById('prod-id').value;
+    const nombre = document.getElementById('prod-nombre').value.trim();
+    const sku = document.getElementById('prod-sku').value.trim();
+    const id_categoria = document.getElementById('prod-categoria').value;
+    const id_marca = document.getElementById('prod-marca').value;
+    const stock = document.getElementById('prod-stock').value || 0;
+    const precio_regular = document.getElementById('prod-precio-reg').value || 0;
+    const precio_oferta = document.getElementById('prod-precio-ofe').value || 0;
+
+    // Validación de seguridad
+    if(!nombre || !id_categoria || !id_marca) {
+        return showNotification("Nombre, Categoría y Marca son obligatorios", true);
+    }
+
+    // =======================================================
+    // ACTUALIZACIÓN OPTIMISTA (Instantánea para el usuario)
+    // =======================================================
+    const productoTemporal = {
+        id_producto: idProducto || 'temp_' + Date.now(), 
+        nombre: nombre,
+        sku: sku,
+        id_categoria: id_categoria,
+        id_marca: id_marca,
+        stock: stock,
+        precio_regular: precio_regular,
+        precio_oferta: precio_oferta,
+        estado: 1
+    };
+
+    const index = state.productos.findIndex(p => p.id_producto == idProducto);
+    if (index !== -1) {
+        productoTemporal.img_principal = state.productos[index].img_principal;
+        productoTemporal.estado = state.productos[index].estado;
+        state.productos[index] = { ...state.productos[index], ...productoTemporal };
+    } else {
+        state.productos.unshift(productoTemporal);
+    }
+
+    // Cerramos la ventana y mostramos el éxito de inmediato
+    closeModal();
+    renderProductos();
+    showNotification("Producto Guardado Correctamente");
+
+    // =======================================================
+    // PROCESAMIENTO DE FONDO (Envío real a PHP)
+    // =======================================================
+    (async () => {
+        try {
+            const formData = new FormData();
             
-            <div style="display: flex; flex-direction: column; gap: 24px;">
-                <div>
-                    <label class="form-label">Imagen del Producto</label>
-                    <div class="upload-box" style="padding: 40px 16px;">
-                        <i data-lucide="cloud-upload" style="color: #2563eb; width: 28px; height: 28px; margin-bottom: 12px;"></i>
-                        <span style="color: #64748b; font-weight: 500;">Subir imagen principal</span>
-                        <span style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Tabla: galeria_imagenes</span>
-                    </div>
+            formData.append('id_producto', idProducto);
+            formData.append('nombre', nombre);
+            formData.append('sku', sku);
+            formData.append('id_categoria', id_categoria);
+            formData.append('id_marca', id_marca);
+            formData.append('stock', stock);
+            formData.append('precio_regular', precio_regular);
+            formData.append('precio_oferta', precio_oferta);
+            formData.append('especificaciones_agrupadas', specs.join('||'));
+            
+            const inputImagenes = document.getElementById('prod-imagenes');
+            
+            // Verificamos que existan archivos y que la función de comprimir no se haya borrado
+            if (inputImagenes && inputImagenes.files.length > 0) {
+                if (typeof comprimirImagenWebP === 'function') {
+                    const archivosComprimidos = await Promise.all(
+                        Array.from(inputImagenes.files).map(file => comprimirImagenWebP(file))
+                    );
+                    archivosComprimidos.forEach(blob => formData.append('imagenes[]', blob));
+                } else {
+                    // Si la función se borró por accidente, enviamos las imágenes normales
+                    Array.from(inputImagenes.files).forEach(file => formData.append('imagenes[]', file));
+                }
+            }
+
+            const res = await fetch('includes/api/guardar_producto.php', { method: 'POST', body: formData });
+            
+            // 🛑 DETECTOR: Leemos el texto crudo de PHP antes de convertirlo a JSON
+            const textoPHP = await res.text();
+            
+            let result;
+            try {
+                result = JSON.parse(textoPHP);
+            } catch (err) {
+                console.error("❌ PHP DEVOLVIÓ ESTE ERROR:", textoPHP);
+                showNotification("Error en el servidor. Presiona F12 y mira la Consola", true);
+                await refrescarSoloProductos(); 
+                return;
+            }
+            
+            if(result.status !== 'success') {
+                console.error("❌ Error de BD:", result.msg);
+                showNotification(result.msg, true); // Muestra el error exacto en la ventanita roja
+            }
+            
+            await refrescarSoloProductos(); 
+        } catch (e) {
+            console.error("❌ Error de JavaScript o Red:", e);
+            showNotification("Error de código. Presiona F12", true);
+            await refrescarSoloProductos(); 
+        }
+    })();
+};
+
+// ================= RENDERIZADO DE PANTALLAS (Esto faltaba) =================
+const mainContent = document.getElementById('main-content');
+
+function renderDashboard() {
+    if(!mainContent) return;
+    mainContent.innerHTML = `
+        <div class="fade-in">
+            <h2 class="section-title">Rendimiento General</h2>
+            <div class="grid-4">
+                <div class="card"><div style="width:40px;height:40px;background:#3B82F6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;"><i data-lucide="package"></i></div><p style="color:#64748b;font-size:14px;">Productos Totales</p><p style="font-size:24px;font-weight:bold;">${state.productos.length}</p></div>
+                <div class="card"><div style="width:40px;height:40px;background:#10B981;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;"><i data-lucide="message-circle"></i></div><p style="color:#64748b;font-size:14px;">Leads Generados</p><p style="font-size:24px;font-weight:bold;">${state.leads.length}</p></div>
+            </div>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function renderProductos() {
+    if(!mainContent) return;
+    const filas = state.productos.map(p => {
+        const imagenPrimera = p.img_principal ? p.img_principal.split(',')[0] : 'placeholder.png';
+        const opacidad = p.estado == 0 ? 'opacity: 0.6; background: #f8fafc;' : ''; 
+        
+        // Lógica visual para los precios
+        let htmlPrecio = '';
+        if (parseFloat(p.precio_oferta) > 0) {
+            htmlPrecio = `
+                <div style="color:#94a3b8; text-decoration:line-through; font-size:12px;">${formatearMoneda(p.precio_regular)}</div>
+                <div style="color:#E8232A; font-weight:bold; font-size:15px;">${formatearMoneda(p.precio_oferta)}</div>
+            `;
+        } else {
+            htmlPrecio = `<div style="color:#2563eb; font-weight:bold; font-size:15px;">${formatearMoneda(p.precio_regular)}</div>`;
+        }
+
+        return `
+        <tr style="${opacidad}">
+            <td>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <img src="../assets/img_productos/${imagenPrimera}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;" onerror="this.src='https://via.placeholder.com/40'">
+                    <div><p style="font-weight:600;font-size:14px;">${p.nombre}</p><p style="font-size:12px;color:#94a3b8;">SKU: ${p.sku}</p></div>
                 </div>
-                <div style="background: var(--bg-gray); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
-                    <h3 style="font-weight:bold; color:var(--dark); margin-bottom:8px; font-size:16px;">Filtros / Especificaciones</h3>
-                    <p style="font-size:13px; color:#64748b; margin-bottom:20px; line-height:1.4;">Añade características aquí para generar los filtros automáticamente.</p>
-                    
-                    <div style="display:flex; flex-direction:column; gap:12px;">
-                        <div style="display:flex; gap:12px; align-items:center;">
-                            <input type="text" class="form-input" value="Pulgadas" style="font-weight:bold; width:35%;">
-                            <input type="text" class="form-input" value="55" style="width:50%;">
-                            <button class="btn-icon"><i data-lucide="flag" style="width:18px;"></i></button>
-                        </div>
-                        <div style="display:flex; gap:12px; align-items:center;">
-                            <input type="text" class="form-input" value="Resolución" style="font-weight:bold; width:35%;">
-                            <input type="text" class="form-input" value="4K UHD" style="width:50%;">
-                            <button class="btn-icon"><i data-lucide="flag" style="width:18px;"></i></button>
-                        </div>
-                        <div style="display:flex; gap:12px; align-items:center; margin-top:8px;">
-                            <input type="text" class="form-input" placeholder="Atributo (Ej: Color)" style="width:35%;">
-                            <input type="text" class="form-input" placeholder="Valor (Ej: Gris)" style="width:50%;">
-                            <button class="btn-primary" style="padding: 10px; border-radius: 8px;"><i data-lucide="plus" style="width:18px; margin:0;"></i></button>
-                        </div>
+            </td>
+            <td>${htmlPrecio}</td>
+            <td style="text-align:center;"><span style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold;background:${p.stock>0?'#dcfce7':'#fee2e2'};color:${p.stock>0?'#16a34a':'#dc2626'};">${p.stock}</span></td>
+            
+            <td style="text-align:center;">
+                <span style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold;background:${p.estado == 1 ? '#dcfce7' : '#f1f5f9'};color:${p.estado == 1 ? '#16a34a' : '#64748b'};">
+                    ${p.estado == 1 ? 'Activo' : 'Oculto'}
+                </span>
+            </td>
+            
+            <td style="text-align:center;">
+                <button onclick="toggleEstadoProducto(${p.id_producto}, ${p.estado})" class="btn-icon" title="${p.estado == 1 ? 'Ocultar en tienda' : 'Mostrar en tienda'}">
+                    <i data-lucide="${p.estado == 1 ? 'eye-off' : 'eye'}"></i>
+                </button>
+                <button onclick="abrirModalProducto(${p.id_producto})" class="btn-icon" title="Editar"><i data-lucide="edit"></i></button>
+            </td>
+        </tr>
+    `}).join('');
+
+    mainContent.innerHTML = `
+        <div class="fade-in">
+            <div class="flex-between">
+                <h2 class="section-title" style="margin:0;">Catálogo</h2>
+                <button onclick="abrirModalProducto()" class="btn-primary"><i data-lucide="plus"></i> Nuevo Producto</button>
+            </div>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Precio</th>
+                            <th style="text-align:center;">Stock</th>
+                            <th style="text-align:center;">Estado</th>
+                            <th style="text-align:center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>${filas}</tbody>
+                </table>
+            </div>
+        </div>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function renderCategorias() {
+    if(!mainContent) return;
+    
+    // 1. Generar filas de Categorías
+    const filasCat = state.categorias.map(c => `
+        <tr style="${c.estado == 0 ? 'opacity: 0.6; background: #f8fafc;' : ''}">
+            <td style="font-weight:600;">${c.nombre}</td>
+            <td style="text-align:center;">
+                <span style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold;background:${c.estado == 1 ? '#dcfce7' : '#f1f5f9'};color:${c.estado == 1 ? '#16a34a' : '#64748b'};">
+                    ${c.estado == 1 ? 'Activa' : 'Oculta'}
+                </span>
+            </td>
+            <td style="text-align:center;">
+                <button onclick="toggleEstadoAtributo('categoria', ${c.id_categoria}, ${c.estado})" class="btn-icon" title="${c.estado == 1 ? 'Ocultar' : 'Mostrar'}"><i data-lucide="${c.estado == 1 ? 'eye-off' : 'eye'}"></i></button>
+                <button onclick="abrirModalAtributo('categoria', ${c.id_categoria}, '${c.nombre}')" class="btn-icon" title="Editar"><i data-lucide="edit"></i></button>
+            </td>
+        </tr>
+    `).join('') || '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">No hay categorías</td></tr>';
+
+    // 2. Generar filas de Marcas
+    const filasMar = state.marcas.map(m => `
+        <tr style="${m.estado == 0 ? 'opacity: 0.6; background: #f8fafc;' : ''}">
+            <td style="font-weight:600;">${m.nombre}</td>
+            <td style="text-align:center;">
+                <span style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold;background:${m.estado == 1 ? '#dcfce7' : '#f1f5f9'};color:${m.estado == 1 ? '#16a34a' : '#64748b'};">
+                    ${m.estado == 1 ? 'Activa' : 'Oculta'}
+                </span>
+            </td>
+            <td style="text-align:center;">
+                <button onclick="toggleEstadoAtributo('marca', ${m.id_marca}, ${m.estado})" class="btn-icon" title="${m.estado == 1 ? 'Ocultar' : 'Mostrar'}"><i data-lucide="${m.estado == 1 ? 'eye-off' : 'eye'}"></i></button>
+                <button onclick="abrirModalAtributo('marca', ${m.id_marca}, '${m.nombre}')" class="btn-icon" title="Editar"><i data-lucide="edit"></i></button>
+            </td>
+        </tr>
+    `).join('') || '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">No hay marcas</td></tr>';
+
+    // 3. Dibujar la pantalla dividida (Grid)
+    mainContent.innerHTML = `
+        <div class="fade-in">
+            <h2 class="section-title">Categorías y Marcas</h2>
+            <div class="grid-2" style="gap: 32px; align-items: start;">
+                
+                <div class="table-container" style="padding: 20px;">
+                    <div class="flex-between" style="margin-bottom: 16px;">
+                        <h3 style="font-weight:bold; color:var(--dark); display:flex; align-items:center; gap:8px;"><i data-lucide="layers" style="color:#2563eb;"></i> Categorías</h3>
+                        <button onclick="abrirModalAtributo('categoria')" class="btn-primary" style="padding: 8px 16px;"><i data-lucide="plus"></i> Nueva</button>
                     </div>
+                    <table class="table">
+                        <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
+                        <tbody>${filasCat}</tbody>
+                    </table>
                 </div>
+
+                <div class="table-container" style="padding: 20px;">
+                    <div class="flex-between" style="margin-bottom: 16px;">
+                        <h3 style="font-weight:bold; color:var(--dark); display:flex; align-items:center; gap:8px;"><i data-lucide="tag" style="color:#10b981;"></i> Marcas</h3>
+                        <button onclick="abrirModalAtributo('marca')" class="btn-primary" style="padding: 8px 16px; background:#10b981;"><i data-lucide="plus"></i> Nueva</button>
+                    </div>
+                    <table class="table">
+                        <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
+                        <tbody>${filasMar}</tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+// ====================================================================
+// MÓDULO DE CATEGORÍAS Y MARCAS
+// ====================================================================
+
+function renderCategorias() {
+    if(!mainContent) return;
+    
+    // 1. Generar filas de Categorías
+    const filasCat = state.categorias.map(c => `
+        <tr style="${c.estado == 0 ? 'opacity: 0.6; background: #f8fafc;' : ''}">
+            <td style="font-weight:600;">${c.nombre}</td>
+            <td style="text-align:center;">
+                <span style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold;background:${c.estado == 1 ? '#dcfce7' : '#f1f5f9'};color:${c.estado == 1 ? '#16a34a' : '#64748b'};">
+                    ${c.estado == 1 ? 'Activa' : 'Oculta'}
+                </span>
+            </td>
+            <td style="text-align:center;">
+                <button onclick="toggleEstadoAtributo('categoria', ${c.id_categoria}, ${c.estado})" class="btn-icon" title="${c.estado == 1 ? 'Ocultar' : 'Mostrar'}"><i data-lucide="${c.estado == 1 ? 'eye-off' : 'eye'}"></i></button>
+                <button onclick="abrirModalAtributo('categoria', ${c.id_categoria}, '${c.nombre}')" class="btn-icon" title="Editar"><i data-lucide="edit"></i></button>
+            </td>
+        </tr>
+    `).join('') || '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">No hay categorías</td></tr>';
+
+    // 2. Generar filas de Marcas
+    const filasMar = state.marcas.map(m => `
+        <tr style="${m.estado == 0 ? 'opacity: 0.6; background: #f8fafc;' : ''}">
+            <td style="font-weight:600;">${m.nombre}</td>
+            <td style="text-align:center;">
+                <span style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold;background:${m.estado == 1 ? '#dcfce7' : '#f1f5f9'};color:${m.estado == 1 ? '#16a34a' : '#64748b'};">
+                    ${m.estado == 1 ? 'Activa' : 'Oculta'}
+                </span>
+            </td>
+            <td style="text-align:center;">
+                <button onclick="toggleEstadoAtributo('marca', ${m.id_marca}, ${m.estado})" class="btn-icon" title="${m.estado == 1 ? 'Ocultar' : 'Mostrar'}"><i data-lucide="${m.estado == 1 ? 'eye-off' : 'eye'}"></i></button>
+                <button onclick="abrirModalAtributo('marca', ${m.id_marca}, '${m.nombre}')" class="btn-icon" title="Editar"><i data-lucide="edit"></i></button>
+            </td>
+        </tr>
+    `).join('') || '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">No hay marcas</td></tr>';
+
+    // 3. Dibujar la pantalla dividida (Grid)
+    mainContent.innerHTML = `
+        <div class="fade-in">
+            <h2 class="section-title">Categorías y Marcas</h2>
+            <div class="grid-2" style="gap: 32px; align-items: start;">
+                
+                <div class="table-container" style="padding: 20px;">
+                    <div class="flex-between" style="margin-bottom: 16px;">
+                        <h3 style="font-weight:bold; color:var(--dark); display:flex; align-items:center; gap:8px;"><i data-lucide="layers" style="color:#2563eb;"></i> Categorías</h3>
+                        <button onclick="abrirModalAtributo('categoria')" class="btn-primary" style="padding: 8px 16px;"><i data-lucide="plus"></i> Nueva</button>
+                    </div>
+                    <table class="table">
+                        <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
+                        <tbody>${filasCat}</tbody>
+                    </table>
+                </div>
+
+                <div class="table-container" style="padding: 20px;">
+                    <div class="flex-between" style="margin-bottom: 16px;">
+                        <h3 style="font-weight:bold; color:var(--dark); display:flex; align-items:center; gap:8px;"><i data-lucide="tag" style="color:#10b981;"></i> Marcas</h3>
+                        <button onclick="abrirModalAtributo('marca')" class="btn-primary" style="padding: 8px 16px; background:#10b981;"><i data-lucide="plus"></i> Nueva</button>
+                    </div>
+                    <table class="table">
+                        <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
+                        <tbody>${filasMar}</tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+// ================= MODAL DE CATEGORÍAS/MARCAS =================
+window.abrirModalAtributo = function(tipo, id = null, nombreActual = '') {
+    const isEdit = id !== null;
+    const tituloTexto = tipo === 'categoria' ? 'Categoría' : 'Marca';
+    const color = tipo === 'categoria' ? '#2563eb' : '#10b981';
+    
+    const titulo = `<i data-lucide="${tipo === 'categoria' ? 'layers' : 'tag'}" style="color: ${color};"></i> ${isEdit ? 'Editar' : 'Nueva'} ${tituloTexto}`;
+    const contenido = `
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            <input type="hidden" id="attr-tipo" value="${tipo}">
+            <input type="hidden" id="attr-id" value="${id || ''}">
+            <div>
+                <label class="form-label">Nombre de la ${tituloTexto}</label>
+                <input type="text" id="attr-nombre" class="form-input" value="${nombreActual}" placeholder="Ej: Samsung, Lavadoras..." required>
             </div>
         </div>
     `;
     const footer = `
         <button onclick="closeModal()" class="btn-outline">Cancelar</button>
-        <button onclick="handleSave('Producto guardado exitosamente')" class="btn-primary">Guardar en MySQL</button>
+        <button onclick="guardarAtributoBD()" class="btn-primary" style="${tipo==='marca'?'background:#10b981; border-color:#10b981;':''}">Guardar</button>
     `;
-    openModal(titulo, contenido, footer, 'modal-lg');
+    openModal(titulo, contenido, footer, 'modal-md');
+};
+
+// ================= GUARDADO OPTIMISTA =================
+window.guardarAtributoBD = function() {
+    const tipo = document.getElementById('attr-tipo').value;
+    const id = document.getElementById('attr-id').value;
+    const nombre = document.getElementById('attr-nombre').value.trim();
+
+    if(!nombre) return showNotification("El nombre es obligatorio", true);
+
+    // Actualización visual rápida
+    const lista = tipo === 'categoria' ? state.categorias : state.marcas;
+    const campoId = tipo === 'categoria' ? 'id_categoria' : 'id_marca';
+    
+    if (id) {
+        const index = lista.findIndex(item => item[campoId] == id);
+        if (index !== -1) lista[index].nombre = nombre;
+    } else {
+        const nuevoItem = { nombre: nombre, estado: 1 };
+        nuevoItem[campoId] = 'temp_' + Date.now();
+        lista.push(nuevoItem);
+    }
+
+    closeModal();
+    renderCategorias();
+    showNotification("Guardado Correctamente");
+
+    // Procesamiento en background
+    (async () => {
+        try {
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('nombre', nombre);
+            formData.append('tipo', tipo);
+
+            await fetch('includes/api/guardar_cat_mar.php', { method: 'POST', body: formData });
+            
+            // Refrescar silenciosamente para obtener los IDs reales
+            const urlCat = 'includes/api/listar_categorias.php?t=' + Date.now();
+            const urlMar = 'includes/api/listar_marcas.php?t=' + Date.now();
+            
+            if(tipo === 'categoria') {
+                const r = await fetch(urlCat); const d = await r.json(); state.categorias = d.data || [];
+            } else {
+                const r = await fetch(urlMar); const d = await r.json(); state.marcas = d.data || [];
+            }
+            // Solo redibujar si el usuario sigue en esa pestaña
+            if(document.getElementById('tab-categorias').classList.contains('active')) renderCategorias();
+            
+        } catch (e) { showNotification("Error de red", true); }
+    })();
+};
+
+// ================= CAMBIAR ESTADO OPTIMISTA =================
+window.toggleEstadoAtributo = async function(tipo, id, estadoActual) {
+    const nuevoEstado = estadoActual == 1 ? 0 : 1; 
+    const lista = tipo === 'categoria' ? state.categorias : state.marcas;
+    const campoId = tipo === 'categoria' ? 'id_categoria' : 'id_marca';
+
+    // Actualización visual
+    const index = lista.findIndex(item => item[campoId] == id);
+    if (index !== -1) {
+        lista[index].estado = nuevoEstado;
+        renderCategorias(); 
+        showNotification(nuevoEstado == 1 ? 'Activado Correctamente' : 'Ocultado Correctamente');
+    }
+
+    // Backend
+    try {
+        const formData = new FormData();
+        formData.append('id', id);
+        formData.append('estado', nuevoEstado);
+        formData.append('tipo', tipo);
+
+        await fetch('includes/api/cambiar_estado_cat_mar.php', { method: 'POST', body: formData });
+    } catch(e) {
+        showNotification("Error de conexión", true);
+        if (index !== -1) { lista[index].estado = estadoActual; renderCategorias(); }
+    }
+};
+
+// ====================================================================
+// MÓDULO DE BANNERS
+// ====================================================================
+
+// ====================================================================
+// MÓDULO DE BANNERS (Con Drag & Drop de Ordenamiento)
+// ====================================================================
+
+function renderBanners() {
+    if(!mainContent) return;
+    
+    // Le agregamos el atributo draggable="true" a la fila y los eventos de arrastre
+    const filas = state.banners.map((b, index) => `
+        <tr draggable="true"
+            data-index="${index}"
+            ondragstart="iniciarArrastre(event)"
+            ondragover="permitirSoltar(event)"
+            ondrop="soltarBanner(event)"
+            ondragenter="entrarZonaArrastre(event)"
+            ondragleave="salirZonaArrastre(event)"
+            ondragend="finalizarArrastre(event)"
+            style="${b.estado == 0 ? 'opacity: 0.6; background: #f8fafc;' : 'background: white;'} cursor: grab; transition: all 0.2s;">
+            
+            <td style="width: 40px; text-align: center; color: #94a3b8; cursor: grab;">
+                <i data-lucide="grip-vertical"></i>
+            </td>
+            
+            <td style="width: 200px; pointer-events: none;">
+                <img src="../assets/img_banners/${b.ruta_imagen}" style="width: 100%; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);" onerror="this.src='https://via.placeholder.com/800x300?text=Sin+Imagen'">
+            </td>
+            <td style="pointer-events: none;">
+                <p style="font-weight:600; font-size:14px; margin-bottom:4px;">${b.titulo}</p>
+                <span style="font-size:12px; color:#2563eb;"><i data-lucide="link" style="width:12px; height:12px;"></i> ${b.enlace}</span>
+            </td>
+            <td style="text-align:center; pointer-events: none;">
+                <span style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold;background:${b.estado == 1 ? '#dcfce7' : '#f1f5f9'};color:${b.estado == 1 ? '#16a34a' : '#64748b'};">
+                    ${b.estado == 1 ? 'Activo' : 'Oculto'}
+                </span>
+            </td>
+            <td style="text-align:center;">
+                <button onclick="toggleEstadoBanner(${b.id_banner}, ${b.estado})" class="btn-icon" title="${b.estado == 1 ? 'Ocultar' : 'Mostrar'}"><i data-lucide="${b.estado == 1 ? 'eye-off' : 'eye'}"></i></button>
+                <button onclick="abrirModalBanner(${b.id_banner})" class="btn-icon" title="Editar"><i data-lucide="edit"></i></button>
+            </td>
+        </tr>
+    `).join('') || '<tr><td colspan="5" style="text-align:center; padding: 24px; color:#94a3b8;">No hay banners registrados</td></tr>';
+
+    mainContent.innerHTML = `
+        <div class="fade-in">
+            <div class="flex-between" style="margin-bottom: 24px;">
+                <h2 class="section-title" style="margin:0;"><i data-lucide="monitor-play" style="color:#2563eb;"></i> Banners Principales</h2>
+                <button onclick="abrirModalBanner()" class="btn-primary"><i data-lucide="plus"></i> Nuevo Banner</button>
+            </div>
+            <div class="table-container">
+                <table class="table" id="tabla-banners">
+                    <thead><tr><th></th><th>Vista Previa</th><th>Detalles</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
+                    <tbody>${filas}</tbody>
+                </table>
+            </div>
+        </div>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-function abrirModalBanner() {
-    const titulo = `<i data-lucide="monitor-play" style="color: #2563eb;"></i> Nuevo Banner`;
+// ================= LÓGICA DE DRAG & DROP =================
+let dragStartIndex = -1;
+
+window.iniciarArrastre = function(e) {
+    dragStartIndex = +e.currentTarget.getAttribute('data-index');
+    e.dataTransfer.effectAllowed = 'move';
+    // Efecto visual de transparencia al arrastrar
+    setTimeout(() => { e.target.style.opacity = '0.3'; }, 0);
+};
+
+window.permitirSoltar = function(e) {
+    e.preventDefault(); // Indispensable para que el navegador permita soltar
+};
+
+window.entrarZonaArrastre = function(e) {
+    e.preventDefault();
+    const tr = e.currentTarget;
+    // Dibuja una línea azul indicando dónde caerá
+    tr.style.borderTop = "3px solid #2563eb"; 
+};
+
+window.salirZonaArrastre = function(e) {
+    const tr = e.currentTarget;
+    tr.style.borderTop = ""; // Quita la línea al salir
+};
+
+window.soltarBanner = function(e) {
+    e.preventDefault();
+    const tr = e.currentTarget;
+    tr.style.borderTop = "";
+    tr.style.opacity = '1';
+
+    const dragEndIndex = +tr.getAttribute('data-index');
+
+    // Si lo movió a una posición distinta
+    if (dragStartIndex !== dragEndIndex && dragStartIndex !== -1) {
+        // Sacamos el banner de su posición original y lo metemos en la nueva
+        const bannerMovido = state.banners.splice(dragStartIndex, 1)[0];
+        state.banners.splice(dragEndIndex, 0, bannerMovido);
+
+        renderBanners(); // Redibujamos la tabla instantáneamente
+        guardarNuevoOrdenBanners(); // Enviamos la orden de guardado al servidor
+    }
+};
+
+window.finalizarArrastre = function(e) {
+    // 1. Le devuelve el color sólido a la fila que estabas moviendo
+    e.target.style.opacity = '1';
+    
+    // 2. Limpia cualquier línea azul que se haya quedado "pegada" por error
+    document.querySelectorAll('#tabla-banners tr').forEach(tr => {
+        tr.style.borderTop = "";
+    });
+};
+
+window.guardarNuevoOrdenBanners = async function() {
+    // Creamos un array pequeño solo con los IDs y su nuevo orden
+    const nuevoOrden = state.banners.map((b, index) => ({
+        id_banner: b.id_banner,
+        orden: index
+    }));
+
+    try {
+        await fetch('includes/api/guardar_orden_banners.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nuevoOrden)
+        });
+        showNotification("Orden actualizado en la tienda");
+    } catch (error) {
+        showNotification("Error al guardar el orden", true);
+    }
+};
+
+window.abrirModalBanner = function(id = null) {
+    const isEdit = id !== null;
+    const banner = isEdit ? state.banners.find(b => b.id_banner == id) : {};
+    
+    const titulo = `<i data-lucide="image" style="color: #2563eb;"></i> ${isEdit ? 'Editar' : 'Nuevo'} Banner`;
     const contenido = `
-        <div style="display: flex; flex-direction: column; gap: 24px;">
-            <div><label class="form-label">Título interno</label><input type="text" class="form-input" placeholder="Ej: Campaña Día de la Madre"></div>
+        <form id="form-banner" style="display: flex; flex-direction: column; gap: 16px;">
+            <input type="hidden" id="ban-id" value="${banner.id_banner || ''}">
+            <input type="hidden" id="ban-img-actual" value="${banner.ruta_imagen || ''}">
+            
+            <div><label class="form-label">Título (Referencia interna)</label><input type="text" id="ban-titulo" class="form-input" value="${banner.titulo || ''}" placeholder="Ej: Cyber Wow 2026" required></div>
+            <div><label class="form-label">Enlace al hacer clic</label><input type="text" id="ban-enlace" class="form-input" value="${banner.enlace || '#'}" placeholder="Ej: /categoria.php?id=1"></div>
+            
             <div>
-                <label class="form-label">Imagen (1920x600px)</label>
-                <div class="upload-box" style="padding: 40px 20px;">
-                    <i data-lucide="cloud-upload" style="color: #2563eb; width: 28px; height: 28px; margin-bottom: 12px;"></i>
-                    <span style="color: #64748b; font-weight: 500;">Seleccionar archivo .jpg / .webp</span>
+                <label class="form-label">Imagen del Banner (Recomendado: 1920x600px)</label>
+                <div id="drop-zone-banner" class="upload-box" onclick="document.getElementById('ban-imagen').click()" style="padding: 30px; text-align: center; cursor:pointer; border: 2px dashed var(--border); border-radius: 12px; background: white; transition: all 0.2s ease;">
+                    <i data-lucide="upload-cloud" style="color: #3b82f6; width: 32px; height: 32px; margin-bottom: 8px;"></i>
+                    <span style="font-size: 14px; color: #64748b; display:block;">Clic o <strong style="color: #2563eb;">arrastra la imagen</strong> aquí</span>
+                </div>
+                <input type="file" id="ban-imagen" class="hidden" accept="image/*">
+                
+                <div id="preview-banner" style="margin-top:12px;">
+                    ${banner.ruta_imagen ? `<img src="../assets/img_banners/${banner.ruta_imagen}" style="width:100%; height:auto; border-radius:8px; border:1px solid var(--border);">` : ''}
                 </div>
             </div>
-            <div><label class="form-label">Orden de aparición</label><input type="number" class="form-input" value="1"></div>
-        </div>
+        </form>
     `;
-    const footer = `<button onclick="closeModal()" class="btn-outline">Cancelar</button><button onclick="handleSave('Banner publicado')" class="btn-primary">Publicar</button>`;
-    openModal(titulo, contenido, footer, 'modal-md');
-}
-
-function verDetalleLead(id) {
-    const lead = leadsDB.find(l => l.id === id);
-    const total = lead.detalles.reduce((acc, curr) => acc + (curr.cant * curr.precio), 0);
-    let itemsHtml = lead.detalles.map(d => `<li style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:8px;"><span>${d.cant}x ${d.prod}</span><span style="font-weight:bold;">${formatearMoneda(d.precio * d.cant)}</span></li>`).join('');
+    const footer = `<button onclick="closeModal()" class="btn-outline">Cancelar</button><button onclick="guardarBannerBD()" class="btn-primary">Guardar</button>`;
     
-    const titulo = `<i data-lucide="message-circle" style="color: #10b981;"></i> Consulta de WhatsApp`;
-    const contenido = `
-        <div style="background:#eff6ff; padding:16px; border-radius:12px; color:#1e40af; font-size:14px; margin-bottom:20px;">Interés del cliente: <strong>${lead.cliente}</strong></div>
-        <ul style="border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:16px 0; margin-bottom:16px;">${itemsHtml}</ul>
-        <div style="display:flex; justify-content:space-between; font-size:18px; font-weight:bold;"><span>Total:</span><span style="color:#2563eb;">${formatearMoneda(total)}</span></div>
-    `;
-    const footer = `<button onclick="closeModal()" class="btn-dark" style="width:100%;">Cerrar</button>`;
     openModal(titulo, contenido, footer, 'modal-md');
-}
 
-// ================= CRUD Y VISTAS =================
-const toggleEstado = (id, db, renderFn) => { const item = db.find(i => i.id === id); if(item) { item.estado = item.estado === 1 ? 0 : 1; renderFn(); } };
-const eliminarItem = (id, dbArray, renderFn) => { if(confirm('¿Seguro que deseas eliminar?')) { dbArray.splice(dbArray.findIndex(i => i.id === id), 1); renderFn(); showNotification('Eliminado'); } };
+    // ==========================================
+    // LÓGICA DE ARRASTRAR Y SOLTAR (DRAG & DROP)
+    // ==========================================
+    const input = document.getElementById('ban-imagen');
+    const preview = document.getElementById('preview-banner');
+    const dropZone = document.getElementById('drop-zone-banner');
 
-const mainContent = document.getElementById('main-content');
+    // Función reutilizable para leer y mostrar la imagen
+    const manejarArchivo = (file) => {
+        if(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:auto; border-radius:8px; border:1px solid var(--border); fade-in;">`;
+            }
+            reader.readAsDataURL(file);
+        }
+    };
 
-const renderDashboard = () => {
-    const max = Math.max(...visitasData.map(d => d.visitas));
-    const barras = visitasData.map(d => `<div style="display:flex;flex-direction:column;align-items:center;width:100%;"><div style="font-size:12px;color:#64748b;margin-bottom:8px;">${d.visitas}</div><div style="width:100%;max-width:40px;background:#dbeafe;border-radius:4px 4px 0 0;height:${(d.visitas/max)*100}%;transition:0.3s;" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#dbeafe'"></div><span style="font-size:12px;color:#64748b;margin-top:8px;">${d.dia}</span></div>`).join('');
-    mainContent.innerHTML = `<div class="fade-in"><h2 class="section-title">Rendimiento</h2><div class="grid-4"><div class="card"><div style="width:40px;height:40px;background:#3B82F6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;"><i data-lucide="activity"></i></div><p style="color:#64748b;font-size:14px;">Visitas</p><p style="font-size:24px;font-weight:bold;">12,450</p></div><div class="card"><div style="width:40px;height:40px;background:#10B981;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;"><i data-lucide="message-circle"></i></div><p style="color:#64748b;font-size:14px;">Leads</p><p style="font-size:24px;font-weight:bold;">145</p></div><div class="card"><div style="width:40px;height:40px;background:#8B5CF6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;"><i data-lucide="package"></i></div><p style="color:#64748b;font-size:14px;">Productos</p><p style="font-size:24px;font-weight:bold;">${productosDB.length}</p></div><div class="card"><div style="width:40px;height:40px;background:#a855f7;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;"><i data-lucide="layers"></i></div><p style="color:#64748b;font-size:14px;">Estructura</p><p style="font-size:24px;font-weight:bold;">${categoriasDB.length} / ${marcasDB.length}</p></div></div><div class="card"><h3 style="font-weight:bold;margin-bottom:24px;">Tráfico semanal</h3><div style="height:200px;display:flex;align-items:flex-end;gap:16px;">${barras}</div></div></div>`;
-    lucide.createIcons();
+    // 1. Clic normal (ya existía)
+    input.addEventListener('change', function(e) {
+        manejarArchivo(this.files[0]);
+    });
+
+    // 2. Arrancamos con los eventos de arrastre
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault(); // Evita que el navegador abra la imagen
+        dropZone.style.borderColor = '#2563eb'; // Cambiamos a azul
+        dropZone.style.background = '#eff6ff'; // Fondo azul claro
+        dropZone.style.transform = 'scale(1.02)'; // Pequeño zoom
+    });
+
+    // Cuando sales de la zona sin soltar
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--border)'; // Reseteamos bordes
+        dropZone.style.background = 'white'; // Reseteamos fondo
+        dropZone.style.transform = 'scale(1)';
+    });
+
+    // ¡EL MOMENTO CLAVE: SOLTAR LA IMAGEN!
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        // Reseteamos estilos visuales
+        dropZone.style.borderColor = 'var(--border)';
+        dropZone.style.background = 'white';
+        dropZone.style.transform = 'scale(1)';
+
+        // Verificamos que soltaron archivos válidos
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            // MÁGICA: Transferimos el archivo arrastrado al input oculto
+            input.files = e.dataTransfer.files;
+            
+            // Mostramos la previsualización al instante
+            manejarArchivo(input.files[0]);
+        }
+    });
 };
 
-const renderProductos = () => {
-    const filas = productosDB.map(p => `<tr><td><p style="font-weight:600;">${p.nombre}</p><p style="font-size:12px;color:#94a3b8;">SKU: ${p.sku}</p></td><td><div style="color:#2563eb;font-weight:bold;">${formatearMoneda(p.oferta)}</div><div style="font-size:12px;text-decoration:line-through;color:#94a3b8;">${formatearMoneda(p.regular)}</div></td><td style="text-align:center;">${p.stock}</td><td><button onclick="toggleEstado(${p.id}, productosDB, renderProductos)" class="${p.estado ? 'badge-visible' : 'badge-oculto'}">${p.estado ? 'Visible':'Oculto'}</button></td><td style="text-align:center;"><button onclick="abrirModalProducto()" class="btn-icon"><i data-lucide="edit" style="width:18px;"></i></button><button onclick="eliminarItem(${p.id}, productosDB, renderProductos)" class="btn-icon danger"><i data-lucide="trash-2" style="width:18px;"></i></button></td></tr>`).join('');
-    mainContent.innerHTML = `<div class="fade-in"><div class="flex-between"><h2 class="section-title" style="margin:0;">Catálogo</h2><button onclick="abrirModalProducto()" class="btn-primary"><i data-lucide="plus"></i> Nuevo Producto</button></div><div class="table-container"><table class="table"><thead><tr><th>Producto</th><th>Precios</th><th style="text-align:center;">Stock</th><th>Estado</th><th style="text-align:center;">Acciones</th></tr></thead><tbody>${filas}</tbody></table></div></div>`;
-    lucide.createIcons();
+const procesarImagenBannerEfe = (file) => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                
+                // Las medidas exactas que quieres obligar a tener
+                const targetWidth = 1920;
+                const targetHeight = 600;
+
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+                const ctx = canvas.getContext('2d');
+                
+                // Dibuja TODA la imagen original obligándola a entrar en 1920x600
+                // ctx.drawImage(imagen, x, y, ancho_destino, alto_destino)
+                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+                // Convertimos el resultado a WebP al 80% de calidad
+                canvas.toBlob((blob) => {
+                    const nuevoArchivo = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+                        type: 'image/webp',
+                        lastModified: Date.now()
+                    });
+                    resolve(nuevoArchivo);
+                }, 'image/webp', 0.8);
+            };
+        };
+    });
 };
 
-const renderCategorias = () => {
-    const tCat = categoriasDB.map(c => `<tr><td style="font-weight:600;">${c.nombre}</td><td><button onclick="toggleEstado(${c.id}, categoriasDB, renderCategorias)" class="${c.estado ? 'badge-visible' : 'badge-oculto'}">${c.estado ? 'Activa':'Oculta'}</button></td><td style="text-align:right;"><button onclick="eliminarItem(${c.id}, categoriasDB, renderCategorias)" class="btn-icon danger"><i data-lucide="trash-2" style="width:16px;"></i></button></td></tr>`).join('');
-    const tMar = marcasDB.map(m => `<tr><td style="font-weight:600;">${m.nombre}</td><td style="font-size:13px;color:#64748b;">${m.total_productos} prods</td><td style="text-align:right;"><button onclick="eliminarItem(${m.id}, marcasDB, renderCategorias)" class="btn-icon danger"><i data-lucide="trash-2" style="width:16px;"></i></button></td></tr>`).join('');
-    mainContent.innerHTML = `<div class="fade-in"><div class="flex-between"><h2 class="section-title" style="margin:0;">Tienda</h2><div style="display:flex; gap:8px;"><button onclick="openModal('Nueva Marca', '<label class=\\'form-label\\'>Marca</label><input type=\\'text\\' class=\\'form-input\\'>', '<button onclick=\\'closeModal()\\' class=\\'btn-outline\\'>Cancelar</button><button onclick=\\'handleSave(\\'Guardado\\')\\' class=\\'btn-primary\\'>Guardar</button>')" class="btn-outline">+ Marca</button><button onclick="openModal('Nueva Categoría', '<label class=\\'form-label\\'>Categoría</label><input type=\\'text\\' class=\\'form-input\\'>', '<button onclick=\\'closeModal()\\' class=\\'btn-outline\\'>Cancelar</button><button onclick=\\'handleSave(\\'Guardado\\')\\' class=\\'btn-primary\\'>Guardar</button>')" class="btn-primary">+ Categoría</button></div></div><div class="grid-2"><div class="table-container"><div class="card-header"><i data-lucide="layers"></i> Categorías</div><table class="table"><tbody>${tCat}</tbody></table></div><div class="table-container"><div class="card-header"><i data-lucide="tags"></i> Marcas</div><table class="table"><tbody>${tMar}</tbody></table></div></div></div>`;
-    lucide.createIcons();
+window.guardarBannerBD = function() {
+    const id = document.getElementById('ban-id').value;
+    const titulo = document.getElementById('ban-titulo').value.trim();
+    const enlace = document.getElementById('ban-enlace').value.trim();
+    const imagenActual = document.getElementById('ban-img-actual').value;
+    const fileInput = document.getElementById('ban-imagen');
+
+    if(!titulo) return showNotification("El título es obligatorio", true);
+    if(!id && (!fileInput.files || fileInput.files.length === 0)) return showNotification("Debes subir una imagen", true);
+
+    // Actualización Optimista
+    const bannerTemp = {
+        id_banner: id || 'temp_' + Date.now(), 
+        titulo: titulo, enlace: enlace, estado: 1, 
+        ruta_imagen: imagenActual || 'cargando.jpg'
+    };
+
+    const index = state.banners.findIndex(b => b.id_banner == id);
+    if (index !== -1) { bannerTemp.estado = state.banners[index].estado; state.banners[index] = bannerTemp; } 
+    else { state.banners.unshift(bannerTemp); }
+
+    closeModal(); renderBanners(); showNotification("Banner Guardado");
+
+    // Envío de fondo
+    (async () => {
+        try {
+            const formData = new FormData();
+            
+            // Empaquetamos los datos como siempre
+            formData.append('id_banner', id); 
+            formData.append('titulo', titulo); 
+            formData.append('enlace', enlace); 
+            formData.append('imagen_actual', imagenActual);
+            
+            const fileInput = document.getElementById('ban-imagen');
+            
+            // ¡MAGIA AQUÍ! Si subieron una foto nueva, la re-encuadramos antes de subirla
+            if (fileInput && fileInput.files.length > 0) {
+                if (typeof procesarImagenBannerEfe === 'function') {
+                    // Usamos el nuevo motor de re-encuadre de EFE
+                    const archivoProcesado = await procesarImagenBannerEfe(fileInput.files[0]);
+                    formData.append('imagen', archivoProcesado);
+                } else {
+                    // Fallback de seguridad si algo falla
+                    formData.append('imagen', fileInput.files[0]);
+                }
+            }
+
+            // Enviamos la foto que YA ESTÁ PERFECTAMENTE MEDIDA EN 1920x600 y WebP
+            const res = await fetch('includes/api/guardar_banner.php', { method: 'POST', body: formData });
+            const result = await res.json();
+            
+            if(result.status !== 'success') {
+                console.error("Error del servidor: ", result.msg);
+                showNotification("Error interno al guardar banner", true);
+            }
+            
+            // Recarga silenciosa
+            const r = await fetch('includes/api/listar_banners.php?t=' + Date.now());
+            const d = await r.json(); state.banners = d.data || [];
+            if(document.getElementById('tab-banners').classList.contains('active')) renderBanners();
+            
+        } catch (e) {
+            console.error("Error en segundo plano:", e);
+            showNotification("Error de red al guardar banner", true);
+        }
+    })();
 };
 
-const renderBanners = () => {
-    const cards = bannersDB.map(b => `<div style="background:white;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="background:#f1f5f9;height:140px;border-radius:8px;border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#94a3b8;margin-bottom:16px;"><i data-lucide="image"></i><span style="font-size:12px;margin-top:8px;">${b.imagen}</span></div><div style="display:flex;justify-content:space-between;align-items:center;"><div><p style="font-weight:bold;font-size:14px;">${b.nombre}</p><p style="font-size:12px;color:#64748b;">Orden: ${b.orden}</p></div><div style="display:flex;gap:4px;"><button onclick="toggleEstado(${b.id}, bannersDB, renderBanners)" class="${b.estado ? 'badge-visible' : 'badge-oculto'}">${b.estado ? 'Visible':'Oculto'}</button><button onclick="eliminarItem(${b.id}, bannersDB, renderBanners)" class="btn-icon danger"><i data-lucide="trash-2"></i></button></div></div></div>`).join('');
-    mainContent.innerHTML = `<div class="fade-in"><div class="flex-between"><h2 class="section-title" style="margin:0;">Banners</h2><button onclick="abrirModalBanner()" class="btn-primary"><i data-lucide="plus"></i> Subir Banner</button></div><div class="grid-2">${cards}</div></div>`;
-    lucide.createIcons();
+window.toggleEstadoBanner = async function(id, estadoActual) {
+    if (productosProcesando.has(id)) return; productosProcesando.add(id);
+    const nuevoEstado = estadoActual == 1 ? 0 : 1; 
+
+    const index = state.banners.findIndex(b => b.id_banner == id);
+    if (index !== -1) { state.banners[index].estado = nuevoEstado; renderBanners(); showNotification(nuevoEstado == 1 ? 'Banner Visible' : 'Banner Oculto'); }
+
+    try {
+        const formData = new FormData(); formData.append('id', id); formData.append('estado', nuevoEstado);
+        await fetch('includes/api/cambiar_estado_banner.php', { method: 'POST', body: formData });
+    } catch(e) { if (index !== -1) { state.banners[index].estado = estadoActual; renderBanners(); } }
+    finally { productosProcesando.delete(id); }
 };
 
-const renderLeads = () => {
-    const filas = leadsDB.map(l => `<tr><td style="font-family:monospace;font-size:13px;color:#64748b;">${l.id}</td><td><p style="font-weight:bold;">${l.cliente}</p><p style="font-size:12px;color:#16a34a;"><i data-lucide="phone" style="width:12px;display:inline-block;"></i> ${l.telefono}</p></td><td style="font-size:13px;color:#475569;">${l.fecha}</td><td style="text-align:center;"><button onclick="verDetalleLead('${l.id}')" style="background:#eff6ff;color:#1d4ed8;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;"><i data-lucide="eye" style="width:14px;vertical-align:middle;"></i> Ver Interés</button></td></tr>`).join('');
-    mainContent.innerHTML = `<div class="fade-in"><h2 class="section-title" style="margin-bottom:24px;">Leads WhatsApp</h2><div class="table-container"><table class="table"><thead><tr><th>ID</th><th>Cliente</th><th>Fecha</th><th style="text-align:center;">Acciones</th></tr></thead><tbody>${filas}</tbody></table></div></div>`;
-    lucide.createIcons();
-};
+function renderLeads() { mainContent.innerHTML = `<div class="fade-in"><h2 class="section-title">Historial de Leads</h2><p>Módulo en construcción...</p></div>`; }
 
-const switchTab = (tabId) => {
+window.switchTab = function(tabId) {
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`tab-${tabId}`).classList.add('active');
+    const btnActive = document.getElementById(`tab-${tabId}`);
+    if(btnActive) btnActive.classList.add('active');
+    
     if(tabId === 'dashboard') renderDashboard();
     if(tabId === 'productos') renderProductos();
     if(tabId === 'categorias') renderCategorias();
@@ -201,34 +1103,5 @@ const switchTab = (tabId) => {
     if(tabId === 'leads') renderLeads();
 };
 
-document.addEventListener('DOMContentLoaded', () => { renderDashboard(); });
-
-
-// Función para cargar productos desde la API PHP
-async function cargarProductos() {
-    const response = await fetch('includes/api/listar_productos.php');
-    const result = await response.json();
-
-    if(result.status === 'success') {
-        const tabla = document.getElementById('tabla-productos-body');
-        tabla.innerHTML = ''; // Limpiar tabla
-        
-        result.data.forEach(prod => {
-            tabla.innerHTML += `
-                <tr>
-                    <td>${prod.sku}</td>
-                    <td>${prod.nombre}</td>
-                    <td>${prod.categoria}</td>
-                    <td>S/ ${prod.precio_regular}</td>
-                    <td>${prod.stock}</td>
-                    <td>
-                        <button onclick="editar(${prod.id_producto})">Edit</button>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-}
-
-// Llamar a la función al cargar la página
-document.addEventListener('DOMContentLoaded', cargarProductos);
+// ================= INICIADOR =================
+document.addEventListener('DOMContentLoaded', inicializarAdmin);
