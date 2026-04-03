@@ -71,7 +71,7 @@ function renderizarProductoCompleto(prod) {
             return `
             <article class="product-card" style="cursor: pointer;" onclick="window.location.href='producto.php?id=${p.id_producto}'">
                 <div class="product-card__image-container">
-                    <img class="product-card__img" src="assets/img/${p.img_principal || 'placeholder.png'}" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'font-size:60px;\\'>📦</div>';">
+                    <img class="product-card__img" src="assets/img_productos/${p.img_principal || 'placeholder.png'}" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'font-size:60px;\\'>📦</div>';">
                 </div>
                 <div class="product-card__info">
                     <span class="product-card__brand">${p.marca}</span>
@@ -103,7 +103,7 @@ function renderizarProductoCompleto(prod) {
         <div class="detail-top-section">
             <div class="detail-gallery-wrapper">
                 <div class="detail-main-img-container">
-                    <img src="assets/img/${prod.img_principal || 'placeholder.png'}" class="detail-main-img" onerror="this.src='assets/img/placeholder.png'">
+                    <img src="assets/img_productos/${prod.img_principal || 'placeholder.png'}" class="detail-main-img" onerror="this.src='assets/img/placeholder.png'">
                 </div>
             </div>
             

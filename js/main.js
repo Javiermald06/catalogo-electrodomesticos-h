@@ -39,10 +39,42 @@ function initHeroSlider() {
   resetHeroInterval();
 }
 
+// ================= BANNERS DINÁMICOS =================
+async function cargarBannersPublicos() {
+  try {
+      const response = await fetch('includes/api/listar_banners.php');
+      const result = await response.json();
+      
+      if (result.status === 'success' && result.data.length > 0) {
+          const activos = result.data.filter(b => b.estado == 1);
+          const wrapper = document.querySelector('.slider-wrapper');
+          const dots = document.querySelector('.slider-dots');
+          
+          if (activos.length > 0) {
+              wrapper.innerHTML = activos.map((b, i) => `
+                  <div class="slide ${i === 0 ? 'active' : ''}" style="width: 100%; height: 100%; padding: 0;">
+                      
+                      ${b.enlace !== '#' ? `<a href="${b.enlace}" style="display:block; width:100%; height:100%;">` : ''}
+                      
+                      <img src="assets/img_banners/${b.ruta_imagen}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;" alt="${b.titulo}" onerror="this.src='https://via.placeholder.com/1920x600?text=Sin+Imagen'">
+                      
+                      ${b.enlace !== '#' ? `</a>` : ''}
+                      
+                  </div>
+              `).join('');
+              
+              dots.innerHTML = activos.map((_, i) => `<span class="dot ${i === 0 ? 'active' : ''}" onclick="setHeroSlide(${i})"></span>`).join('');
+          }
+      }
+  } catch (e) {
+      console.error("Error cargando banners:", e);
+  }
+}
+
 // ================= RENDERIZADO DE PRODUCTOS =================
 function crearTarjetaProducto(prod) {
   const imgContent = prod.img
-    ? `<img class="product-card__img" src="assets/img/${prod.img}" alt="${prod.nombre}" loading="lazy" onerror="this.parentElement.innerHTML='${prod.emoji}'">`
+    ? `<img class="product-card__img" src="assets/img_productos/${prod.img}" alt="${prod.nombre}" loading="lazy" onerror="this.parentElement.innerHTML='${prod.emoji}'">`
     : `<div style="font-size: 60px;">${prod.emoji}</div>`;
 
   const badge = prod.badge 
@@ -262,22 +294,48 @@ function eliminarDelCarrito(index) {
   renderizarCarrito();
 }
 
-function enviarPedidoCarrito() {
-  if (carrito.length === 0) return;
+async function enviarPedidoCarrito() {
+    if (carrito.length === 0) return;
 
-  let total = 0;
-  let mensaje = "Hola ElectroHogar, me gustaría realizar el siguiente pedido:\n\n";
+    let total = 0;
+    let mensaje = "Hola ElectroHogar, me gustaría realizar el siguiente pedido:\n\n";
 
-  carrito.forEach(item => {
-    const subtotal = item.precio * item.cantidad;
-    total += subtotal;
-    mensaje += `🔹 ${item.cantidad}x *${item.nombre}* (S/ ${subtotal.toLocaleString('es-PE', { minimumFractionDigits: 2 })})\n`;
-  });
+    // 1. Construir el mensaje para WhatsApp (Igual a tu imagen)
+    carrito.forEach(item => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
+        mensaje += `🔹 ${item.cantidad}x *${item.nombre}* (S/ ${subtotal.toLocaleString('es-PE', { minimumFractionDigits: 2 })})\n`;
+    });
 
-  mensaje += `\n💰 *Total Estimado: S/ ${total.toLocaleString('es-PE', { minimumFractionDigits: 2 })}*\n\n¿Podrían confirmarme el stock y los métodos de pago?`;
+    mensaje += `\n💰 *Total Estimado: S/ ${total.toLocaleString('es-PE', { minimumFractionDigits: 2 })}*\n\n¿Podrían confirmarme el stock y los métodos de pago?`;
 
-  const whatsappUrl = `https://wa.me/51989919237?text=${encodeURIComponent(mensaje)}`;
-  window.open(whatsappUrl, '_blank');
+    // 2. Guardar el Lead (Cotización) en la base de datos MySQL
+    try {
+        const datosLead = {
+            carrito: carrito,
+            total: total,
+            fecha: new Date().toISOString()
+        };
+
+        // Enviamos los datos a tu futura API PHP
+        await fetch('includes/api/guardar_lead.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(datosLead)
+        });
+        
+        console.log("Lead guardado correctamente en la BD.");
+        
+    } catch (error) {
+        // Si hay un error en el servidor, lo mostramos en consola pero NO detenemos la ejecución
+        console.error("No se pudo guardar el lead en el panel admin:", error);
+    }
+
+    // 3. Abrir WhatsApp (¡La venta sigue su curso!)
+    const whatsappUrl = `https://wa.me/51989919237?text=${encodeURIComponent(mensaje)}`;
+    window.open(whatsappUrl, '_blank');
 }
 
 // ================= BUSCADOR PREDICTIVO =================
@@ -326,13 +384,17 @@ document.addEventListener('click', function(event) {
 
 
 // ================= CONEXIÓN CON PHP Y MYSQL (INICIALIZACIÓN) =================
+// ================= CONEXIÓN CON PHP Y MYSQL (INICIALIZACIÓN) =================
 document.addEventListener('DOMContentLoaded', async () => {
+    // 1. CARGAMOS LOS BANNERS PRIMERO
+    await cargarBannersPublicos();
+    
+    // 2. LUEGO CARGAMOS LOS PRODUCTOS
     try {
         const response = await fetch('includes/api/listar_productos.php');
         const result = await response.json();
 
         if(result.status === 'success') {
-            
             PRODUCTOS = result.data.map(p => {
                 const precioReg = parseFloat(p.precio_regular);
                 const precioOfe = parseFloat(p.precio_oferta);
@@ -354,7 +416,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             const categoriasUnicas = [...new Set(PRODUCTOS.map(p => p.categoria_real))];
-
             const iconMap = { 'Lavadoras': '🫧', 'Smart TVs': '🖥️', 'Baño': '🚿', 'Cocina': '🍳', 'Refrigeradoras': '❄️', 'Audio': '🔊', 'Aspiradoras': '🌀', 'Planchas': '👔' };
 
             SECCIONES_DINAMICAS = categoriasUnicas.map(catNombre => ({
@@ -366,7 +427,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             renderMenuCategorias(); 
             renderSecciones();      
-            initHeroSlider();        
+            initHeroSlider();        // <- ¡Inicia el carrusel después de inyectar el HTML de banners!
             renderCarruselOfertas(); 
             initCarouselButtons();   
             initScrollSpy();  

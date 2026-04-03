@@ -124,7 +124,10 @@ nav a:hover { background: var(--red); color: white; }
 /* ===== HERO SLIDER (ESTILO EFE) ===== */
 .hero-slider {
   margin-top: 64px;
-  height: 520px;
+  width: 100%;
+  aspect-ratio: 1920 / 600; /* Mantiene la proporción recomendada en PCs y celulares */
+  max-height: 550px; /* Límite para pantallas gigantes */
+  min-height: 250px; /* Límite para celulares pequeños */
   position: relative;
   overflow: hidden;
   background: var(--dark);

@@ -16,37 +16,12 @@
   /*Probando hosting
   <main>
     <section class="hero-slider" id="main-slider" aria-label="Destacados">
-      <div class="slider-wrapper">
-        <div class="slide active" style="background: linear-gradient(135deg, var(--dark) 0%, var(--blue) 60%);">
-          <div class="hero-content">
-            <span class="hero-tag">Tacna, Perú</span>
-            <h1>Tu Hogar<br><span>Inteligente</span><br>Empieza Aquí</h1>
-            <p>Los mejores electrodomésticos al mejor precio con garantía y servicio técnico.</p>
-            <div class="hero-btns">
-              <a href="#ofertas" class="btn-primary">Ver Ofertas</a>
-              <a href="#categorias" class="btn-secondary">Ver Catálogo</a>
-            </div>
-          </div>
-        </div>
-        <div class="slide" style="background: linear-gradient(135deg, #a01218 0%, var(--red) 100%);">
-          <div class="hero-content">
-            <span class="hero-tag">Línea Blanca</span>
-            <h1>Renueva tu<br><span>Cocina</span><br>Hoy Mismo</h1>
-            <p>Aprovecha descuentos exclusivos en refrigeradoras y cocinas Bosch y Samsung.</p>
-            <div class="hero-btns">
-              <a href="#cocina" class="btn-primary">Ver Cocinas</a>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div class="slider-wrapper" id="banner-wrapper"></div>
 
       <button class="slider-control prev" aria-label="Anterior slide" onclick="moveHeroSlide(-1)">❮</button>
       <button class="slider-control next" aria-label="Siguiente slide" onclick="moveHeroSlide(1)">❯</button>
 
-      <div class="slider-dots" aria-hidden="true">
-        <span class="dot active" onclick="setHeroSlide(0)"></span>
-        <span class="dot" onclick="setHeroSlide(1)"></span>
-      </div>
+      <div class="slider-dots" id="banner-dots" aria-hidden="true"></div>
     </section>
 
     <nav class="cat-nav" id="categorias" aria-label="Categorías de productos">
