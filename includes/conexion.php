@@ -1,10 +1,10 @@
 <?php
 // includes/conexion.php
-$host = 'sql110.infinityfree.com';
+$host = 'sql100.infinityfree.com';
 $port = '3306';
-$dbname = 'if0_41533960_XXX';
-$username = 'if0_41533960';
-$password = 'Tilin2326';
+$dbname = 'if0_41571758_electroh';
+$username = 'if0_41571758';
+$password = 'fmBQPLmBO0p';
 
 try {
     $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8";
