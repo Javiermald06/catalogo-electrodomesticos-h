@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Catálogo de electrodomésticos en Tacna. Las mejores marcas en línea blanca, TVs y tecnología para el hogar.">
   <title>ElectroHogar Tacna — Catálogo</title>
+  <link rel="icon" type="image/png" href="assets\img\Logo-removebg-preview.png">
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
@@ -12,7 +13,7 @@
 <body>
 
   <?php include 'includes/header.php'; ?>
-
+  /*Probando hosting
   <main>
     <section class="hero-slider" id="main-slider" aria-label="Destacados">
       <div class="slider-wrapper">
