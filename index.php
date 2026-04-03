@@ -13,7 +13,6 @@
 <body>
 
   <?php include 'includes/header.php'; ?>
-  /*Probando hosting
   <main>
     <section class="hero-slider" id="main-slider" aria-label="Destacados">
       <div class="slider-wrapper" id="banner-wrapper"></div>

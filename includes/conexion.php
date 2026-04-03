@@ -1,10 +1,10 @@
 <?php
 // includes/conexion.php
-$host = 'sql100.infinityfree.com';
+$host = 'sqlXXX.infinityfree.com';
 $port = '3306';
-$dbname = 'if0_41571758_electroh';
-$username = 'if0_41571758';
-$password = 'fmBQPLmBO0p';
+$dbname = 'if0_XXXXXX_db_name';
+$username = 'if0_XXXXXX';
+$password = 'Tupassword';
 
 try {
     $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8";
@@ -16,5 +16,5 @@ try {
     $pdo = new PDO($dsn, $username, $password, $options);
 } catch(PDOException $e) {
     header('Content-Type: application/json');
-    die(json_encode(['status' => 'error', 'msg' => 'Error de conexión a la nube']));
+   // die(json_encode(['status' => 'error', 'msg' => 'Error de conexión a la nube']));
 }
