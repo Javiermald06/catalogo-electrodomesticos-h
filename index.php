@@ -22,7 +22,7 @@
 
       <div class="slider-dots" id="banner-dots" aria-hidden="true"></div>
     </section>
-
+    <!---->
     <nav class="cat-nav" id="categorias" aria-label="Categorías de productos">
       <a href="#lavadoras"    class="cat-link"><span class="cat-ico" aria-hidden="true">🫧</span> Lavadoras</a>
       <a href="#tvs"          class="cat-link"><span class="cat-ico" aria-hidden="true">🖥️</span> Smart TVs</a>
