@@ -2,7 +2,7 @@
 // includes/conexion.php
 $host = 'sql110.infinityfree.com';
 $port = '3306'; 
-$dbname = 'defaultdb';
+$dbname = 'if0_41533960_electrohogar';
 $username = 'if0_41533960';
 $password = 'Tilin2326'; 
 
