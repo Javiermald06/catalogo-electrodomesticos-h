@@ -128,14 +128,29 @@ window.abrirModalProducto = function(idProducto = null) {
     const isEdit = idProducto !== null;
     const prod = isEdit ? state.productos.find(p => p.id_producto == idProducto) : {};
     
+    // 1. FILTRO INTELIGENTE PARA CATEGORÍAS
     let opcionesCategorias = '<option value="">Seleccione...</option>';
-    if (state.categorias.length > 0) {
-        opcionesCategorias += state.categorias.map(c => `<option value="${c.id_categoria}" ${prod.id_categoria == c.id_categoria ? 'selected' : ''}>${c.nombre}</option>`).join('');
+    // Mostramos solo las que tienen estado == 1, O la que ya tiene asignada el producto (si estamos editando)
+    const categoriasVisibles = state.categorias.filter(c => c.estado == 1 || (isEdit && c.id_categoria == prod.id_categoria));
+    
+    if (categoriasVisibles.length > 0) {
+        opcionesCategorias += categoriasVisibles.map(c => 
+            `<option value="${c.id_categoria}" ${prod.id_categoria == c.id_categoria ? 'selected' : ''}>
+                ${c.nombre} ${c.estado == 0 ? '(Oculta actualmente)' : ''}
+            </option>`
+        ).join('');
     }
     
+    // 2. FILTRO INTELIGENTE PARA MARCAS
     let opcionesMarcas = '<option value="">Seleccione...</option>';
-    if (state.marcas.length > 0) {
-        opcionesMarcas += state.marcas.map(m => `<option value="${m.id_marca}" ${prod.id_marca == m.id_marca ? 'selected' : ''}>${m.nombre}</option>`).join('');
+    const marcasVisibles = state.marcas.filter(m => m.estado == 1 || (isEdit && m.id_marca == prod.id_marca));
+    
+    if (marcasVisibles.length > 0) {
+        opcionesMarcas += marcasVisibles.map(m => 
+            `<option value="${m.id_marca}" ${prod.id_marca == m.id_marca ? 'selected' : ''}>
+                ${m.nombre} ${m.estado == 0 ? '(Oculta actualmente)' : ''}
+            </option>`
+        ).join('');
     }
 
     let specsInicialesHtml = '';

@@ -288,7 +288,7 @@ nav a:hover { background: var(--red); color: white; }
   gap: 0;
   overflow-x: auto;
   position: sticky;
-  top: 64px;
+  top: 75px;
   z-index: 90;
   box-shadow: 0 2px 10px rgba(0,0,0,0.06);
 }
@@ -309,11 +309,29 @@ nav a:hover { background: var(--red); color: white; }
   white-space: nowrap;
   letter-spacing: 0.3px;
 }
-.cat-link:hover,
-.cat-link.active {
-  color: var(--red);
-  border-bottom-color: var(--red);
+
+.cat-link:hover {
+    background-color: rgba(232, 35, 42, 0.1) !important; 
+    color: var(--red) !important; 
+    border-radius: 8px !important;
+    border-bottom: 3px solid transparent !important; 
+    transform: none !important; /* ✨ Evita que el botón salte */
 }
+
+.cat-link.active {
+    background-color: var(--red) !important; 
+    color: #FFFFFF !important; 
+    border-radius: 8px !important;
+    border-bottom: 3px solid transparent !important;
+    box-shadow: 0 4px 12px rgba(232, 35, 42, 0.25) !important; /* Sombra suave para resaltar */
+    transform: none !important; /* ✨ Lo ancla a la misma altura que los demás */
+}
+
+.cat-link.active:hover {
+    background-color: #c91e24 !important;
+    box-shadow: 0 4px 12px rgba(232, 35, 42, 0.35) !important;
+}
+
 .cat-link .cat-ico { font-size: 18px; }
 
 /* ===== CAROUSEL SECTION (OFERTAS) ===== */
@@ -351,7 +369,10 @@ nav a:hover { background: var(--red); color: white; }
 }
 .see-all:hover { gap: 8px; }
 
-.carousel-wrapper { position: relative; }
+.carousel-wrapper { 
+  position: relative; 
+  padding: 0 50px;
+}
 
 .carousel {
   display: flex;
@@ -382,8 +403,8 @@ nav a:hover { background: var(--red); color: white; }
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 .carousel-btn:hover { background: var(--red); transform: translateY(-50%) scale(1.05); }
-.carousel-btn.prev { left: -20px; }
-.carousel-btn.next { right: -20px; }
+.carousel-btn.prev { left: 0; }
+.carousel-btn.next { right: 0; }
 
 /* ===== PRODUCT CARD (BEM Architecture) ===== */
 .product-card {
@@ -400,6 +421,14 @@ nav a:hover { background: var(--red); color: white; }
   display: flex;
   flex-direction: column;
   box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+
+.product-card__content {
+  padding: 24px !important; 
+  display: flex !important;
+  flex-direction: column !important;
+  flex-grow: 1 !important;
+  gap: 16px !important;
 }
 
 .product-card:hover {
@@ -422,25 +451,31 @@ nav a:hover { background: var(--red); color: white; }
   z-index: 2;
 }
 
-/* Modificadores del badge */
 .product-card__badge--new  { background: var(--blue); }
 .product-card__badge--sale { background: var(--red); }
 
-.product-card__image-container {
-  height: 180px;
-  background: #F8FAFC;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 72px;
-  padding: 20px;
+.product-card__img-container {
+  width: 100% !important;
+  height: 180px !important; 
+  min-height: 180px !important;
+  max-height: 180px !important;
+  flex: 0 0 180px !important; /* Bloqueo de flexbox */
+  overflow: hidden !important; /* Corta la imagen sobrante */
+  background: #F8FAFC !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 20px 20px 0 0 !important; /* Mantiene redondeadas las esquinas de arriba */
 }
 
 .product-card__img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transition: transform 0.3s ease;
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 180px !important;
+  object-fit: fill !important;
+  display: block !important;
 }
 
 .product-card:hover .product-card__img { transform: scale(1.05); }
@@ -495,7 +530,7 @@ nav a:hover { background: var(--red); color: white; }
 
 .product-card__btn {
   width: 100%;
-  margin-top: 20px;
+  margin-top: auto;
   background: var(--gray);
   color: var(--dark);
   border: 1px solid var(--border);
@@ -576,7 +611,10 @@ nav a:hover { background: var(--red); color: white; }
 .promo-cta:hover { transform: scale(1.04); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
 
 /* ===== CATEGORY SECTIONS ===== */
-.cat-section { padding: 60px 40px; }
+.cat-section { 
+  padding: 60px 40px;
+  scroll-margin-top: 140px !important; 
+}
 .cat-section:nth-child(even) { background: var(--gray); }
 
 .cat-section-header {
@@ -759,8 +797,8 @@ address.footer-col ul li {
    VISTA DE DETALLE DE PRODUCTO (SPA)
    ============================================================ */
 .product-detail-container {
-  max-width: 1100px;
-  margin: 100px auto 60px;
+  max-width: 1200px;
+  margin: 80px auto;
   background: white;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
@@ -1176,8 +1214,22 @@ address.footer-col ul li {
 .detail-back-bar { cursor: pointer; color: var(--blue); font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 5px; }
 
 .detail-top-section { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 60px; }
-.detail-main-img-container { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 40px; display: flex; justify-content: center; }
-.detail-main-img { max-height: 400px; object-fit: contain; }
+
+.detail-main-img-container {
+    flex-grow: 1;
+    height: 480px !important;
+    position: relative;
+    overflow: hidden; 
+    width: 100%;
+    padding: 0 !important; /* ✨ MAGIA 1: Elimina el margen blanco gigante de tu diseño original */
+}
+
+.detail-main-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: fill !important; /* ✨ MAGIA 2: Obliga a la imagen a estirarse y llenar todo el cuadro */
+    cursor: zoom-in;
+}
 
 .detail-brand-tag { color: var(--blue); font-weight: 700; text-transform: uppercase; font-size: 14px; }
 .detail-title { font-size: 32px; font-weight: 700; margin: 10px 0; color: var(--dark); }
@@ -1249,3 +1301,65 @@ address.footer-col ul li {
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     }
 }
+
+/* ============================================================
+   AGREGADOS MINIMALISTAS (GALERÍA, RUTA, FAVORITOS, ZOOM)
+   ============================================================ */
+
+/* 1. Ruta (Breadcrumbs) */
+.breadcrumb-efe { 
+    display: flex; align-items: center; gap: 8px; font-size: 14px; 
+    color: #64748b; font-weight: 500; margin-bottom: 30px; margin-top: 10px;
+}
+.breadcrumb-efe a { color: var(--blue); text-decoration: none; transition: 0.2s;}
+.breadcrumb-efe a:hover { color: var(--red); text-decoration: underline; }
+.breadcrumb-efe .current { color: #94a3b8; }
+.breadcrumb-efe i { width: 16px; height: 16px; }
+
+/* 2. Layout de Galería */
+.detail-gallery-wrapper { display: flex; gap: 20px; align-items: flex-start; }
+
+.gallery-thumbnails { 
+    display: flex; flex-direction: column; gap: 10px; width: 70px; flex-shrink: 0;
+}
+.thumb-item { 
+    width: 70px; height: 70px; border: 1px solid #e2e8f0; border-radius: 8px; 
+    cursor: pointer; padding: 5px; background: white; transition: all 0.2s;
+}
+.thumb-item.active, .thumb-item:hover { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
+.thumb-item img { width: 100%; height: 100%; object-fit: contain; }
+
+/* 3. Candado estricto para la imagen principal (Tu mismo contenedor, reforzado) */
+.detail-main-img-container {
+    flex-grow: 1;
+    height: 480px !important; /* Candado estricto de altura */
+    position: relative;
+    overflow: hidden; /* Corta cualquier sobrante */
+    width: 100%;
+}
+.detail-main-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important; /* La imagen se adapta al cuadro sin deformarse */
+    cursor: zoom-in;
+}
+
+/* 4. Botones: Zoom y Favoritos */
+.zoom-btn {
+    position: absolute; bottom: 15px; right: 15px; background: white; 
+    border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px; 
+    cursor: zoom-in; color: var(--text); box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex;
+}
+.btn-favorite { 
+    background: white; border: 2px solid #e2e8f0; border-radius: 8px; width: 52px; 
+    display: flex; align-items: center; justify-content: center; cursor: pointer; 
+    color: #64748b; transition: 0.2s; padding: 0;
+}
+.btn-favorite:hover, .btn-favorite.active { border-color: var(--red); color: var(--red); background: #fff5f5; }
+
+/* 5. Modal de Zoom */
+.zoom-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(5px); }
+.zoom-modal.active { opacity: 1; pointer-events: auto; }
+.zoom-modal img { max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 8px; }
+.zoom-close { position: absolute; top: 30px; right: 40px; background: transparent; border: none; color: white; font-size: 50px; font-weight: 300; cursor: pointer; transition: 0.2s; }
+.zoom-close:hover { color: var(--red); transform: scale(1.1); }

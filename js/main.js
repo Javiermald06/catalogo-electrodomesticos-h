@@ -97,19 +97,26 @@ function crearTarjetaProducto(prod) {
     `;
   }
 
-  // AQUÍ ESTÁ LA CORRECCIÓN CRÍTICA: Redirige a producto.php
+  // ¡AQUÍ ESTÁ LA CORRECCIÓN! 
+  // Devolvemos un String (texto) de HTML puro para que tu .map().join('') funcione perfecto.
   return `
     <article class="product-card" data-id="${prod.id}" onclick="window.location.href='producto.php?id=${prod.id}'">
       ${badge}
-      <div class="product-card__image-container">${imgContent}</div>
-      <div class="product-card__info">
+      
+      <div class="product-card__img-container">
+        ${imgContent}
+      </div>
+      
+      <div class="product-card__content">
         <span class="product-card__brand">${prod.marca}</span>
         <h3 class="product-card__title">${prod.nombre}</h3>
         ${precioHtml}
+        
         <button class="product-card__btn" onclick="event.stopPropagation(); agregarAlCarrito('${prod.id}')">
           🛒 Agregar al carrito
         </button>
       </div>
+      
     </article>`;
 }
 

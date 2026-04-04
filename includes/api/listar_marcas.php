@@ -4,7 +4,7 @@ require_once '../conexion.php';
 header('Content-Type: application/json');
 
 try {
-    $sql = "SELECT id_marca, nombre FROM marcas";
+    $sql = "SELECT id_marca, nombre, estado FROM marcas";
     $stmt = $pdo->query($sql);
     $marcas = $stmt->fetchAll(PDO::FETCH_ASSOC); 
     

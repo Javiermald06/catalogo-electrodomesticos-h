@@ -4,7 +4,8 @@ require_once '../conexion.php';
 header('Content-Type: application/json');
 
 try {
-    $sql = "SELECT id_categoria, nombre FROM categorias WHERE estado = 1";
+    // AHORA TRAEMOS TODO: ID, nombre y estado. Y sin el WHERE.
+    $sql = "SELECT id_categoria, nombre, estado FROM categorias";
     $stmt = $pdo->query($sql);
     $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC); 
     

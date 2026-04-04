@@ -39,7 +39,7 @@ function renderizarProductoCompleto(prod) {
 
     document.title = `${prod.nombre} | ElectroHogar`;
 
-    // 1. Armamos las especificaciones
+    // 1. Armamos las especificaciones originales
     let filasSpecs = `
         <tr class="spec-row">
             <td class="spec-name">Marca</td>
@@ -58,14 +58,13 @@ function renderizarProductoCompleto(prod) {
         });
     }
 
-    // 2. BUSCAMOS PRODUCTOS SIMILARES (Misma categoría, distinto ID)
+    // 2. BUSCAMOS PRODUCTOS SIMILARES (Misma categoría, distinto ID) - INTANCTO
     const similares = TODOS_LOS_PRODUCTOS
         .filter(p => p.categoria === prod.categoria && p.id_producto !== prod.id_producto)
         .slice(0, 5);
 
     let htmlSimilares = '';
     if (similares.length > 0) {
-        // Reutilizamos la estructura HTML de tus tarjetas (crearTarjetaProducto)
         const tarjetas = similares.map(p => {
             const pFinal = parseFloat(p.precio_oferta) > 0 ? parseFloat(p.precio_oferta) : parseFloat(p.precio_regular);
             return `
@@ -94,23 +93,44 @@ function renderizarProductoCompleto(prod) {
         `;
     }
 
-    // 3. Inyectamos TODO el HTML (Detalle + Specs + Similares)
+    // 3. PREPARAMOS LA GALERÍA Y FAVORITOS (Nuevas funciones)
+    let imagenes = prod.galeria ? prod.galeria.split(',') : [prod.img_principal || 'placeholder.png'];
+    imagenes = imagenes.filter(img => img.trim() !== '').slice(0, 5); // Máximo 5 imágenes
+    if(imagenes.length === 0) imagenes = ['placeholder.png'];
+
+    let thumbsHtml = imagenes.map((img, idx) => `
+        <div class="thumb-item ${idx === 0 ? 'active' : ''}" onclick="cambiarImagenPrincipal(this, '${img}')">
+            <img src="assets/img_productos/${img}" onerror="this.src='https://via.placeholder.com/80?text=📦'">
+        </div>
+    `).join('');
+    
+    const esFav = typeof window.esFavorito === 'function' ? window.esFavorito(prod.id_producto) : false;
+
+    // 4. INYECTAMOS EL HTML (Respetando tu estructura base y añadiendo las mejoras)
     const html = `
-        <div class="detail-back-bar" onclick="window.location.href='catalogo.php?categoria=${prod.categoria}'" style="margin-top: 20px;">
-            <i data-lucide="chevron-left"></i> Volver a ${prod.categoria}
+        <div class="breadcrumb-efe">
+            <a href="index.php">Inicio</a>
+            <i data-lucide="chevron-right"></i>
+            <a href="index.php#${prod.categoria.toLowerCase()}">${prod.categoria}</a>
+            <i data-lucide="chevron-right"></i>
+            <span class="current">${prod.nombre}</span>
         </div>
         
         <div class="detail-top-section">
             <div class="detail-gallery-wrapper">
+                <div class="gallery-thumbnails">
+                    ${thumbsHtml}
+                </div>
                 <div class="detail-main-img-container">
-                    <img src="assets/img_productos/${prod.img_principal || 'placeholder.png'}" class="detail-main-img" onerror="this.src='assets/img/placeholder.png'">
+                    <img src="assets/img_productos/${imagenes[0]}" id="imagen-principal-detalle" class="detail-main-img" onclick="abrirZoomImagen(this.src)" onerror="this.src='https://via.placeholder.com/500?text=📦'">
+                    <button class="zoom-btn" onclick="abrirZoomImagen(document.getElementById('imagen-principal-detalle').src)"><i data-lucide="zoom-in"></i></button>
                 </div>
             </div>
             
             <div class="detail-purchase-panel">
                 <span class="detail-brand-tag">${prod.marca}</span>
                 <h1 class="detail-title">${prod.nombre}</h1>
-                <p class="detail-sku">SKU: EH-${prod.id_producto}</p>
+                <p class="detail-sku">SKU: ${prod.sku || prod.id_producto}</p>
                 
                 <div class="detail-price-box">
                     ${precioAnterior ? `<span class="detail-old-price">S/ ${precioAnterior.toLocaleString('es-PE', {minimumFractionDigits:2})}</span>` : ''}
@@ -127,6 +147,9 @@ function renderizarProductoCompleto(prod) {
                     </div>
                     <button class="btn-efe-primary" onclick="agregarAlCarritoDesdeDetalle('${prod.id_producto}')">
                         <i data-lucide="shopping-cart"></i> AGREGAR AL CARRITO
+                    </button>
+                    <button class="btn-favorite ${esFav ? 'active' : ''}" id="btn-fav-${prod.id_producto}" onclick="toggleFavorito('${prod.id_producto}')">
+                        <i data-lucide="heart" ${esFav ? 'fill="currentColor"' : ''}></i>
                     </button>
                 </div>
             </div>
@@ -160,10 +183,67 @@ function agregarAlCarritoDesdeDetalle(id) {
     const input = document.getElementById('qty-detail');
     let cantidadAAgregar = input ? parseInt(input.value) : 1;
     
-    // Asumiendo que tu archivo principal tiene una función global para manejar el carrito:
     if(typeof agregarAlCarritoExt === 'function'){
         agregarAlCarritoExt(id, cantidadAAgregar);
     } else {
         alert("Agregado al carrito temporalmente (Falta vincular con main.js)");
     }
 }
+
+// ================= FUNCIONES NUEVAS: GALERÍA, ZOOM Y FAVORITOS =================
+
+window.cambiarImagenPrincipal = function(elementoMiniaura, nombreImagen) {
+    document.querySelectorAll('.thumb-item').forEach(el => el.classList.remove('active'));
+    elementoMiniaura.classList.add('active');
+    document.getElementById('imagen-principal-detalle').src = `assets/img_productos/${nombreImagen}`;
+};
+
+window.abrirZoomImagen = function(src) {
+    let modal = document.getElementById('zoom-modal-overlay');
+    if(!modal) {
+        modal = document.createElement('div');
+        modal.id = 'zoom-modal-overlay';
+        modal.className = 'zoom-modal';
+        // HTML simple: solo botón de cerrar e imagen
+        modal.innerHTML = `
+            <button class="zoom-close" onclick="cerrarZoomImagen()">×</button>
+            <img id="zoom-img-target" src="">
+        `;
+        document.body.appendChild(modal);
+    }
+    const img = document.getElementById('zoom-img-target');
+    img.src = src;
+    
+    // ✨ Limpieza: Nos aseguramos de quitar cualquier rastro de la lupa antigua
+    img.style.transform = 'none';
+    img.style.cursor = 'default';
+    
+    modal.classList.add('active');
+};
+
+window.cerrarZoomImagen = function() {
+    const modal = document.getElementById('zoom-modal-overlay');
+    if(modal) modal.classList.remove('active');
+};
+
+window.esFavorito = function(id) {
+    let favs = JSON.parse(localStorage.getItem('favoritos_electrohogar') || '[]');
+    return favs.includes(id.toString());
+};
+
+window.toggleFavorito = function(id) {
+    let favs = JSON.parse(localStorage.getItem('favoritos_electrohogar') || '[]');
+    const strId = id.toString();
+    const index = favs.indexOf(strId);
+    const btn = document.getElementById(`btn-fav-${id}`);
+
+    if(index > -1) {
+        favs.splice(index, 1);
+        if(btn) { btn.classList.remove('active'); btn.innerHTML = '<i data-lucide="heart"></i>'; }
+    } else {
+        favs.push(strId);
+        if(btn) { btn.classList.add('active'); btn.innerHTML = '<i data-lucide="heart" fill="currentColor"></i>'; }
+    }
+    localStorage.setItem('favoritos_electrohogar', JSON.stringify(favs));
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+};
