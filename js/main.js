@@ -256,5 +256,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (error) {
         console.error("Error conectando a la base de datos:", error);
+    } finally {
+        // ✨ OPTIMIZACIÓN: Ocultar el preloader SOLO DESPUÉS de que el DOM esté poblado
+        const loader = document.getElementById('global-loader');
+        if(loader) {
+            // Un micro-retraso visual para que la pintura del navegador (paint) finalice
+            setTimeout(() => {
+                loader.classList.add('hide');
+                setTimeout(() => loader.style.display = 'none', 400); // Limpieza
+            }, 150);
+        }
     }
 });

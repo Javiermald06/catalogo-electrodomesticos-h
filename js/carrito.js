@@ -92,8 +92,14 @@ async function agregarAlCarrito(id, cantidad = 1) {
 // 4. Funciones visuales del panel
 function abrirCarrito() {
     renderizarCarrito();
-    document.getElementById('cart-overlay').classList.add('open');
-    document.getElementById('cart-sidebar').classList.add('open');
+    // Doble requestAnimationFrame asegura que el navegador termine de crear los nodos DOM
+    // antes de exigirle a la Tarjeta Gráfica que anime la ventana a 60fps.
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            document.getElementById('cart-overlay').classList.add('open');
+            document.getElementById('cart-sidebar').classList.add('open');
+        });
+    });
 }
 
 function cerrarCarrito() {

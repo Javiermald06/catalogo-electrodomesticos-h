@@ -59,6 +59,15 @@ async function cargarCatalogo() {
         }
     } catch (e) {
         console.error("Error cargando el catálogo:", e);
+    } finally {
+        // ✨ OPTIMIZACIÓN: Ocultar el preloader SOLO DESPUÉS de pintar el catálogo
+        const loader = document.getElementById('global-loader');
+        if(loader) {
+            setTimeout(() => {
+                loader.classList.add('hide');
+                setTimeout(() => loader.style.display = 'none', 400); 
+            }, 100);
+        }
     }
 }
 
