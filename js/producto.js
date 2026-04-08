@@ -28,6 +28,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (e) {
         console.error("Error cargando el producto:", e);
+    } finally {
+        // ✨ OPTIMIZACIÓN: Ocultar preloader cuando terminen de cargar todos los detalles
+        const loader = document.getElementById('global-loader');
+        if (loader) {
+            setTimeout(() => {
+                loader.classList.add('hide');
+                setTimeout(() => loader.style.display = 'none', 400);
+            }, 100);
+        }
     }
 });
 
