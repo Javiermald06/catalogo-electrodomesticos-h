@@ -23,10 +23,31 @@ async function cargarCatalogo() {
             // Filtrar por categoría de la URL
             const productosFiltrados = PRODUCTOS.filter(p => p.categoria === categoriaActiva);
 
-            // Actualizar Breadcrumbs dinámicamente
+            // Actualizar Breadcrumbs dinámicamente (Estilo Moderno)
             document.title = `ElectroHogar - ${categoriaActiva || 'Catálogo'}`;
-            const breadSub = document.getElementById('categoria-actual-bread');
-            if (breadSub) breadSub.innerText = categoriaActiva || "Todos";
+            const breadContainer = document.querySelector('.breadcrumbs');
+            
+            if (breadContainer) {
+                // Le damos formato flexbox para que la flechita quede perfectamente alineada
+                breadContainer.style.display = 'flex';
+                breadContainer.style.alignItems = 'center';
+                breadContainer.style.gap = '8px';
+                
+                if (categoriaActiva) {
+                    breadContainer.innerHTML = `
+                        <a href="index.php" class="bread-link">Inicio</a>
+                        <i data-lucide="chevron-right" style="width: 16px; height: 16px; color: #64748b;"></i>
+                        <strong style="color: var(--blue);">${categoriaActiva}</strong>
+                    `;
+                } else {
+                    breadContainer.innerHTML = `
+                        <a href="index.php" class="bread-link">Inicio</a>
+                        <i data-lucide="chevron-right" style="width: 16px; height: 16px; color: #64748b;"></i>
+                        <strong style="color: var(--blue);">Catálogo Completo</strong>
+                    `;
+                }
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
 
             // Inicializar motor de filtros laterales (filtros.js)
             if (typeof inicializarFiltrosDinamicos === 'function') {
@@ -86,9 +107,10 @@ function cambiarQtyDetail(n) {
 
 function cotizarActualPorWhatsApp(id) {
     const input = document.getElementById('qty-detail');
-    const cant = input ? input.value : 1;
-    // Llamar a tu función global de carrito pasándole cantidad
-    if(typeof agregarAlCarrito === 'function') agregarAlCarrito(id, true, cant);
+    const cant = input ? parseInt(input.value) : 1;
+    if(typeof agregarAlCarrito === 'function'){
+        agregarAlCarrito(id, cant);
+    }
 }
 
 function configurarBotonesVista() {

@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ElectroHogar - Catálogo</title>
+    <title>ElectroHogar Tacna — Catálogo</title>
+    <link rel="icon" type="image/png" href="assets\img\Logo_electrohogar.png">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/catalogo.css">

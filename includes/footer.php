@@ -1,3 +1,5 @@
+<script src="js/carrito.js"></script>
+
 <footer>
     <div class="footer-top">
         <div class="footer-brand">

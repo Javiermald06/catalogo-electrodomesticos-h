@@ -106,15 +106,37 @@ function renderizarProductoCompleto(prod) {
     
     const esFav = typeof window.esFavorito === 'function' ? window.esFavorito(prod.id_producto) : false;
 
+    // ================= LÓGICA DE RUTA DINÁMICA (BREADCRUMBS) =================
+    // Revisamos de dónde viene el usuario
+    const urlAnterior = document.referrer.toLowerCase();
+    const vieneDeInicio = urlAnterior.includes('index.php') || urlAnterior.endsWith('/') || urlAnterior === '';
+    
+    let rutaHTML = '';
+    if (vieneDeInicio) {
+        // Si viene del Inicio, saltamos la categoría
+        rutaHTML = `
+            <div class="breadcrumb-efe">
+                <a href="index.php">Inicio</a>
+                <i data-lucide="chevron-right"></i>
+                <span class="current">${prod.nombre}</span>
+            </div>
+        `;
+    } else {
+        // Si viene del Catálogo u otra página, mostramos la ruta completa
+        rutaHTML = `
+            <div class="breadcrumb-efe">
+                <a href="index.php">Inicio</a>
+                <i data-lucide="chevron-right"></i>
+                <a href="catalogo.php?categoria=${encodeURIComponent(prod.categoria)}">${prod.categoria}</a>
+                <i data-lucide="chevron-right"></i>
+                <span class="current">${prod.nombre}</span>
+            </div>
+        `;
+    }
+
     // 4. INYECTAMOS EL HTML (Respetando tu estructura base y añadiendo las mejoras)
     const html = `
-        <div class="breadcrumb-efe">
-            <a href="index.php">Inicio</a>
-            <i data-lucide="chevron-right"></i>
-            <a href="index.php#${prod.categoria.toLowerCase()}">${prod.categoria}</a>
-            <i data-lucide="chevron-right"></i>
-            <span class="current">${prod.nombre}</span>
-        </div>
+        ${rutaHTML}
         
         <div class="detail-top-section">
             <div class="detail-gallery-wrapper">
@@ -178,15 +200,12 @@ function cambiarQtyDetail(n) {
     if (val >= 1) input.value = val;
 }
 
-// Conexión con el carrito global en main.js
 function agregarAlCarritoDesdeDetalle(id) {
     const input = document.getElementById('qty-detail');
-    let cantidadAAgregar = input ? parseInt(input.value) : 1;
-    
-    if(typeof agregarAlCarritoExt === 'function'){
-        agregarAlCarritoExt(id, cantidadAAgregar);
-    } else {
-        alert("Agregado al carrito temporalmente (Falta vincular con main.js)");
+    let cantidad = input ? parseInt(input.value) : 1;
+    // Llamamos directamente a la nueva función global
+    if(typeof agregarAlCarrito === 'function'){
+        agregarAlCarrito(id, cantidad);
     }
 }
 
