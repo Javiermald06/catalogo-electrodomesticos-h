@@ -1,9 +1,3 @@
-<!-- GLOBAL PRELOADER -->
-<div id="global-loader" class="global-loader">
-  <div class="loader-pulse"></div>
-  <div style="margin-top: 20px; font-family: 'Rajdhani', sans-serif; font-weight: 700; color: var(--clr-primary); font-size: 20px; letter-spacing: 2px;">ELECTROHOGAR</div>
-</div>
-
 <header class="main-header">
     <!-- Logo (Restaurado a su versión original) -->
     <div class="logo-area" onclick="window.location.href='index.php'" style="cursor: pointer;">
@@ -36,14 +30,4 @@
         </button>
     </div>
 </header>
-
-<script>
-// Reactivar loader entre páginas para transición suave sin flash blanco
-window.addEventListener('beforeunload', function() {
-    const loader = document.getElementById('global-loader');
-    if(loader) {
-        loader.style.display = 'flex';
-        loader.classList.remove('hide');
-    }
-});
-</script>
+

@@ -13,6 +13,13 @@
 <body>
 
   <?php include 'includes/header.php'; ?>
+  
+  <!-- GLOBAL PRELOADER (Aparece solo como bienvenida al sitio web) -->
+  <div id="global-loader" class="global-loader">
+    <div class="loader-pulse"></div>
+    <div style="margin-top: 20px; font-family: 'Rajdhani', sans-serif; font-weight: 700; color: var(--clr-primary); font-size: 20px; letter-spacing: 2px;">ELECTROHOGAR</div>
+  </div>
+
   <main>
     <section class="hero-slider" id="main-slider" aria-label="Destacados">
       <!-- El JS inyectará los .slide exactamente aquí -->
