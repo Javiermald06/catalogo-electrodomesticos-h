@@ -17,18 +17,20 @@
 
     <div class="breadcrumbs max-w-container">
         <a href="index.php" class="bread-link">Inicio</a> > 
-        <a href="index.php" class="bread-link">ElectroHogar</a> > 
         <strong id="categoria-actual-bread">Cargando...</strong>
     </div>
 
     <main class="catalog-layout max-w-container">
         
         <aside class="filters-sidebar">
-            
+            <h3 style="margin-bottom: 20px; font-weight: 500; color: #1e293b; font-size: 20px;">Filtrar por:</h3>
+            <button class="btn-close-sidebar" onclick="document.querySelector('.filters-sidebar').classList.remove('active')" aria-label="Cerrar filtros">
+                <i data-lucide="x"></i>
+            </button>
             <div class="filter-section">
-                <div class="filter-header" onclick="toggleAccordion('content-precio', 'icon-precio')">
+                <div class="filter-header open" onclick="toggleAccordion('content-precio', 'icon-precio')">
                     <span class="filter-title">Precio</span>
-                    <i data-lucide="chevron-up" class="filter-icon" id="icon-precio"></i>
+                    <i data-lucide="minus" class="filter-icon" id="icon-precio"></i>
                 </div>
                 <div class="filter-content" id="content-precio">
                     <div class="price-inputs" style="display: flex; gap: 8px; margin-bottom: 12px;">
@@ -40,15 +42,23 @@
                     </div>
                 </div>
             </div>
-
-            <div class="filter-section border-top">
-                <div class="filter-header" onclick="toggleAccordion('content-marca', 'icon-marca')">
+            <div class="filter-section border-top" id="seccion-filtro-marca">
+                <div class="filter-header open" onclick="toggleAccordion('content-marca', 'icon-marca')">
                     <span class="filter-title">Marca</span>
-                    <i data-lucide="chevron-up" class="filter-icon" id="icon-marca"></i>
+                    <i data-lucide="minus" class="filter-icon" id="icon-marca"></i>
                 </div>
                 <div class="filter-content" id="content-marca">
-                    <div id="lista-marcas">
-                        </div>
+                    <div id="lista-marcas"></div>
+                </div>
+            </div>
+
+            <div class="filter-section border-top" id="seccion-filtro-categoria" style="display:none;">
+                <div class="filter-header open" onclick="toggleAccordion('content-categoria', 'icon-categoria')">
+                    <span class="filter-title">Categoría</span>
+                    <i data-lucide="minus" class="filter-icon" id="icon-categoria"></i>
+                </div>
+                <div class="filter-content" id="content-categoria">
+                    <div id="lista-categorias"></div>
                 </div>
             </div>
 
@@ -60,7 +70,18 @@
             
             <div class="products-toolbar">
                 <div class="view-options">
-                    <div class="view-btns-group" style="display: flex; gap: 8px; margin-right: 15px;">
+                    <!-- Botón Filtrar (Móvil + Desktop) -->
+                    <button class="btn-mobile-filter" onclick="document.querySelector('.filters-sidebar').classList.add('active')" aria-label="Abrir filtros">
+                        <i data-lucide="sliders-horizontal" style="width:16px;height:16px;"></i> Filtrar
+                    </button>
+
+                    <!-- Botón Ordenar (Móvil: abre modal) -->
+                    <button class="btn-mobile-sort" onclick="document.getElementById('sort-modal').classList.add('active')" aria-label="Ordenar">
+                        <i data-lucide="arrow-up-down" style="width:16px;height:16px;"></i> Ordenar
+                    </button>
+                    
+                    <!-- Botones Vista Grid/Lista (Solo Desktop) -->
+                    <div class="view-btns-group">
                         <button class="view-btn active" id="view-grid" title="Vista Cuadrícula">
                             <i data-lucide="grid" style="width: 20px;"></i>
                         </button>
@@ -68,10 +89,11 @@
                             <i data-lucide="list" style="width: 20px;"></i>
                         </button>
                     </div>
-                    <span class="text-sm text-muted">Se muestran <strong id="contador-productos">0</strong> productos</span>
+                    <span class="text-sm text-muted count-desktop-only">Se muestran <strong id="contador-productos">0</strong> productos</span>
                 </div>
-                <div>
-                    <select class="sort-select" id="ordenar-productos">
+                <!-- Selector Orden (Solo Desktop) -->
+                <div class="actions-right desktop-sort-section">
+                    <select class="sort-select" id="ordenar-productos" onchange="if(typeof aplicarFiltrosFinales==='function') aplicarFiltrosFinales()">
                         <option value="Relevancia">Relevancia</option>
                         <option value="Menor Precio">Menor Precio</option>
                         <option value="Mayor Precio">Mayor Precio</option>
@@ -79,8 +101,35 @@
                 </div>
             </div>
 
-            <div class="products-grid" id="catalogo-grid">
+            <!-- MODAL ORDENAR (Estilo Bottom Sheet - Solo Móvil) -->
+            <div class="sort-modal-overlay" id="sort-modal" onclick="this.classList.remove('active')">
+                <div class="sort-modal-sheet" onclick="event.stopPropagation()">
+                    <div class="sort-modal-header">
+                        <span>Ordenar por</span>
+                        <button onclick="document.getElementById('sort-modal').classList.remove('active')" class="sort-modal-close">&times;</button>
+                    </div>
+                    <div class="sort-modal-options">
+                        <label class="sort-option active" data-value="Relevancia">
+                            <span>Relevancia</span>
+                            <i data-lucide="check" class="sort-check" style="width:18px;height:18px;"></i>
+                        </label>
+                        <label class="sort-option" data-value="Menor Precio">
+                            <span>Menor Precio</span>
+                            <i data-lucide="check" class="sort-check" style="width:18px;height:18px;"></i>
+                        </label>
+                        <label class="sort-option" data-value="Mayor Precio">
+                            <span>Mayor Precio</span>
+                            <i data-lucide="check" class="sort-check" style="width:18px;height:18px;"></i>
+                        </label>
+                    </div>
                 </div>
+            </div>
+
+            <div class="products-grid" id="catalogo-grid">
+            </div>
+
+            <!-- Contenedor de Paginación Moderna -->
+            <div id="pagination-container" class="pagination-wrapper"></div>
 
         </section>
     </main>

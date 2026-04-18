@@ -15,7 +15,7 @@
 
     <?php include 'includes/header.php'; ?>
 
-    <main style="padding-top: 80px; min-height: 70vh;">
+    <main style="padding-top: 80px; min-height: 70vh;" id="main-producto">
         <div id="contenedor-detalle" class="max-w-container">
             <p style="text-align: center; padding: 50px;">Cargando información del producto...</p>
         </div>

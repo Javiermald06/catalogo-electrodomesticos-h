@@ -58,6 +58,7 @@
         <div class="carousel" id="ofertas-car"></div>
         <button class="carousel-btn next" data-target="ofertas-car" aria-label="Desplazar ofertas a la derecha">›</button>
       </div>
+      <button class="btn-ver-mas-mobile" onclick="window.location.href='catalogo.php'">Ver más Ofertas del Día</button>
     </section>
 
     <aside id="promo-container" style="padding: 30px 0;" aria-label="Promoción especial">
@@ -80,7 +81,6 @@
 
   <?php include 'includes/footer.php'; ?>
 
-  <script src="data/productos.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

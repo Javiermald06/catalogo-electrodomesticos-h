@@ -4,7 +4,7 @@
 
 const urlParams = new URLSearchParams(window.location.search);
 const productoId = urlParams.get('id');
-let TODOS_LOS_PRODUCTOS = []; // Guardamos todos para los recomendados
+var TODOS_LOS_PRODUCTOS = []; // Guardamos todos para los recomendados
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (!productoId) {
@@ -49,113 +49,137 @@ function renderizarProductoCompleto(prod) {
     document.title = `${prod.nombre} | ElectroHogar`;
 
     // 1. Armamos las especificaciones originales
-    let filasSpecs = `
-        <tr class="spec-row">
-            <td class="spec-name">Marca</td>
-            <td class="spec-value">${prod.marca || 'Genérico'}</td>
-        </tr>
-    `;
-    if (prod.especificaciones_agrupadas) {
-        prod.especificaciones_agrupadas.split('||').forEach(s => {
-            const [nombre, valor] = s.split(':');
-            filasSpecs += `
-                <tr class="spec-row">
-                    <td class="spec-name">${nombre}</td>
-                    <td class="spec-value">${valor || '-'}</td>
-                </tr>
-            `;
+    let arraySpecs = [];
+    arraySpecs.push({ nombre: 'Marca', valor: prod.marca || 'Genérico' });
+
+    if (prod.atributos) {
+        const attrObj = typeof prod.atributos === 'string' ? JSON.parse(prod.atributos) : prod.atributos;
+        Object.entries(attrObj).forEach(([nombre, valor]) => {
+            arraySpecs.push({ nombre: nombre, valor: valor || '-' });
         });
     }
 
-    // 2. BUSCAMOS PRODUCTOS SIMILARES (Misma categoría, distinto ID) - INTANCTO
+    let filasSpecs = arraySpecs.map((spec, index) => `
+        <tr class="spec-row ${index > 4 ? 'spec-hidden' : ''}" ${index > 4 ? 'style="display:none;"' : ''}>
+            <td class="spec-name">${spec.nombre}</td>
+            <td class="spec-value">${spec.valor}</td>
+        </tr>
+    `).join('');
+
+    if (arraySpecs.length > 5) {
+        filasSpecs += `
+            <tr id="btn-ver-mas-specs">
+                <td colspan="2" style="text-align:center; color: var(--clr-primary); font-weight: 600; cursor:pointer; padding: 15px;" onclick="toggleSpecs()">
+                    Ver más características <i data-lucide="chevron-down" style="width:16px; height:16px; vertical-align:middle;"></i>
+                </td>
+            </tr>
+        `;
+    }
+
+    // 2. BUSCAMOS PRODUCTOS SIMILARES (Misma categoría, distinto ID)
     const similares = TODOS_LOS_PRODUCTOS
         .filter(p => p.categoria === prod.categoria && p.id_producto !== prod.id_producto)
-        .slice(0, 5);
+        .slice(0, 8); // Aumentamos a 8 para el swipe
 
     let htmlSimilares = '';
     if (similares.length > 0) {
         const tarjetas = similares.map(p => {
             const pFinal = parseFloat(p.precio_oferta) > 0 ? parseFloat(p.precio_oferta) : parseFloat(p.precio_regular);
             return `
-            <article class="product-card" style="cursor: pointer;" onclick="window.location.href='producto.php?id=${p.id_producto}'">
-                <div class="product-card__image-container">
-                    <img class="product-card__img" src="assets/img_productos/${p.img_principal || 'placeholder.png'}" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'font-size:60px;\\'>📦</div>';">
+            <article class="product-card product-card-efe" style="cursor: pointer; min-width: 160px; max-width: 180px; flex-shrink: 0; scroll-snap-align: start;" onclick="window.location.href='producto.php?id=${p.id_producto}'">
+                <div class="product-card-efe__image">
+                    <img src="assets/img_productos/${p.img_principal || 'placeholder.png'}" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'font-size:60px; text-align:center;\\'>📦</div>';">
                 </div>
-                <div class="product-card__info">
+                <div class="product-card-efe__info" style="padding: 10px;">
                     <span class="product-card__brand">${p.marca}</span>
-                    <h3 class="product-card__title">${p.nombre}</h3>
-                    <div class="product-card__price-wrapper">
-                        <span class="product-card__price">S/ ${pFinal.toLocaleString('es-PE', {minimumFractionDigits: 2})}</span>
-                    </div>
+                    <h3 class="product-card-efe__title" style="font-size:13px; height:38px;">${p.nombre}</h3>
+                    <div class="product-card-efe__price" style="font-size:16px; margin: 5px 0;">S/ ${pFinal.toLocaleString('es-PE', {minimumFractionDigits: 2})}</div>
                 </div>
             </article>
             `;
         }).join('');
 
         htmlSimilares = `
-            <div class="recommended-section">
-                <h3 class="recommended-title">También te podría interesar</h3>
-                <div class="products-grid">
+            <div class="recommended-section" style="margin-top: 40px;">
+                <h3 class="recommended-title" style="text-align:center; font-size: 22px; font-weight:700; margin-bottom: 20px;">También te podría interesar</h3>
+                <div class="products-grid recommended-swipe-mobile" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; padding-bottom: 15px;">
                     ${tarjetas}
                 </div>
             </div>
         `;
     }
 
-    // 3. PREPARAMOS LA GALERÍA Y FAVORITOS (Nuevas funciones)
+    // 3. PREPARAMOS LA GALERÍA Y FAVORITOS
     let imagenes = prod.galeria ? prod.galeria.split(',') : [prod.img_principal || 'placeholder.png'];
-    imagenes = imagenes.filter(img => img.trim() !== '').slice(0, 5); // Máximo 5 imágenes
+    imagenes = imagenes.filter(img => img.trim() !== '').slice(0, 5);
     if(imagenes.length === 0) imagenes = ['placeholder.png'];
 
-    let thumbsHtml = imagenes.map((img, idx) => `
-        <div class="thumb-item ${idx === 0 ? 'active' : ''}" onclick="cambiarImagenPrincipal(this, '${img}')">
-            <img src="assets/img_productos/${img}" onerror="this.src='https://via.placeholder.com/80?text=📦'">
-        </div>
-    `).join('');
-    
     const esFav = typeof window.esFavorito === 'function' ? window.esFavorito(prod.id_producto) : false;
 
+    // GALERÍA DESKTOP CLÁSICA
+    const galeriaDesktop = `
+        <div class="gallery-desktop" style="display:flex; gap:20px; width:100%;">
+            <div class="gallery-thumbnails">
+                ${imagenes.map((img, idx) => `
+                    <div class="thumb-item ${idx === 0 ? 'active' : ''}" onclick="cambiarImagenPrincipal(this, '${img}')">
+                        <img src="assets/img_productos/${img}" onerror="this.src='https://via.placeholder.com/80?text=📦'">
+                    </div>
+                `).join('')}
+            </div>
+            <div class="detail-main-img-container" style="flex:1;">
+                <img src="assets/img_productos/${imagenes[0]}" id="imagen-principal-detalle" class="detail-main-img" onclick="abrirZoomImagen(this.src)" onerror="this.src='https://via.placeholder.com/500?text=📦'">
+                <button class="zoom-btn" onclick="abrirZoomImagen(document.getElementById('imagen-principal-detalle').src)"><i data-lucide="zoom-in"></i></button>
+            </div>
+        </div>
+    `;
+
+    // GALERÍA MOBILE CARRUSEL (Plaza Vea Style)
+    const galeriaMobile = `
+        <div class="gallery-mobile">
+            <div class="mobile-carousel" style="display:flex; overflow-x:auto; scroll-snap-type: x mandatory; margin: 0 -20px; padding: 0 20px;" onscroll="handleMobileGalleryScroll(this, ${imagenes.length})">
+                ${imagenes.map(img => `
+                    <img src="assets/img_productos/${img}" style="width:100%; flex-shrink:0; scroll-snap-align:center; object-fit:contain; object-position:center; height:350px;" onerror="this.src='https://via.placeholder.com/500?text=📦'">
+                `).join('')}
+            </div>
+            <div class="mobile-carousel-dots" style="display:flex; justify-content:center; gap:8px; margin-top:15px;" id="mobile-dots-${prod.id_producto}">
+                ${imagenes.map((_, i) => `<div class="dot ${i===0?'active':''}" style="width:8px; height:8px; border-radius:50%; background:${i===0?'var(--clr-primary)':'#cbd5e1'};"></div>`).join('')}
+            </div>
+        </div>
+    `;
+
     // ================= LÓGICA DE RUTA DINÁMICA (BREADCRUMBS) =================
-    // Revisamos de dónde viene el usuario
     const urlAnterior = document.referrer.toLowerCase();
     const vieneDeInicio = urlAnterior.includes('index.php') || urlAnterior.endsWith('/') || urlAnterior === '';
     
     let rutaHTML = '';
     if (vieneDeInicio) {
-        // Si viene del Inicio, saltamos la categoría
         rutaHTML = `
             <div class="breadcrumb-efe">
                 <a href="index.php">Inicio</a>
                 <i data-lucide="chevron-right"></i>
-                <span class="current">${prod.nombre}</span>
+                <span class="current" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${prod.nombre}</span>
             </div>
         `;
     } else {
-        // Si viene del Catálogo u otra página, mostramos la ruta completa
         rutaHTML = `
             <div class="breadcrumb-efe">
                 <a href="index.php">Inicio</a>
                 <i data-lucide="chevron-right"></i>
                 <a href="catalogo.php?categoria=${encodeURIComponent(prod.categoria)}">${prod.categoria}</a>
                 <i data-lucide="chevron-right"></i>
-                <span class="current">${prod.nombre}</span>
+                <span class="current" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${prod.nombre}</span>
             </div>
         `;
     }
 
-    // 4. INYECTAMOS EL HTML (Respetando tu estructura base y añadiendo las mejoras)
+    // 4. INYECTAMOS EL HTML
     const html = `
         ${rutaHTML}
         
         <div class="detail-top-section">
             <div class="detail-gallery-wrapper">
-                <div class="gallery-thumbnails">
-                    ${thumbsHtml}
-                </div>
-                <div class="detail-main-img-container">
-                    <img src="assets/img_productos/${imagenes[0]}" id="imagen-principal-detalle" class="detail-main-img" onclick="abrirZoomImagen(this.src)" onerror="this.src='https://via.placeholder.com/500?text=📦'">
-                    <button class="zoom-btn" onclick="abrirZoomImagen(document.getElementById('imagen-principal-detalle').src)"><i data-lucide="zoom-in"></i></button>
-                </div>
+                ${galeriaDesktop}
+                ${galeriaMobile}
             </div>
             
             <div class="detail-purchase-panel">
@@ -177,7 +201,7 @@ function renderizarProductoCompleto(prod) {
                         <button class="qty-btn-efe" onclick="cambiarQtyDetail(1)">+</button>
                     </div>
                     <button class="btn-efe-primary" onclick="agregarAlCarritoDesdeDetalle('${prod.id_producto}')">
-                        <i data-lucide="shopping-cart"></i> AGREGAR AL CARRITO
+                        <i data-lucide="shopping-cart"></i> AGREGAR
                     </button>
                     <button class="btn-favorite ${esFav ? 'active' : ''}" id="btn-fav-${prod.id_producto}" onclick="toggleFavorito('${prod.id_producto}')">
                         <i data-lucide="heart" ${esFav ? 'fill="currentColor"' : ''}></i>
@@ -218,7 +242,40 @@ function agregarAlCarritoDesdeDetalle(id) {
     }
 }
 
-// ================= FUNCIONES NUEVAS: GALERÍA, ZOOM Y FAVORITOS =================
+// ================= FUNCIONES NUEVAS: GALERÍA MÓVIL Y SPECS =================
+window.handleMobileGalleryScroll = function(container, totalImages) {
+    const scrollLeft = container.scrollLeft;
+    const width = container.offsetWidth;
+    const currentIndex = Math.round(scrollLeft / width);
+    
+    // Actualizar dots
+    const dotsContainer = container.nextElementSibling;
+    if(dotsContainer) {
+        const dots = dotsContainer.querySelectorAll('.dot');
+        dots.forEach((dot, index) => {
+            if(index === currentIndex) {
+                dot.style.background = 'var(--clr-primary)';
+            } else {
+                dot.style.background = '#cbd5e1';
+            }
+        });
+    }
+};
+
+window.toggleSpecs = function() {
+    const hiddenSpecs = document.querySelectorAll('.spec-hidden');
+    const btnVerMas = document.getElementById('btn-ver-mas-specs');
+    
+    hiddenSpecs.forEach(row => {
+        row.style.display = 'table-row';
+    });
+    
+    if (btnVerMas) {
+        btnVerMas.style.display = 'none';
+    }
+};
+
+// ================= FUNCIONES NUEVAS: GALERÍA DESKTOP, ZOOM Y FAVORITOS =================
 
 window.cambiarImagenPrincipal = function(elementoMiniaura, nombreImagen) {
     document.querySelectorAll('.thumb-item').forEach(el => el.classList.remove('active'));

@@ -1,102 +1,159 @@
 /* ============================================================
-   filtros.js — Motor Integral de Filtros Funcional
+   filtros.js — Motor Profesional (JSON + BD)
    ============================================================ */
 
-let PRODUCTOS_CATALOGO = []; // Copia local para filtrar sin volver a la BD
-let filtrosEstado = {
-    marcas: [],
-    especificaciones: {}, 
-    minPrice: 0,
-    maxPrice: Infinity
+let PRODUCTOS_CATALOGO = []; 
+let filtrosEstado = { marcas: [], categorias: [], especificaciones: {}, minPrice: 0, maxPrice: Infinity };
+
+// ===================================
+// MOTOR DE UI (ACORDEONES PLAZA VEA)
+// ===================================
+window.toggleAccordion = function(contentId, iconId) {
+    const content = document.getElementById(contentId);
+    const iconContainer = document.getElementById(iconId);
+    if (!content || !iconContainer) return;
+    const header = iconContainer.closest('.filter-header');
+
+    const isHidden = content.style.display === 'none' || content.classList.contains('hidden');
+
+    if (isHidden) {
+        content.style.display = 'block';
+        content.classList.remove('hidden');
+        if (header) header.classList.add('open');
+        // Swap to minus icon
+        iconContainer.outerHTML = `<i data-lucide="minus" class="filter-icon" id="${iconId}"></i>`;
+    } else {
+        content.style.display = 'none';
+        content.classList.add('hidden');
+        if (header) header.classList.remove('open');
+        // Swap to plus icon
+        iconContainer.outerHTML = `<i data-lucide="plus" class="filter-icon" id="${iconId}"></i>`;
+    }
+    lucide.createIcons();
 };
 
-function inicializarFiltrosDinamicos(productos) {
-    PRODUCTOS_CATALOGO = productos; // Guardamos la data original de la categoría
+function inicializarFiltrosDinamicos(productos, nombreCategoria, filtrosJson, extras = {}) {
+    PRODUCTOS_CATALOGO = productos;
 
-    // 1. GENERAR FILTRO DE MARCAS AUTOMÁTICO
-    const marcas = [...new Set(productos.map(p => p.marca))];
+    // 1. FILTRO DE MARCAS AUTOMÁTICO
+    const marcas = (extras.marcas && extras.marcas.length > 0) 
+                   ? extras.marcas 
+                   : [...new Set(productos.map(p => p.marca))];
     const listaMarcas = document.getElementById('lista-marcas');
     if (listaMarcas) {
+        // Obtener marca activa de la URL (si existe)
+        const urlParamsF = new URLSearchParams(window.location.search);
+        const marcaURL = urlParamsF.get('marca');
+
         listaMarcas.innerHTML = marcas.map(m => `
             <label class="filter-option">
-                <input type="checkbox" class="hidden-check brand-filter" value="${m}" onchange="actualizarEstadoFiltrosSpec()">
+                <input type="checkbox" class="hidden-check brand-filter" value="${m}" 
+                       ${(marcaURL && marcaURL.toLowerCase() === m.toLowerCase()) ? 'checked' : ''} 
+                       onchange="actualizarEstadoFiltrosSpec()">
                 <span class="custom-radio"></span>
                 <span class="option-text">${m}</span>
             </label>
         `).join('');
+        
+        if (marcaURL) {
+            filtrosEstado.marcas = [marcas.find(m => m.toLowerCase() === marcaURL.toLowerCase())].filter(Boolean);
+        }
     }
 
-    // 2. CONFIGURAR BOTÓN APLICAR PRECIO (SOLUCIÓN)
+    // 1.1 FILTRO DE CATEGORÍAS (Solo si no hay categoría activa)
+    const seccionCat = document.getElementById('seccion-filtro-categoria');
+    const listaCategorias = document.getElementById('lista-categorias');
+    
+    if (seccionCat && listaCategorias) {
+        if (!nombreCategoria || nombreCategoria === '') {
+            seccionCat.style.display = 'block';
+            const categorias = (extras.categorias && extras.categorias.length > 0) 
+                               ? extras.categorias 
+                               : [...new Set(productos.map(p => p.categoria))];
+            listaCategorias.innerHTML = categorias.map(cat => `
+                <label class="filter-option">
+                    <input type="checkbox" class="hidden-check category-filter" value="${cat}" 
+                           onchange="actualizarEstadoFiltrosSpec()">
+                    <span class="custom-radio"></span>
+                    <span class="option-text">${cat}</span>
+                </label>
+            `).join('');
+        } else {
+            seccionCat.style.display = 'none';
+        }
+    }
+
+    // 2. BOTÓN DE PRECIO
     const btnPrecio = document.getElementById('btn-aplicar-precio');
     if (btnPrecio) {
         btnPrecio.onclick = (e) => {
             e.preventDefault();
-            // Leemos los inputs Min/Max reales
-            const minInput = document.getElementById('price-min');
-            const maxInput = document.getElementById('price-max');
-            filtrosEstado.minPrice = parseFloat(minInput.value) || 0;
-            filtrosEstado.maxPrice = parseFloat(maxInput.value) || Infinity;
+            filtrosEstado.minPrice = parseFloat(document.getElementById('price-min').value) || 0;
+            filtrosEstado.maxPrice = parseFloat(document.getElementById('price-max').value) || Infinity;
             aplicarFiltrosFinales();
         };
     }
 
-    // 3. GENERAR FILTROS DE ESPECIFICACIONES (El código inteligente que ya teníamos)
-    const contenedorFiltrosSpecs = document.getElementById('filtros-dinamicos-bd');
-    if (!contenedorFiltrosSpecs) return;
-    contenedorFiltrosSpecs.innerHTML = ''; 
+    // 3. RENDERIZAR FILTROS DINÁMICOS (Solo si HAY una categoría activa)
+    const contenedor = document.getElementById('filtros-dinamicos-bd');
+    if (!contenedor) return;
 
-    const mapaAtributos = {}; 
-    productos.forEach(p => {
-        if (p.especificaciones_agrupadas) {
-            p.especificaciones_agrupadas.split('||').forEach(specStr => {
-                const parts = specStr.split(':'); 
-                if (parts.length < 2) return; 
-                
-                const nombreAtr = parts[0].trim();
-                const valorAtr = parts[1].trim();
+    if (!nombreCategoria || nombreCategoria === '') {
+        contenedor.innerHTML = '';
+        contenedor.style.display = 'none';
+        return;
+    }
 
-                if (!mapaAtributos[nombreAtr]) mapaAtributos[nombreAtr] = new Set();
-                mapaAtributos[nombreAtr].add(valorAtr);
-            });
-        }
-    });
+    contenedor.style.display = 'block';
+    if (filtrosJson && filtrosJson.status === 'success' && filtrosJson.data.length > 0) {
+        let htmlAtributos = '';
+        filtrosJson.data.forEach(filtro => {
+            const idLimpio = filtro.campo.toLowerCase().replace(/\s+/g, '-');
+            htmlAtributos += `
+                <div class="filter-section border-top">
+                    <div class="filter-header" onclick="toggleAccordion('content-${idLimpio}', 'icon-${idLimpio}')">
+                        <span class="filter-title">${filtro.label}</span>
+                        <i data-lucide="plus" class="filter-icon" id="icon-${idLimpio}"></i>
+                    </div>
+                    <div class="filter-content" id="content-${idLimpio}" style="display:none;">
+                        ${filtro.opciones.map(valor => {
+                            const count = productos.filter(p => {
+                                if(!p.atributos) return false;
+                                const attrObj = typeof p.atributos === 'string' ? JSON.parse(p.atributos) : p.atributos;
+                                const rawVal = attrObj[filtro.campo];
+                                if (!rawVal) return false;
+                                const cleanVal = rawVal.toString().replace(/\s*\([^)]*\)/g, "").trim();
+                                return cleanVal === valor;
+                            }).length;
 
-    let htmlAtributos = '';
-    Object.keys(mapaAtributos).forEach(nombreAtr => {
-        const valoresUnicos = Array.from(mapaAtributos[nombreAtr]);
-        if (valoresUnicos.length === 0) return;
-        const idLimpio = nombreAtr.toLowerCase().replace(/\s+/g, '-');
-        htmlAtributos += `
-            <div class="filter-section border-top">
-                <div class="filter-header" onclick="toggleAccordion('content-${idLimpio}', 'icon-${idLimpio}')">
-                    <span class="filter-title">${nombreAtr}</span>
-                    <i data-lucide="chevron-up" class="filter-icon" id="icon-${idLimpio}"></i>
+                            return `
+                            <label class="filter-option">
+                                <input type="checkbox" class="hidden-check spec-filter" 
+                                       data-atributo="${filtro.campo}" value="${valor}" 
+                                       onchange="actualizarEstadoFiltrosSpec()">
+                                <span class="custom-radio"></span>
+                                <span class="option-text">${valor} <span class="count" style="color:#94a3b8; font-size:12px;">(${count})</span></span>
+                            </label>
+                            `;
+                        }).join('')}
+                    </div>
                 </div>
-                <div class="filter-content" id="content-${idLimpio}">
-                    ${valoresUnicos.map(valor => `
-                        <label class="filter-option">
-                            <input type="checkbox" class="hidden-check spec-filter" 
-                                   data-atributo="${nombreAtr}" value="${valor}" 
-                                   onchange="actualizarEstadoFiltrosSpec()">
-                            <span class="custom-radio"></span>
-                            <span class="option-text">${valor}</span>
-                        </label>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    });
-    contenedorFiltrosSpecs.innerHTML = htmlAtributos;
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+            `;
+        });
+        contenedor.innerHTML = htmlAtributos;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
 }
 
-// Recopila el estado de marcas y specs marcadas
 function actualizarEstadoFiltrosSpec() {
     // Marcas
     const checksMarcas = document.querySelectorAll('.brand-filter:checked');
     filtrosEstado.marcas = Array.from(checksMarcas).map(cb => cb.value);
 
-    // Specs
+    // Categorías (Multiple)
+    const checksCats = document.querySelectorAll('.category-filter:checked');
+    filtrosEstado.categorias = Array.from(checksCats).map(cb => cb.value);
+
     filtrosEstado.especificaciones = {};
     const checksSpecs = document.querySelectorAll('.spec-filter:checked');
     checksSpecs.forEach(cb => {
@@ -104,41 +161,63 @@ function actualizarEstadoFiltrosSpec() {
         if (!filtrosEstado.especificaciones[atr]) filtrosEstado.especificaciones[atr] = [];
         filtrosEstado.especificaciones[atr].push(cb.value);
     });
-
     aplicarFiltrosFinales();
 }
 
-// Aplica la lógica matemática de filtrado
-function aplicarFiltrosFinales() {
-    let resultados = [...PRODUCTOS_CATALOGO]; 
+function aplicarFiltrosFinales(resetPage = true) {
+    if (resetPage && typeof currentPage !== 'undefined') {
+        currentPage = 1;
+    }
+    let resultados = [...PRODUCTOS_CATALOGO];
 
-    // A. Filtrar por Rango de Precio Funcional
+    // Precio
     resultados = resultados.filter(p => p.precio >= filtrosEstado.minPrice && p.precio <= filtrosEstado.maxPrice);
 
-    // B. Filtrar por Marcas
+    // Marca
     if (filtrosEstado.marcas.length > 0) {
         resultados = resultados.filter(p => filtrosEstado.marcas.includes(p.marca));
     }
 
-    // C. Filtrar por Specs (Lógica AND entre grupos)
-    const nombresAtributosFiltro = Object.keys(filtrosEstado.especificaciones);
-    if (nombresAtributosFiltro.length > 0) {
+    // Categoría (Filtro en lugar de redirección)
+    if (filtrosEstado.categorias.length > 0) {
+        resultados = resultados.filter(p => filtrosEstado.categorias.includes(p.categoria));
+    }
+
+    // Atributos específicos (incluye rangos)
+    const atributosFiltro = Object.keys(filtrosEstado.especificaciones);
+    if (atributosFiltro.length > 0) {
         resultados = resultados.filter(prod => {
-            return nombresAtributosFiltro.every(nombreAtr => {
-                const valoresSeleccionados = filtrosEstado.especificaciones[nombreAtr];
-                return valoresSeleccionados.some(valorFiltro => 
-                    prod.especificaciones_agrupadas && prod.especificaciones_agrupadas.includes(`${nombreAtr}:${valorFiltro}`)
-                );
+            const attrObj = prod.atributos ? (typeof prod.atributos === 'string' ? JSON.parse(prod.atributos) : prod.atributos) : {};
+            return atributosFiltro.every(campo => {
+                const seleccionados = filtrosEstado.especificaciones[campo];
+                if (!seleccionados || seleccionados.length === 0) return true;
+                const valorProdRaw = attrObj[campo];
+                if (valorProdRaw === undefined) return false;
+                
+                // Limpiar parentesis para comparar exactamente con el filtro
+                const valorProd = valorProdRaw.toString().replace(/\s*\([^)]*\)/g, "").trim();
+
+                // Probar cada opción seleccionada
+                return seleccionados.some(sel => {
+                    if (sel.includes('-')) {
+                        // Rango numérico
+                        const [min, max] = sel.split('-').map(Number);
+                        const num = parseFloat(valorProd);
+                        return !isNaN(num) && num >= min && num < max;
+                    } else {
+                        // Comparación directa (incluye colores separados)
+                        return valorProd === sel;
+                    }
+                });
             });
         });
     }
 
-    // D. Ordenamiento (Leer del select)
+    // Ordenar
     const selectOrden = document.querySelector('.sort-select');
     const orden = selectOrden ? selectOrden.value : 'Relevancia';
     if (orden === 'Menor Precio') resultados.sort((a, b) => a.precio - b.precio);
     if (orden === 'Mayor Precio') resultados.sort((a, b) => b.precio - a.precio);
 
-    // Redibujar el grid en catalogo.js
     if (typeof renderProductosGrid === 'function') renderProductosGrid(resultados);
 }

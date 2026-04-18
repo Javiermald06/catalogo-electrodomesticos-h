@@ -1,27 +1,58 @@
 /* ============================================================
    catalogo.js — Gestión de Cuadrícula y Vista Detalle (Tipo Efe)
    ============================================================ */
-let PRODUCTOS = [];
+var PRODUCTOS = [];
 const urlParams = new URLSearchParams(window.location.search);
 const categoriaActiva = urlParams.get('categoria');
+const marcaActiva = urlParams.get('marca');
+const buscaActiva = urlParams.get('buscar');
+
+// Paginación
+let currentPage = 1;
+const itemsPerPage = 12;
 
 async function cargarCatalogo() {
     try {
-        const response = await fetch('includes/api/listar_productos.php');
+        // 🚀 Una sola petición: productos + filtros juntos
+        const catParam = categoriaActiva || '';
+        const response = await fetch(`includes/api/listar_productos.php?categoria=${encodeURIComponent(catParam)}`);
         const result = await response.json();
+        const filtrosJson = { status: 'success', data: result.filtros || [] };
 
         if (result.status === 'success') {
             // Adaptar datos básicos
-            PRODUCTOS = result.data.map(p => ({
-                ...p,
-                id: p.id_producto,
-                // Precio lógico: Oferta si existe, sino Regular
-                precio: parseFloat(p.precio_oferta) > 0 ? parseFloat(p.precio_oferta) : parseFloat(p.precio_regular),
-                precioAntes: parseFloat(p.precio_oferta) > 0 ? parseFloat(p.precio_regular) : null
-            }));
+            PRODUCTOS = result.data.map(p => {
+                const precioReg = parseFloat(p.precio_regular);
+                const precioOfe = parseFloat(p.precio_oferta);
+                const tieneOferta = precioOfe > 0 && precioOfe < precioReg;
+                const pctDescuento = tieneOferta ? Math.round((1 - precioOfe / precioReg) * 100) : 0;
+                return {
+                    ...p,
+                    id: p.id_producto,
+                    precio: tieneOferta ? precioOfe : precioReg,
+                    precioAntes: tieneOferta ? precioReg : null,
+                    enOferta: tieneOferta,
+                    descuento: pctDescuento
+                };
+            });
 
-            // Filtrar por categoría de la URL
-            const productosFiltrados = PRODUCTOS.filter(p => p.categoria === categoriaActiva);
+            // Lógica de filtrado inicial combinada (URL Params)
+            let productosFiltrados = [...PRODUCTOS];
+            
+            if (categoriaActiva) {
+                productosFiltrados = productosFiltrados.filter(p => p.categoria === categoriaActiva);
+            }
+            if (marcaActiva) {
+                productosFiltrados = productosFiltrados.filter(p => p.marca.toLowerCase() === marcaActiva.toLowerCase());
+            }
+            if (buscaActiva) {
+                const q = buscaActiva.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                productosFiltrados = productosFiltrados.filter(p => 
+                    p.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(q) ||
+                    p.marca.toLowerCase().includes(q) ||
+                    p.categoria.toLowerCase().includes(q)
+                );
+            }
 
             // Actualizar Breadcrumbs dinámicamente (Estilo Moderno)
             document.title = `ElectroHogar - ${categoriaActiva || 'Catálogo'}`;
@@ -51,7 +82,11 @@ async function cargarCatalogo() {
 
             // Inicializar motor de filtros laterales (filtros.js)
             if (typeof inicializarFiltrosDinamicos === 'function') {
-                inicializarFiltrosDinamicos(productosFiltrados);
+                const extras = {
+                    marcas: result.marcas_disponibles || [],
+                    categorias: result.categorias_disponibles || []
+                };
+                inicializarFiltrosDinamicos(productosFiltrados, categoriaActiva || '', filtrosJson, extras);
             }
             
             // Dibujar la cuadrícula inicial
@@ -82,30 +117,123 @@ function renderProductosGrid(datos) {
 
     if (datos.length === 0) {
         grid.innerHTML = '<p class="empty-catalog-msg">No se encontraron productos con estos filtros.</p>';
+        const paginationContainer = document.getElementById('pagination-container');
+        if (paginationContainer) paginationContainer.innerHTML = '';
         return;
     }
 
+    // Paginación: Obtener solo los productos de la página actual
+    const starIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = starIndex + itemsPerPage;
+    const productosPagina = datos.slice(starIndex, endIndex);
+
     // Dibujar tarjetas. Fíjate en el onclick para abrir el detalle.
-    grid.innerHTML = datos.map(p => `
+    grid.innerHTML = productosPagina.map(p => {
+        const badgeHtml = p.enOferta 
+            ? `<span class="product-card-efe__badge">-${p.descuento}%</span>` 
+            : '';
+
+        let precioHtml = '';
+        if (p.enOferta) {
+            precioHtml = `
+                <div class="product-card-efe__price product-card-efe__price--offer">
+                    S/ ${parseFloat(p.precio).toLocaleString('es-PE', {minimumFractionDigits: 2})}
+                    <span class="product-card-efe__discount-tag">-${p.descuento}%</span>
+                </div>
+                <div class="product-card-efe__price-old">
+                    S/ ${parseFloat(p.precioAntes).toLocaleString('es-PE', {minimumFractionDigits: 2})}
+                </div>
+            `;
+        } else {
+            precioHtml = `
+                <div class="product-card-efe__price">
+                    S/ ${parseFloat(p.precio).toLocaleString('es-PE', {minimumFractionDigits: 2})}
+                </div>
+            `;
+        }
+
+        return `
         <div class="product-card-efe" onclick="window.location.href='producto.php?id=${p.id_producto}'">
             <div class="product-card-efe__image">
+                ${badgeHtml}
                 <img src="assets/img/${p.img_principal || 'placeholder.png'}" alt="${p.nombre}" onerror="this.src='assets/img/placeholder.png'">
             </div>
             <div class="product-card-efe__info">
                 <span class="product-card-efe__brand">${p.marca.toUpperCase()}</span>
                 <h3 class="product-card-efe__title">${p.nombre}</h3>
-                <div class="product-card-efe__price">
-                    S/ ${parseFloat(p.precio).toLocaleString('es-PE', {minimumFractionDigits: 2})}
-                </div>
-                <button class="product-card-efe__btn" onclick="event.stopPropagation(); agregarAlCarrito('${p.id}')">
-                    <i data-lucide="shopping-cart" class="icon-sm"></i> Cotizar por WhatsApp
-                </button>
+                ${precioHtml}
             </div>
+            <button class="product-card-efe__btn" onclick="event.stopPropagation(); agregarAlCarrito('${p.id}')">
+                <i data-lucide="shopping-cart" class="icon-sm"></i> Cotizar por WhatsApp
+            </button>
         </div>
-    `).join('');
+        `;
+    }).join('');
 
+    renderPagination(datos.length);
+}
+
+function renderPagination(totalItems) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const container = document.getElementById('pagination-container');
+    if (!container) return;
+
+    if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let html = `
+        <button class="pagination-btn ${currentPage === 1 ? 'disabled' : ''}" onclick="changePage(1)" title="Primera página">
+            <i data-lucide="chevrons-left"></i>
+        </button>
+        <button class="pagination-btn ${currentPage === 1 ? 'disabled' : ''}" onclick="changePage(${currentPage - 1})" title="Anterior">
+            <i data-lucide="chevron-left"></i>
+        </button>
+    `;
+
+    // Generar números de página
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+    if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+    for (let i = startPage; i <= endPage; i++) {
+        html += `
+            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+
+    html += `
+        <button class="pagination-btn ${currentPage === totalPages ? 'disabled' : ''}" onclick="changePage(${currentPage + 1})" title="Siguiente">
+            <i data-lucide="chevron-right"></i>
+        </button>
+        <button class="pagination-btn ${currentPage === totalPages ? 'disabled' : ''}" onclick="changePage(${totalPages})" title="Última página">
+            <i data-lucide="chevrons-right"></i>
+        </button>
+    `;
+
+    container.innerHTML = html;
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
+
+window.changePage = function(page) {
+    const totalItems = (typeof PRODUCTOS_CATALOGO !== 'undefined' && PRODUCTOS_CATALOGO.length > 0) ? PRODUCTOS_CATALOGO.length : PRODUCTOS.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    
+    if (page < 1 || page > totalPages) return;
+    
+    currentPage = page;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Si tenemos filtros activos, repintar con los productos filtrados
+    if (typeof aplicarFiltrosFinales === 'function') {
+        aplicarFiltrosFinales(false); // No resetear página
+    } else {
+        renderProductosGrid(PRODUCTOS);
+    }
+};
 
 function cambiarQtyDetail(n) {
     const input = document.getElementById('qty-detail');
@@ -128,24 +256,54 @@ function configurarBotonesVista() {
     const gridContainer = document.getElementById('catalogo-grid');
 
     if (btnGrid && btnList && gridContainer) {
-        // Al hacer clic en Cuadrícula
         btnGrid.addEventListener('click', () => {
             btnGrid.classList.add('active');
             btnList.classList.remove('active');
-            gridContainer.classList.remove('list-view'); // Quita el modo lista
+            gridContainer.classList.remove('list-view');
         });
 
-        // Al hacer clic en Lista
         btnList.addEventListener('click', () => {
             btnList.classList.add('active');
             btnGrid.classList.remove('active');
-            gridContainer.classList.add('list-view'); // Aplica el modo lista
+            gridContainer.classList.add('list-view');
         });
     }
+}
+
+// === MODAL DE ORDENAR (MOBILE) ===
+function configurarSortModal() {
+    const sortModal = document.getElementById('sort-modal');
+    if (!sortModal) return;
+
+    const options = sortModal.querySelectorAll('.sort-option');
+    const selectDesktop = document.getElementById('ordenar-productos');
+
+    options.forEach(opt => {
+        opt.addEventListener('click', () => {
+            // Quitar active de todos
+            options.forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+
+            // Sincronizar con el select oculto de desktop
+            const value = opt.dataset.value;
+            if (selectDesktop) {
+                selectDesktop.value = value;
+            }
+
+            // Cerrar modal
+            sortModal.classList.remove('active');
+
+            // Aplicar filtros con nuevo orden
+            if (typeof aplicarFiltrosFinales === 'function') {
+                aplicarFiltrosFinales();
+            }
+        });
+    });
 }
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
     cargarCatalogo(); // Tu función principal
     configurarBotonesVista(); // Activamos los botones
+    configurarSortModal(); // Modal de ordenar mobile
 });
