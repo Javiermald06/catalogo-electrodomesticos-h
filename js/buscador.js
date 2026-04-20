@@ -29,7 +29,9 @@ async function inicializarDatosBuscador() {
                     precioAntes: tieneOferta ? precioReg : null,
                     img: p.img_principal || null,
                     enOferta: tieneOferta,
-                    descuento: pctDescuento
+                    descuento: pctDescuento,
+                    badge: tieneOferta ? 'oferta' : null,
+                    badgeText: tieneOferta ? `-${pctDescuento}%` : ''
                 };
             });
 
