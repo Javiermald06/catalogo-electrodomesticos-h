@@ -15,7 +15,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Outfit', sans-serif; background-color: var(--bg-main); color: var(--text-dark); }
 button { cursor: pointer; border: none; background: none; font-family: inherit; }
-.max-w-container { max-width: 1280px; margin: 0 auto; width: 100%; padding: 0 24px; }
+.max-w-container { max-width: 1350px; margin: 0 auto; width: 100%; padding: 0 24px; }
 
 /* ================= CABECERA Y MIGAS DE PAN ================= */
 .store-header { border-bottom: 1px solid var(--border); padding: 16px 0; }
@@ -71,173 +71,15 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .view-btn.active { border-color: var(--blue); color: var(--blue); background: #eff6ff; }
 .sort-select { padding: 10px 16px; border: 1px solid var(--text-dark); border-radius: 6px; font-weight: 500; outline: none; font-family: inherit; cursor: pointer; }
 
-.products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-
-/* Tarjeta de Producto */
-.product-card { border: 1px solid var(--border); border-radius: 12px; padding: 24px; position: relative; display: flex; flex-direction: column; transition: box-shadow 0.3s; background: white; }
-.product-card:hover { box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
-.discount-badge { position: absolute; top: 16px; left: 16px; background: var(--discount); color: white; font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 14px; z-index: 10; }
-.product-img { width: 100%; height: 220px; object-fit: contain; margin-bottom: 16px; }
-
-.product-brand { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
-.product-name { font-size: 15px; font-weight: 600; color: var(--text-dark); margin-bottom: 16px; line-height: 1.4; height: 42px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.product-seller { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
-
-.price-offer { font-size: 24px; font-weight: 800; color: var(--blue); display: flex; align-items: baseline; gap: 6px; }
-.price-offer span { font-size: 13px; font-weight: 500; color: var(--text-dark); }
-.price-regular { font-size: 13px; color: var(--text-muted); text-decoration: line-through; margin-bottom: 20px; }
-
-.card-actions { display: flex; gap: 12px; margin-top: auto; }
-.btn-primary { background: var(--blue); color: white; padding: 10px; border-radius: 6px; font-weight: 600; flex: 1; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-.btn-primary:hover { background: var(--blue-hover); }
-.btn-sm { padding: 6px 16px; font-size: 13px; flex: none; }
-.btn-fav { border: 1px solid var(--border); border-radius: 6px; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; color: var(--text-dark); transition: 0.2s; flex-shrink: 0; }
-.btn-fav:hover { color: var(--red); border-color: var(--red); }
-
-.products-grid.list-view {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+/* Permitir que la grilla use todo el ancho disponible en catálogo */
+.products-area .products-grid {
+    max-width: 1010px !important;
+    row-gap: 20px; /* ✨ Separación entre filas */
 }
 
-.products-grid.list-view .product-card {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    padding: 20px;
-    gap: 30px;
-}
+/* Grilla unificada controlada por styles.css */
 
-.products-grid.list-view .product-card__image-container {
-    width: 200px;
-    height: 200px;
-}
-
-/* Estilo de Tarjeta Efe */
-.product-card-efe {
-    background: #fff;
-    border-radius: 16px;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    transition: box-shadow 0.3s ease;
-    cursor: pointer;
-    border: 1px solid transparent;
-    overflow: hidden;
-}
-
-.product-card-efe:hover {
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-}
-
-.product-card-efe__image {
-    background: #f8fafc;
-    border-radius: 12px;
-    height: 180px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 15px;
-    position: relative;
-    overflow: hidden;
-}
-
-.product-card-efe__image img {
-    max-width: 80%;
-    max-height: 80%;
-    object-fit: contain;
-}
-
-/* Badge de descuento sobre la imagen */
-.product-card-efe__badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: var(--red, #E8232A);
-    color: #fff;
-    font-size: 12px;
-    font-weight: 800;
-    padding: 4px 10px;
-    border-radius: 6px;
-    z-index: 2;
-    letter-spacing: 0.3px;
-}
-
-.product-card-efe__info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.product-card-efe__brand {
-    color: #1b3a6b;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
-.product-card-efe__title {
-    font-size: 14px;
-    font-weight: 600;
-    margin: 8px 0;
-    line-height: 1.3;
-    height: 36px;
-    overflow: hidden;
-}
-
-.product-card-efe__price {
-    font-size: 20px;
-    font-weight: 800;
-    color: #1b3a6b;
-    margin-bottom: 4px;
-}
-
-.product-card-efe__price--offer {
-    color: #e8232a;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-/* Tag de porcentaje junto al precio */
-.product-card-efe__discount-tag {
-    display: inline-block;
-    background: #fef2f2;
-    color: #e8232a;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 4px;
-    border: 1px solid #fecaca;
-}
-
-/* Precio antiguo tachado */
-.product-card-efe__price-old {
-    font-size: 13px;
-    color: #94a3b8;
-    text-decoration: line-through;
-    margin-bottom: 8px;
-}
-
-.product-card-efe__btn {
-    background: #f1f5f9;
-    color: #1b3a6b;
-    border-radius: 10px;
-    padding: 10px;
-    font-weight: 700;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    margin-top: auto;
-}
-
-.product-card-efe__btn:hover {
-    background: #e2e8f0;
-}
+/* Estilos de tarjetas eliminados para usar el sistema unificado de styles.css */
 
 /* ============================================================
    ESTILOS VISTA DETALLE - TIPO EFE
@@ -280,21 +122,21 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     background: #fff;
     border: 1px solid #e2e8f0;
     border-radius: 16px;
-    padding: 0 !important; /* ✨ AQUÍ ESTABA EL ESTORBO: Lo dejamos en 0 */
+    padding: 0 !important;
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: 480px; /* Candado estricto */
+    height: 480px;
     overflow: hidden;
-    padding: 20px !important; /* cambiar tamaño imagen */
 }
 
 .detail-main-img {
     width: 100%;
     height: 100%;
-    object-fit: fill; /* ✨ MAGIA: La imagen estirará para llenar toda la caja */
+    object-fit: contain;
     cursor: zoom-in;
+    transition: transform 0.3s ease;
 }
 
 .detail-purchase-panel {
@@ -508,37 +350,115 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
    VISTA DE LISTA (LIST VIEW)
    ============================================================ */
 .products-grid.list-view {
-    display: flex;
-    flex-direction: column; /* Apila las tarjetas verticalmente */
-    gap: 20px;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+    max-width: 100% !important;
 }
 
-.products-grid.list-view .product-card-efe {
-    flex-direction: row; /* Coloca imagen a la izquierda, texto a la derecha */
+/* En vista lista, cada tarjeta se vuelve horizontal y COMPACTA */
+.products-grid.list-view .product-card {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 10px !important;
+    height: auto !important;
+    min-height: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0;
+    background: #fff;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden !important;
+}
+
+.products-grid.list-view .product-card__img-container {
+    width: 140px !important;
+    height: 140px !important;
+    flex-shrink: 0 !important;
+    margin-bottom: 0 !important;
+    position: relative;
+}
+
+.products-grid.list-view .product-card__content {
+    flex-grow: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+    padding: 0 !important;
+}
+
+/* Ocultar elementos extra por defecto en grilla */
+.product-card__wishlist {
+    display: none;
+}
+
+.products-grid.list-view .product-card__price-section {
+    display: flex;
     align-items: center;
-    gap: 30px;
-    padding: 25px;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
-.products-grid.list-view .product-card-efe__image {
-    width: 220px;
-    height: 220px;
-    margin-bottom: 0;
-    flex-shrink: 0;
-}
-
-.products-grid.list-view .product-card-efe__info {
-    flex-grow: 1;
+.products-grid.list-view .product-card__actions {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
 }
 
-.products-grid.list-view .product-card-efe__btn {
-    width: auto;
-    align-self: flex-start;
-    padding: 12px 30px;
-    margin-top: 10px;
+.products-grid.list-view .product-card__wishlist {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.products-grid.list-view .product-card__wishlist:hover {
+    border-color: var(--red);
+    color: var(--red);
+    background: #fff5f5;
+}
+
+.products-grid.list-view .product-card__title {
+    font-size: 16px !important;
+    margin-bottom: 5px !important;
+    color: var(--blue) !important;
+    height: auto !important;
+    line-height: 1.3 !important;
+}
+
+.products-grid.list-view .product-card__btn {
+    width: auto !important;
+    min-width: 180px !important;
+    padding: 10px 20px !important;
+    font-size: 13px !important;
+    background: var(--blue) !important;
+    color: #fff !important;
+    border: none !important;
+    transition: background 0.3s ease !important;
+}
+
+.products-grid.list-view .product-card__btn:hover {
+    background: var(--blue-hover) !important;
+}
+
+/* Badge en lista (el circulito de porcentaje) */
+.products-grid.list-view .product-card__badge {
+    top: 5px;
+    left: 5px;
+    z-index: 20;
 }
 
 /* ============================================================
@@ -748,61 +668,61 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
         gap: 10px;
     }
 
-    /* === TARJETAS EFE PARA CELULAR === */
-    .product-card-efe {
-        padding: 8px;
+    /* === TARJETAS PARA CELULAR === */
+    .product-card {
+        padding: 8px !important;
         border-radius: 12px;
         overflow: hidden;
     }
-    .product-card-efe__image {
-        height: 140px;
-        margin-bottom: 8px;
+    .product-card__img-container {
+        height: 140px !important;
+        margin-bottom: 8px !important;
         border-radius: 10px;
         overflow: hidden;
     }
-    .product-card-efe__image img {
-        max-width: 85%;
-        max-height: 85%;
+    .product-card__img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
     }
-    .product-card-efe__badge {
+    .product-card__badge {
         font-size: 10px;
         padding: 3px 7px;
         top: 6px;
         left: 6px;
     }
-    .product-card-efe__brand {
+    .product-card__brand {
         font-size: 10px;
     }
-    .product-card-efe__title {
+    .product-card__title {
         font-size: 12px;
         height: 32px;
         margin: 4px 0 6px;
         line-height: 1.3;
         overflow: hidden;
     }
-    .product-card-efe__price {
+    .product-card__price {
         font-size: 16px;
         margin-bottom: 2px;
     }
-    .product-card-efe__price--offer {
-        font-size: 16px;
+    .product-card__price-row {
         gap: 4px;
     }
-    .product-card-efe__discount-tag {
+    .product-card__discount-tag {
         font-size: 9px;
         padding: 1px 5px;
     }
-    .product-card-efe__price-old {
+    .product-card__price--old {
         font-size: 11px;
         margin-bottom: 6px;
     }
-    .product-card-efe__btn {
+    .product-card__btn {
         font-size: 11px;
         padding: 9px 6px;
         border-radius: 8px;
         gap: 4px;
     }
-    .product-card-efe__btn .icon-sm {
+    .product-card__btn .icon-sm {
         width: 14px;
         height: 14px;
     }
@@ -812,20 +732,20 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
     }
-    .products-grid.list-view .product-card-efe {
-        flex-direction: column;
-        gap: 0;
-        padding: 8px;
+    .products-grid.list-view .product-card {
+        flex-direction: column !important;
+        gap: 0 !important;
+        padding: 8px !important;
     }
-    .products-grid.list-view .product-card-efe__image {
-        width: 100%;
-        height: 140px;
-        margin-bottom: 8px;
+    .products-grid.list-view .product-card__img-container {
+        width: 100% !important;
+        height: 140px !important;
+        margin-bottom: 8px !important;
     }
-    .products-grid.list-view .product-card-efe__btn {
-        width: 100%;
-        padding: 9px;
-        align-self: auto;
+    .products-grid.list-view .product-card__btn {
+        width: 100% !important;
+        padding: 9px !important;
+        align-self: auto !important;
     }
 
     /* === FILTROS SIDEBAR MOBILE === */

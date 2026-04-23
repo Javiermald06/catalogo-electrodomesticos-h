@@ -1,30 +1,36 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ElectroHogar Tacna — Catálogo</title>
     <link rel="icon" type="image/png" href="assets\img\Logo_electrohogar.png">
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;700&family=Outfit:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="css/catalogo.css">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/catalogo.css">
     <link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
     <?php include 'includes/header.php'; ?>
 
     <div class="breadcrumbs max-w-container">
-        <a href="index.php" class="bread-link">Inicio</a> > 
+        <a href="index.php" class="bread-link">Inicio</a> >
         <strong id="categoria-actual-bread">Cargando...</strong>
     </div>
 
     <main class="catalog-layout max-w-container">
-        
+
         <aside class="filters-sidebar">
             <h3 style="margin-bottom: 20px; font-weight: 500; color: #1e293b; font-size: 20px;">Filtrar por:</h3>
-            <button class="btn-close-sidebar" onclick="document.querySelector('.filters-sidebar').classList.remove('active')" aria-label="Cerrar filtros">
+            <button class="btn-close-sidebar"
+                onclick="document.querySelector('.filters-sidebar').classList.remove('active')"
+                aria-label="Cerrar filtros">
                 <i data-lucide="x"></i>
             </button>
             <div class="filter-section">
@@ -34,11 +40,14 @@
                 </div>
                 <div class="filter-content" id="content-precio">
                     <div class="price-inputs" style="display: flex; gap: 8px; margin-bottom: 12px;">
-                        <input type="number" id="price-min" class="internal-search" placeholder="Min" style="margin-bottom:0;">
-                        <input type="number" id="price-max" class="internal-search" placeholder="Max" style="margin-bottom:0;">
+                        <input type="number" id="price-min" class="internal-search" placeholder="Min"
+                            style="margin-bottom:0;">
+                        <input type="number" id="price-max" class="internal-search" placeholder="Max"
+                            style="margin-bottom:0;">
                     </div>
                     <div class="price-actions">
-                        <button class="btn-primary btn-sm" id="btn-aplicar-precio" style="width: 100%;">Aplicar Rango</button>
+                        <button class="btn-primary btn-sm" id="btn-aplicar-precio" style="width: 100%;">Aplicar
+                            Rango</button>
                     </div>
                 </div>
             </div>
@@ -67,19 +76,22 @@
         </aside>
 
         <section class="products-area">
-            
+
             <div class="products-toolbar">
                 <div class="view-options">
                     <!-- Botón Filtrar (Móvil + Desktop) -->
-                    <button class="btn-mobile-filter" onclick="document.querySelector('.filters-sidebar').classList.add('active')" aria-label="Abrir filtros">
+                    <button class="btn-mobile-filter"
+                        onclick="document.querySelector('.filters-sidebar').classList.add('active')"
+                        aria-label="Abrir filtros">
                         <i data-lucide="sliders-horizontal" style="width:16px;height:16px;"></i> Filtrar
                     </button>
 
                     <!-- Botón Ordenar (Móvil: abre modal) -->
-                    <button class="btn-mobile-sort" onclick="document.getElementById('sort-modal').classList.add('active')" aria-label="Ordenar">
+                    <button class="btn-mobile-sort"
+                        onclick="document.getElementById('sort-modal').classList.add('active')" aria-label="Ordenar">
                         <i data-lucide="arrow-up-down" style="width:16px;height:16px;"></i> Ordenar
                     </button>
-                    
+
                     <!-- Botones Vista Grid/Lista (Solo Desktop) -->
                     <div class="view-btns-group">
                         <button class="view-btn active" id="view-grid" title="Vista Cuadrícula">
@@ -89,11 +101,13 @@
                             <i data-lucide="list" style="width: 20px;"></i>
                         </button>
                     </div>
-                    <span class="text-sm text-muted count-desktop-only">Se muestran <strong id="contador-productos">0</strong> productos</span>
+                    <span class="text-sm text-muted count-desktop-only">Se muestran <strong
+                            id="contador-productos">0</strong> productos</span>
                 </div>
                 <!-- Selector Orden (Solo Desktop) -->
                 <div class="actions-right desktop-sort-section">
-                    <select class="sort-select" id="ordenar-productos" onchange="if(typeof aplicarFiltrosFinales==='function') aplicarFiltrosFinales()">
+                    <select class="sort-select" id="ordenar-productos"
+                        onchange="if(typeof aplicarFiltrosFinales==='function') aplicarFiltrosFinales()">
                         <option value="Relevancia">Relevancia</option>
                         <option value="Menor Precio">Menor Precio</option>
                         <option value="Mayor Precio">Mayor Precio</option>
@@ -106,7 +120,8 @@
                 <div class="sort-modal-sheet" onclick="event.stopPropagation()">
                     <div class="sort-modal-header">
                         <span>Ordenar por</span>
-                        <button onclick="document.getElementById('sort-modal').classList.remove('active')" class="sort-modal-close">&times;</button>
+                        <button onclick="document.getElementById('sort-modal').classList.remove('active')"
+                            class="sort-modal-close">&times;</button>
                     </div>
                     <div class="sort-modal-options">
                         <label class="sort-option active" data-value="Relevancia">
@@ -139,9 +154,11 @@
     <?php include 'includes/footer.php'; ?>
 
     <script src="js/filtros.js"></script>
+    <script src="js/components.js"></script>
     <script src="js/catalogo.js"></script>
     <script>
         lucide.createIcons();
     </script>
 </body>
+
 </html>

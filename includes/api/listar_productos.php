@@ -23,7 +23,7 @@ try {
         INNER JOIN categorias c ON p.id_categoria = c.id_categoria
         LEFT JOIN galeria_imagenes gi_main ON gi_main.id_producto = p.id_producto AND gi_main.img_principal = 1
         LEFT JOIN (
-            SELECT id_producto, GROUP_CONCAT(ruta_imagen ORDER BY img_principal DESC SEPARATOR ',') as galeria
+            SELECT id_producto, GROUP_CONCAT(ruta_imagen ORDER BY img_principal DESC, orden ASC SEPARATOR ',') as galeria
             FROM galeria_imagenes GROUP BY id_producto
         ) gi_all ON gi_all.id_producto = p.id_producto
         WHERE p.estado = 1";

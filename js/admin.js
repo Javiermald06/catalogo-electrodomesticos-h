@@ -11,12 +11,14 @@ let state = {
     leads: []
 };
 
+// Variable temporal para las imágenes del producto en el modal
+let imagenesSeleccionadas = [];
+
 const formatearMoneda = (monto) => `S/ ${parseFloat(monto).toLocaleString('es-PE', { minimumFractionDigits: 2 })}`;
 
 const showNotification = (msg, error = false) => {
     const toast = document.getElementById('toast');
     
-    // Recreamos todo el contenido para evitar el conflicto con los SVG de Lucide
     toast.innerHTML = `
         <i data-lucide="${error ? 'alert-circle' : 'check-circle'}" style="color: ${error ? '#ef4444' : '#4ade80'}; width: 20px;"></i>
         <span>${msg}</span>
@@ -40,13 +42,11 @@ const openModal = (titulo, contenidoHTML, footerHTML, sizeClass = 'modal-md') =>
 
 const closeModal = () => document.getElementById('modal-container').classList.add('hidden');
 
-// ================= CARGA DE DATOS DESDE PHP (Segura) =================
-
+// ================= CARGA DE DATOS DESDE PHP =================
 async function inicializarAdmin() {
     const noCache = new Date().getTime();
     const headers = { 'Cache-Control': 'no-cache, no-store, must-revalidate' };
 
-    // Promise.all descarga las 4 cosas AL MISMO TIEMPO (Máxima velocidad)
     try {
         await Promise.all([
             fetch('includes/api/listar_productos_admin.php?t=' + noCache, { headers })
@@ -83,7 +83,6 @@ async function inicializarAdmin() {
     }
 }
 
-// Nueva función ligera: Solo descarga productos (evita gastar internet en categorías/marcas)
 async function refrescarSoloProductos() {
     try {
         const res = await fetch('includes/api/listar_productos_admin.php?t=' + new Date().getTime());
@@ -93,7 +92,6 @@ async function refrescarSoloProductos() {
         }
     } catch(e) {}
     
-    // Solo re-dibuja si estamos viendo la tabla de productos
     const tabActiva = document.querySelector('.nav-btn.active');
     if (tabActiva && tabActiva.id === 'tab-productos') {
         renderProductos();
@@ -103,37 +101,32 @@ async function refrescarSoloProductos() {
 const productosProcesando = new Set();
 
 window.toggleEstadoProducto = async function(id, estadoActual) {
-    // Bloqueo de spam para evitar múltiples clics
     if (productosProcesando.has(id)) return; 
     productosProcesando.add(id);
 
     const nuevoEstado = estadoActual == 1 ? 0 : 1; 
     const mensajeInstantaneo = nuevoEstado == 1 ? 'Producto Visible' : 'Producto Oculto';
 
-    // 1. ACTUALIZACIÓN VISUAL Y MENSAJE INSTANTÁNEO
     const index = state.productos.findIndex(p => p.id_producto == id);
     if (index !== -1) {
         state.productos[index].estado = nuevoEstado;
         renderProductos(); 
-        showNotification(mensajeInstantaneo); // <--- El mensaje aparece AQUÍ, al instante
+        showNotification(mensajeInstantaneo); 
     }
 
-    // 2. Sincronización silenciosa con la base de datos
     try {
         const formData = new FormData();
         formData.append('id_producto', id);
         formData.append('estado', nuevoEstado);
-
-        // La petición corre de fondo sin bloquear nada
         await fetch('includes/api/cambiar_estado.php', { method: 'POST', body: formData });
     } catch(e) {
         showNotification("Error de conexión", true);
-        // Si falla de verdad, revertimos el cambio visual
         if (index !== -1) { state.productos[index].estado = estadoActual; renderProductos(); }
     } finally {
         productosProcesando.delete(id);
     }
 };
+
 // ================= MODAL PRODUCTOS Y GUARDADO =================
 window.abrirModalProducto = function(idProducto = null) {
     const isEdit = idProducto !== null;
@@ -143,9 +136,7 @@ window.abrirModalProducto = function(idProducto = null) {
         prod.id_categoria = categoriaSeleccionadaAdmin;
     }
     
-    // 1. FILTRO INTELIGENTE PARA CATEGORÍAS
     let opcionesCategorias = '<option value="">Seleccione...</option>';
-    // Mostramos solo las que tienen estado == 1, O la que ya tiene asignada el producto (si estamos editando)
     const categoriasVisibles = state.categorias.filter(c => c.estado == 1 || (isEdit && c.id_categoria == prod.id_categoria));
     
     if (categoriasVisibles.length > 0) {
@@ -156,7 +147,6 @@ window.abrirModalProducto = function(idProducto = null) {
         ).join('');
     }
     
-    // 2. FILTRO INTELIGENTE PARA MARCAS
     let opcionesMarcas = '<option value="">Seleccione...</option>';
     const marcasVisibles = state.marcas.filter(m => m.estado == 1 || (isEdit && m.id_marca == prod.id_marca));
     
@@ -183,19 +173,44 @@ window.abrirModalProducto = function(idProducto = null) {
     const contenido = `
         <form id="form-producto" class="grid-2" style="gap: 32px; align-items: start;">
             <input type="hidden" id="prod-id" value="${prod.id_producto || ''}">
+            
             <div style="display: flex; flex-direction: column; gap: 16px;">
-                <div><label class="form-label">Nombre del Producto</label><input type="text" id="prod-nombre" class="form-input" value="${prod.nombre || ''}" required></div>
-                <div class="grid-2" style="gap: 16px;">
-                    <div><label class="form-label">SKU</label><input type="text" id="prod-sku" class="form-input" value="${prod.sku || ''}"></div>
-                    <div><label class="form-label">Categoría</label><select id="prod-categoria" class="form-input">${opcionesCategorias}</select></div>
+                <div>
+                    <label class="form-label">Nombre del Producto</label>
+                    <input type="text" id="prod-nombre" class="form-input" value="${prod.nombre || ''}" required>
                 </div>
+                
                 <div class="grid-2" style="gap: 16px;">
-                    <div><label class="form-label">Marca</label><select id="prod-marca" class="form-input">${opcionesMarcas}</select></div>
-                    <div><label class="form-label">Stock</label><input type="number" id="prod-stock" class="form-input" value="${prod.stock || 0}"></div>
+                    <div>
+                        <label class="form-label">SKU</label>
+                        <input type="text" id="prod-sku" class="form-input" value="${prod.sku || ''}">
+                    </div>
+                    <div>
+                        <label class="form-label">Categoría</label>
+                        <select id="prod-categoria" class="form-input">${opcionesCategorias}</select>
+                    </div>
                 </div>
+                
+                <div class="grid-2" style="gap: 16px;">
+                    <div>
+                        <label class="form-label">Marca</label>
+                        <select id="prod-marca" class="form-input">${opcionesMarcas}</select>
+                    </div>
+                    <div>
+                        <label class="form-label">Stock</label>
+                        <input type="number" id="prod-stock" class="form-input" value="${prod.stock || 0}">
+                    </div>
+                </div>
+                
                 <div class="grid-2" style="gap: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px;">
-                    <div><label class="form-label">Precio Reg.</label><input type="number" id="prod-precio-reg" class="form-input" value="${prod.precio_regular || ''}" step="0.01"></div>
-                    <div><label class="form-label" style="color: #1d4ed8;">Precio Oferta</label><input type="number" id="prod-precio-ofe" class="form-input" value="${prod.precio_oferta || ''}" step="0.01"></div>
+                    <div>
+                        <label class="form-label">Precio Reg.</label>
+                        <input type="number" id="prod-precio-reg" class="form-input" value="${prod.precio_regular || ''}" step="0.01">
+                    </div>
+                    <div>
+                        <label class="form-label" style="color: #1d4ed8;">Precio Oferta</label>
+                        <input type="number" id="prod-precio-ofe" class="form-input" value="${prod.precio_oferta || ''}" step="0.01">
+                    </div>
                 </div>
                 
                 <div>
@@ -205,14 +220,17 @@ window.abrirModalProducto = function(idProducto = null) {
                         <span style="font-size: 14px; color: #64748b;">Clic aquí o arrastra tus imágenes</span>
                     </div>
                     <input type="file" id="prod-imagenes" class="hidden" accept="image/*" multiple onchange="previsualizarImagenes(this)">
-                    <div id="preview-imagenes" style="display:flex; gap:8px; flex-wrap:wrap;">
-                        ${prod.img_principal ? `<img src="../assets/img_productos/${prod.img_principal.split(',')[0]}" style="width:60px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #e2e8f0;">` : ''}
+                    <p style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">* Arrastra las imágenes para cambiar el orden. La primera será la principal.</p>
+                    <div id="preview-imagenes" style="display:flex; gap:8px; flex-wrap:nowrap; min-height: 70px; padding: 4px; overflow-x: auto;">
                     </div>
                 </div>
             </div>
+            
             <div style="background: var(--bg-gray); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
                 <h3 style="font-weight:bold; margin-bottom:8px; font-size:16px;">Filtros / Especificaciones</h3>
-                <div id="contenedor-specs" style="display:flex; flex-direction:column; gap:8px; margin-bottom: 16px; max-height: 200px; overflow-y: auto;">${specsInicialesHtml}</div>
+                <div id="contenedor-specs" style="display:flex; flex-direction:column; gap:8px; margin-bottom: 16px; max-height: 450px; overflow-y: auto;">
+                    ${specsInicialesHtml}
+                </div>
                 <div style="display:flex; gap:12px; align-items:center; border-top: 1px dashed var(--border); padding-top: 16px;">
                     <input type="text" id="nueva-spec-atr" class="form-input" placeholder="Atributo" style="width:35%;">
                     <input type="text" id="nueva-spec-val" class="form-input" placeholder="Valor" style="width:50%;">
@@ -221,83 +239,186 @@ window.abrirModalProducto = function(idProducto = null) {
             </div>
         </form>
     `;
-    const footer = `<button onclick="closeModal()" class="btn-outline">Cancelar</button><button onclick="guardarProductoBD()" class="btn-primary">Guardar Producto</button>`;
+    const footer = `
+        <button onclick="closeModal()" class="btn-outline">Cancelar</button>
+        <button onclick="guardarProductoBD()" class="btn-primary">Guardar Producto</button>
+    `;
     
     openModal(titulo, contenido, footer, 'modal-lg');
 
-    // ==========================================
-    // LÓGICA DE ARRASTRAR Y SOLTAR (DRAG & DROP)
-    // ==========================================
-    const dropZone = document.getElementById('drop-zone');
-    const inputImagenes = document.getElementById('prod-imagenes');
+    // Inicializar array de imágenes
+    imagenesSeleccionadas = [];
+    if (isEdit) {
+        if (prod.imagenes_galeria) {
+            imagenesSeleccionadas = prod.imagenes_galeria.split(',').filter(img => img.trim() !== '');
+        } else if (prod.img_principal) {
+            imagenesSeleccionadas = [prod.img_principal];
+        }
+    }
+    renderizarPrevisualizacion();
 
-    // Cuando la imagen está flotando encima de la caja (Efecto visual)
+    const dropZone = document.getElementById('drop-zone');
+
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropZone.style.borderColor = '#2563eb';
         dropZone.style.background = '#eff6ff';
     });
 
-    // Cuando la imagen sale de la caja sin soltarla
     dropZone.addEventListener('dragleave', (e) => {
         e.preventDefault();
         dropZone.style.borderColor = 'var(--border)';
         dropZone.style.background = 'white';
     });
 
-    // Cuando sueltas la imagen dentro de la caja
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.style.borderColor = 'var(--border)';
         dropZone.style.background = 'white';
 
-        // Si el usuario soltó archivos válidos
         if (e.dataTransfer.files.length > 0) {
-            inputImagenes.files = e.dataTransfer.files; // Transferimos los archivos al input oculto
-            previsualizarImagenes(inputImagenes); // Llamamos a tu función para que dibuje las miniaturas
+            procesarNuevasImagenes(e.dataTransfer.files);
         }
     });
 };
 
-// ================= PREVISUALIZACIÓN DE IMÁGENES =================
+// ================= LÓGICA DE IMÁGENES (NUEVA GALERÍA) =================
 window.previsualizarImagenes = function(input) {
-    const previewContainer = document.getElementById('preview-imagenes');
-    previewContainer.innerHTML = ''; 
-    
-    if (input.files.length > 5) {
-        showNotification('Solo puedes subir un máximo de 5 imágenes', true);
-        const dt = new DataTransfer();
-        for(let i=0; i<5; i++) dt.items.add(input.files[i]);
-        input.files = dt.files; 
+    if (input.files.length > 0) {
+        procesarNuevasImagenes(input.files);
+        input.value = ""; 
+    }
+};
+
+function procesarNuevasImagenes(files) {
+    const totalActual = imagenesSeleccionadas.length;
+    const faltantes = 5 - totalActual;
+
+    if (faltantes <= 0) {
+        showNotification('Ya has alcanzado el máximo de 5 imágenes', true);
+        return;
     }
 
-    Array.from(input.files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.style = "width:60px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #e2e8f0;";
-            previewContainer.appendChild(img);
-        }
-        reader.readAsDataURL(file);
+    const archivosAProcesar = Array.from(files).slice(0, faltantes);
+    if (files.length > faltantes) {
+        showNotification(`Solo se agregaron ${faltantes} imágenes (máximo 5 en total)`, true);
+    }
+
+    archivosAProcesar.forEach(file => {
+        file.tempUrl = URL.createObjectURL(file);
+        imagenesSeleccionadas.push(file);
     });
+
+    renderizarPrevisualizacion();
+}
+
+window.eliminarImagenModal = function(index) {
+    const img = imagenesSeleccionadas[index];
+    if (img instanceof File) {
+        URL.revokeObjectURL(img.tempUrl);
+    }
+    imagenesSeleccionadas.splice(index, 1);
+    renderizarPrevisualizacion();
 };
+
+function renderizarPrevisualizacion() {
+    const container = document.getElementById('preview-imagenes');
+    if (!container) return;
+    container.innerHTML = '';
+
+    imagenesSeleccionadas.forEach((img, index) => {
+        const isFile = img instanceof File;
+        const src = isFile ? img.tempUrl : `../assets/img_productos/${img}`;
+        
+        const div = document.createElement('div');
+        div.className = 'img-preview-item';
+        div.draggable = true;
+        div.dataset.index = index;
+        div.style = `
+            position: relative;
+            width: 70px;
+            height: 70px;
+            border-radius: 10px;
+            border: 2px solid ${index === 0 ? '#2563eb' : '#e2e8f0'};
+            flex-shrink: 0;
+            overflow: hidden;
+            background: #f1f5f9;
+            cursor: grab;
+            transition: transform 0.2s;
+        `;
+
+        if (index === 0) {
+            div.innerHTML += `<span style="position:absolute; top:2px; left:2px; background:#2563eb; color:white; font-size:8px; padding:2px 4px; border-radius:4px; z-index:5;">Principal</span>`;
+        }
+
+        div.innerHTML += `
+            <img src="${src}" style="width:100%; height:100%; object-fit:cover;">
+            <button type="button" onclick="eliminarImagenModal(${index})" style="position:absolute; top:2px; right:2px; background:rgba(239, 68, 68, 0.9); color:white; border:none; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; z-index:10;">&times;</button>
+        `;
+
+        div.addEventListener('dragstart', handleDragStart);
+        div.addEventListener('dragover', handleDragOver);
+        div.addEventListener('drop', handleDrop);
+        div.addEventListener('dragend', handleDragEnd);
+
+        container.appendChild(div);
+    });
+}
+
+// Variables para el reordenamiento
+let draggedItemIndex = null;
+
+function handleDragStart(e) {
+    draggedItemIndex = this.dataset.index;
+    this.style.opacity = '0.5';
+    this.style.transform = 'scale(0.9)';
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    this.style.transform = 'scale(1.05)';
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const targetIndex = this.dataset.index;
+    if (draggedItemIndex !== null && draggedItemIndex !== targetIndex) {
+        const movedItem = imagenesSeleccionadas.splice(draggedItemIndex, 1)[0];
+        imagenesSeleccionadas.splice(targetIndex, 0, movedItem);
+        renderizarPrevisualizacion();
+    }
+}
+
+function handleDragEnd() {
+    this.style.opacity = '1';
+    this.style.transform = 'scale(1)';
+    document.querySelectorAll('.img-preview-item').forEach(el => el.style.transform = 'scale(1)');
+}
 
 function crearFilaSpecHTML(atr, val) {
     const idFila = 'spec-' + Math.random().toString(36).substr(2, 9);
-    return `<div id="${idFila}" class="spec-item" style="display:flex; gap:12px; align-items:center;"><input type="text" class="form-input spec-atr" value="${atr}" style="font-weight:bold; width:35%;"><input type="text" class="form-input spec-val" value="${val}" style="width:50%;"><button type="button" class="btn-icon danger" onclick="document.getElementById('${idFila}').remove()"><i data-lucide="trash-2"></i></button></div>`;
+    return `
+        <div id="${idFila}" class="spec-item" style="display:flex; gap:12px; align-items:center;">
+            <input type="text" class="form-input spec-atr" value="${atr}" style="font-weight:bold; width:35%;">
+            <input type="text" class="form-input spec-val" value="${val}" style="width:50%;">
+            <button type="button" class="btn-icon danger" onclick="document.getElementById('${idFila}').remove()">
+                <i data-lucide="trash-2"></i>
+            </button>
+        </div>
+    `;
 }
 
 window.agregarSpecUI = function() {
     const atrInput = document.getElementById('nueva-spec-atr');
     const valInput = document.getElementById('nueva-spec-val');
     if(!atrInput.value || !valInput.value) return showNotification('Ingresa Atributo y Valor', true);
+    
     document.getElementById('contenedor-specs').insertAdjacentHTML('beforeend', crearFilaSpecHTML(atrInput.value.trim(), valInput.value.trim()));
     if (typeof lucide !== 'undefined') lucide.createIcons();
     atrInput.value = ''; valInput.value = '';
 };
 
-// ================= CAMBIO A FORMDATA (BLINDADO) =================
+// ================= COMPRESIÓN Y GUARDADO DE PRODUCTOS =================
 const comprimirImagenWebP = (file) => {
     return new Promise((resolve) => {
         const reader = new FileReader();
@@ -307,11 +428,10 @@ const comprimirImagenWebP = (file) => {
             img.src = event.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 1000; // Ancho máximo
+                const MAX_WIDTH = 1000; 
                 let width = img.width;
                 let height = img.height;
 
-                // Achicamos si es muy grande
                 if (width > MAX_WIDTH) {
                     height *= MAX_WIDTH / width;
                     width = MAX_WIDTH;
@@ -322,7 +442,6 @@ const comprimirImagenWebP = (file) => {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Convertimos a WebP al 80% de calidad directamente en el navegador
                 canvas.toBlob((blob) => {
                     const nuevoArchivo = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
                         type: 'image/webp',
@@ -336,7 +455,6 @@ const comprimirImagenWebP = (file) => {
 };
 
 window.guardarProductoBD = function() {
-    // 1. Recolección rápida de especificaciones
     let specs = [];
     document.querySelectorAll('.spec-item').forEach(item => {
         const atr = item.querySelector('.spec-atr').value.trim().replace(/:|\|\|/g, '');
@@ -344,7 +462,6 @@ window.guardarProductoBD = function() {
         if(atr && val) specs.push(`${atr}:${val}`);
     });
 
-    // 2. Recolección de variables principales
     const idProducto = document.getElementById('prod-id').value;
     const nombre = document.getElementById('prod-nombre').value.trim();
     const sku = document.getElementById('prod-sku').value.trim();
@@ -354,14 +471,10 @@ window.guardarProductoBD = function() {
     const precio_regular = document.getElementById('prod-precio-reg').value || 0;
     const precio_oferta = document.getElementById('prod-precio-ofe').value || 0;
 
-    // Validación de seguridad
     if(!nombre || !id_categoria || !id_marca) {
         return showNotification("Nombre, Categoría y Marca son obligatorios", true);
     }
 
-    // =======================================================
-    // ACTUALIZACIÓN OPTIMISTA (Instantánea para el usuario)
-    // =======================================================
     const productoTemporal = {
         id_producto: idProducto || 'temp_' + Date.now(), 
         nombre: nombre,
@@ -376,21 +489,22 @@ window.guardarProductoBD = function() {
 
     const index = state.productos.findIndex(p => p.id_producto == idProducto);
     if (index !== -1) {
-        productoTemporal.img_principal = state.productos[index].img_principal;
         productoTemporal.estado = state.productos[index].estado;
+        productoTemporal.imagenes_galeria = imagenesSeleccionadas.map(img => {
+            return (img instanceof File) ? 'subiendo...' : img;
+        }).join(',');
+        productoTemporal.img_principal = (imagenesSeleccionadas.length > 0) ? 
+            (imagenesSeleccionadas[0] instanceof File ? 'subiendo...' : imagenesSeleccionadas[0]) : null;
+
         state.productos[index] = { ...state.productos[index], ...productoTemporal };
     } else {
         state.productos.unshift(productoTemporal);
     }
 
-    // Cerramos la ventana y mostramos el éxito de inmediato
     closeModal();
     renderProductos();
     showNotification("Producto Guardado Correctamente");
 
-    // =======================================================
-    // PROCESAMIENTO DE FONDO (Envío real a PHP)
-    // =======================================================
     (async () => {
         try {
             const formData = new FormData();
@@ -405,51 +519,58 @@ window.guardarProductoBD = function() {
             formData.append('precio_oferta', precio_oferta);
             formData.append('especificaciones_agrupadas', specs.join('||'));
             
-            const inputImagenes = document.getElementById('prod-imagenes');
-            
-            // Verificamos que existan archivos y que la función de comprimir no se haya borrado
-            if (inputImagenes && inputImagenes.files.length > 0) {
+            const imagenes_orden = [];
+            const archivos_para_subir = [];
+
+            for (let i = 0; i < imagenesSeleccionadas.length; i++) {
+                const item = imagenesSeleccionadas[i];
+                if (item instanceof File) {
+                    const tempId = `new_${i}`;
+                    imagenes_orden.push(tempId);
+                    archivos_para_subir.push(item);
+                } else {
+                    imagenes_orden.push(item);
+                }
+            }
+
+            formData.append('imagenes_orden', JSON.stringify(imagenes_orden));
+
+            if (archivos_para_subir.length > 0) {
                 if (typeof comprimirImagenWebP === 'function') {
                     const archivosComprimidos = await Promise.all(
-                        Array.from(inputImagenes.files).map(file => comprimirImagenWebP(file))
+                        archivos_para_subir.map(file => comprimirImagenWebP(file))
                     );
                     archivosComprimidos.forEach(blob => formData.append('imagenes[]', blob));
                 } else {
-                    // Si la función se borró por accidente, enviamos las imágenes normales
-                    Array.from(inputImagenes.files).forEach(file => formData.append('imagenes[]', file));
+                    archivos_para_subir.forEach(file => formData.append('imagenes[]', file));
                 }
             }
 
             const res = await fetch('includes/api/guardar_producto.php', { method: 'POST', body: formData });
-            
-            // 🛑 DETECTOR: Leemos el texto crudo de PHP antes de convertirlo a JSON
             const textoPHP = await res.text();
             
             let result;
             try {
                 result = JSON.parse(textoPHP);
             } catch (err) {
-                console.error("❌ PHP DEVOLVIÓ ESTE ERROR:", textoPHP);
                 showNotification("Error en el servidor. Presiona F12 y mira la Consola", true);
                 await refrescarSoloProductos(); 
                 return;
             }
             
             if(result.status !== 'success') {
-                console.error("❌ Error de BD:", result.msg);
-                showNotification(result.msg, true); // Muestra el error exacto en la ventanita roja
+                showNotification(result.msg, true); 
             }
             
             await refrescarSoloProductos(); 
         } catch (e) {
-            console.error("❌ Error de JavaScript o Red:", e);
-            showNotification("Error de código. Presiona F12", true);
+            showNotification("Error de red o conexión", true);
             await refrescarSoloProductos(); 
         }
     })();
 };
 
-// ================= RENDERIZADO DE PANTALLAS (Esto faltaba) =================
+// ================= RENDERIZADO DE PANTALLAS =================
 const mainContent = document.getElementById('main-content');
 
 function renderDashboard() {
@@ -458,8 +579,20 @@ function renderDashboard() {
         <div class="fade-in">
             <h2 class="section-title">Rendimiento General</h2>
             <div class="grid-4">
-                <div class="card"><div style="width:40px;height:40px;background:#3B82F6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;"><i data-lucide="package"></i></div><p style="color:#64748b;font-size:14px;">Productos Totales</p><p style="font-size:24px;font-weight:bold;">${state.productos.length}</p></div>
-                <div class="card"><div style="width:40px;height:40px;background:#10B981;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;"><i data-lucide="message-circle"></i></div><p style="color:#64748b;font-size:14px;">Leads Generados</p><p style="font-size:24px;font-weight:bold;">${state.leads.length}</p></div>
+                <div class="card">
+                    <div style="width:40px;height:40px;background:#3B82F6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+                        <i data-lucide="package"></i>
+                    </div>
+                    <p style="color:#64748b;font-size:14px;">Productos Totales</p>
+                    <p style="font-size:24px;font-weight:bold;">${state.productos.length}</p>
+                </div>
+                <div class="card">
+                    <div style="width:40px;height:40px;background:#10B981;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+                        <i data-lucide="message-circle"></i>
+                    </div>
+                    <p style="color:#64748b;font-size:14px;">Leads Generados</p>
+                    <p style="font-size:24px;font-weight:bold;">${state.leads.length}</p>
+                </div>
             </div>
         </div>
     `;
@@ -497,17 +630,13 @@ window.buscarProductosAdmin = function(event) {
 function renderProductos() {
     if(!mainContent) return;
 
-    // Detectar si estamos en el "modo carpetas" o "modo lista"
     const isVistaCarpetas = categoriaSeleccionadaAdmin === null && busquedaProductosAdmin === '';
 
     if (isVistaCarpetas) {
-        // Ordenar categorías alfabéticamente
         const categoriasOrdenadas = [...state.categorias].sort((a, b) => a.nombre.localeCompare(b.nombre));
 
         const cuadrosCat = categoriasOrdenadas.map(cat => {
             const countProd = state.productos.filter(p => p.id_categoria == cat.id_categoria).length;
-            
-            // Estilos dinámicos según el estado de la categoría
             const esActiva = cat.estado == 1;
             const opacidad = esActiva ? '1' : '0.6';
             const bgCard = esActiva ? 'white' : '#f8fafc';
@@ -533,27 +662,27 @@ function renderProductos() {
 
         const sinCatCount = state.productos.filter(p => !p.id_categoria || p.id_categoria == 0).length;
         const cuadroSinCat = sinCatCount > 0 ? `
-                <div class="card fade-in" onclick="abrirCategoriaProductos(0)" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; transition: all 0.2s; border: 1px dashed #cbd5e1; border-radius: 16px; padding: 24px; background: #f8fafc;" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 12px 25px -5px rgba(0, 0, 0, 0.1)'; this.style.borderColor='#94a3b8'" onmouseout="this.style.transform='none'; this.style.boxShadow='none'; this.style.borderColor='#cbd5e1'">
-                    <div style="width:64px; height:64px; background:#e2e8f0; color:#64748b; border-radius:20px; display:flex; align-items:center; justify-content:center;">
-                        <i data-lucide="help-circle" style="width: 32px; height: 32px;"></i>
-                    </div>
-                    <div>
-                        <h3 style="font-weight:bold; color:var(--dark); font-size: 16px; margin: 0; line-height: 1.2;">Sin Categoría</h3>
-                        <p style="color:#64748b; font-size:13px; margin: 4px 0 0 0;">${sinCatCount} productos</p>
-                    </div>
-                </div>` : '';
+            <div class="card fade-in" onclick="abrirCategoriaProductos(0)" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; transition: all 0.2s; border: 1px dashed #cbd5e1; border-radius: 16px; padding: 24px; background: #f8fafc;" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 12px 25px -5px rgba(0, 0, 0, 0.1)'; this.style.borderColor='#94a3b8'" onmouseout="this.style.transform='none'; this.style.boxShadow='none'; this.style.borderColor='#cbd5e1'">
+                <div style="width:64px; height:64px; background:#e2e8f0; color:#64748b; border-radius:20px; display:flex; align-items:center; justify-content:center;">
+                    <i data-lucide="help-circle" style="width: 32px; height: 32px;"></i>
+                </div>
+                <div>
+                    <h3 style="font-weight:bold; color:var(--dark); font-size: 16px; margin: 0; line-height: 1.2;">Sin Categoría</h3>
+                    <p style="color:#64748b; font-size:13px; margin: 4px 0 0 0;">${sinCatCount} productos</p>
+                </div>
+            </div>` : '';
                 
         const totalProductosCount = state.productos.length;
         const cuadroTodos = `
-                <div class="card fade-in" onclick="abrirCategoriaProductos('all')" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; transition: all 0.2s; border: 1px solid #10b981; border-radius: 16px; padding: 24px; background: #f0fdf4;" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 12px 25px -5px rgba(16, 185, 129, 0.2)'; this.style.borderColor='#059669'" onmouseout="this.style.transform='none'; this.style.boxShadow='none'; this.style.borderColor='#10b981'">
-                    <div style="width:64px; height:64px; background:#d1fae5; color:#059669; border-radius:20px; display:flex; align-items:center; justify-content:center;">
-                        <i data-lucide="layers" style="width: 32px; height: 32px;"></i>
-                    </div>
-                    <div>
-                        <h3 style="font-weight:bold; color:#065f46; font-size: 16px; margin: 0; line-height: 1.2;">Catálogo Completo</h3>
-                        <p style="color:#047857; font-size:13px; margin: 4px 0 0 0;">${totalProductosCount} en total</p>
-                    </div>
-                </div>`;
+            <div class="card fade-in" onclick="abrirCategoriaProductos('all')" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; transition: all 0.2s; border: 1px solid #10b981; border-radius: 16px; padding: 24px; background: #f0fdf4;" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 12px 25px -5px rgba(16, 185, 129, 0.2)'; this.style.borderColor='#059669'" onmouseout="this.style.transform='none'; this.style.boxShadow='none'; this.style.borderColor='#10b981'">
+                <div style="width:64px; height:64px; background:#d1fae5; color:#059669; border-radius:20px; display:flex; align-items:center; justify-content:center;">
+                    <i data-lucide="layers" style="width: 32px; height: 32px;"></i>
+                </div>
+                <div>
+                    <h3 style="font-weight:bold; color:#065f46; font-size: 16px; margin: 0; line-height: 1.2;">Catálogo Completo</h3>
+                    <p style="color:#047857; font-size:13px; margin: 4px 0 0 0;">${totalProductosCount} en total</p>
+                </div>
+            </div>`;
 
         mainContent.innerHTML = `
             <div class="fade-in">
@@ -595,8 +724,6 @@ function renderProductos() {
         return;
     }
 
-    // --- 2. MODO: VISTA DE TABLA (FILTRADA) ---
-    
     let productosFiltro = state.productos;
     let tituloTabla = "Todos los productos";
 
@@ -633,7 +760,9 @@ function renderProductos() {
                 <div style="color:#E8232A; font-weight:bold; font-size:15px;">${formatearMoneda(p.precio_oferta)}</div>
             `;
         } else {
-            htmlPrecio = `<div style="color:#2563eb; font-weight:bold; font-size:15px;">${formatearMoneda(p.precio_regular)}</div>`;
+            htmlPrecio = `
+                <div style="color:#2563eb; font-weight:bold; font-size:15px;">${formatearMoneda(p.precio_regular)}</div>
+            `;
         }
 
         return `
@@ -641,23 +770,30 @@ function renderProductos() {
             <td>
                 <div style="display:flex; align-items:center; gap:12px;">
                     <img src="../assets/img_productos/${imagenPrimera}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;" onerror="this.src='https://via.placeholder.com/40'">
-                    <div><p style="font-weight:600;font-size:14px;">${p.nombre}</p><p style="font-size:12px;color:#94a3b8;">SKU: ${p.sku}</p></div>
+                    <div>
+                        <p style="font-weight:600;font-size:14px;">${p.nombre}</p>
+                        <p style="font-size:12px;color:#94a3b8;">SKU: ${p.sku}</p>
+                    </div>
                 </div>
             </td>
             <td>${htmlPrecio}</td>
-            <td style="text-align:center;"><span style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold;background:${p.stock>0?'#dcfce7':'#fee2e2'};color:${p.stock>0?'#16a34a':'#dc2626'};">${p.stock}</span></td>
-            
+            <td style="text-align:center;">
+                <span style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold;background:${p.stock>0?'#dcfce7':'#fee2e2'};color:${p.stock>0?'#16a34a':'#dc2626'};">
+                    ${p.stock}
+                </span>
+            </td>
             <td style="text-align:center;">
                 <span style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold;background:${p.estado == 1 ? '#dcfce7' : '#f1f5f9'};color:${p.estado == 1 ? '#16a34a' : '#64748b'};">
                     ${p.estado == 1 ? 'Activo' : 'Oculto'}
                 </span>
             </td>
-            
             <td style="text-align:center;">
                 <button onclick="toggleEstadoProducto(${p.id_producto}, ${p.estado})" class="btn-icon" title="${p.estado == 1 ? 'Ocultar en tienda' : 'Mostrar en tienda'}">
                     <i data-lucide="${p.estado == 1 ? 'eye-off' : 'eye'}"></i>
                 </button>
-                <button onclick="abrirModalProducto(${p.id_producto})" class="btn-icon" title="Editar"><i data-lucide="edit"></i></button>
+                <button onclick="abrirModalProducto(${p.id_producto})" class="btn-icon" title="Editar">
+                    <i data-lucide="edit"></i>
+                </button>
             </td>
         </tr>
     `}).join('');
@@ -698,7 +834,9 @@ function renderProductos() {
                             <th style="text-align:center;">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>${filas || '<tr><td colspan="5" style="text-align:center; padding: 48px; color:#94a3b8; font-size: 15px;"><i data-lucide="folder-search" style="width: 48px; height: 48px; display:block; margin: 0 auto 12px auto; color:#cbd5e1; stroke-width:1.5;"></i>No se encontraron productos aquí.</td></tr>'}</tbody>
+                    <tbody>
+                        ${filas || '<tr><td colspan="5" style="text-align:center; padding: 48px; color:#94a3b8; font-size: 15px;"><i data-lucide="folder-search" style="width: 48px; height: 48px; display:block; margin: 0 auto 12px auto; color:#cbd5e1; stroke-width:1.5;"></i>No se encontraron productos aquí.</td></tr>'}
+                    </tbody>
                 </table>
             </div>
         </div>`;
@@ -708,7 +846,6 @@ function renderProductos() {
 function renderCategorias() {
     if(!mainContent) return;
     
-    // 1. Generar filas de Categorías
     const filasCat = state.categorias.map(c => `
         <tr style="${c.estado == 0 ? 'opacity: 0.6; background: #f8fafc;' : ''}">
             <td style="font-weight:600;">${c.nombre}</td>
@@ -718,13 +855,16 @@ function renderCategorias() {
                 </span>
             </td>
             <td style="text-align:center;">
-                <button onclick="toggleEstadoAtributo('categoria', ${c.id_categoria}, ${c.estado})" class="btn-icon" title="${c.estado == 1 ? 'Ocultar' : 'Mostrar'}"><i data-lucide="${c.estado == 1 ? 'eye-off' : 'eye'}"></i></button>
-                <button onclick="abrirModalAtributo('categoria', ${c.id_categoria}, '${c.nombre}')" class="btn-icon" title="Editar"><i data-lucide="edit"></i></button>
+                <button onclick="toggleEstadoAtributo('categoria', ${c.id_categoria}, ${c.estado})" class="btn-icon" title="${c.estado == 1 ? 'Ocultar' : 'Mostrar'}">
+                    <i data-lucide="${c.estado == 1 ? 'eye-off' : 'eye'}"></i>
+                </button>
+                <button onclick="abrirModalAtributo('categoria', ${c.id_categoria}, '${c.nombre}')" class="btn-icon" title="Editar">
+                    <i data-lucide="edit"></i>
+                </button>
             </td>
         </tr>
     `).join('') || '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">No hay categorías</td></tr>';
 
-    // 2. Generar filas de Marcas
     const filasMar = state.marcas.map(m => `
         <tr style="${m.estado == 0 ? 'opacity: 0.6; background: #f8fafc;' : ''}">
             <td style="font-weight:600;">${m.nombre}</td>
@@ -734,13 +874,16 @@ function renderCategorias() {
                 </span>
             </td>
             <td style="text-align:center;">
-                <button onclick="toggleEstadoAtributo('marca', ${m.id_marca}, ${m.estado})" class="btn-icon" title="${m.estado == 1 ? 'Ocultar' : 'Mostrar'}"><i data-lucide="${m.estado == 1 ? 'eye-off' : 'eye'}"></i></button>
-                <button onclick="abrirModalAtributo('marca', ${m.id_marca}, '${m.nombre}')" class="btn-icon" title="Editar"><i data-lucide="edit"></i></button>
+                <button onclick="toggleEstadoAtributo('marca', ${m.id_marca}, ${m.estado})" class="btn-icon" title="${m.estado == 1 ? 'Ocultar' : 'Mostrar'}">
+                    <i data-lucide="${m.estado == 1 ? 'eye-off' : 'eye'}"></i>
+                </button>
+                <button onclick="abrirModalAtributo('marca', ${m.id_marca}, '${m.nombre}')" class="btn-icon" title="Editar">
+                    <i data-lucide="edit"></i>
+                </button>
             </td>
         </tr>
     `).join('') || '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">No hay marcas</td></tr>';
 
-    // 3. Dibujar la pantalla dividida (Grid)
     mainContent.innerHTML = `
         <div class="fade-in">
             <h2 class="section-title">Categorías y Marcas</h2>
@@ -748,8 +891,12 @@ function renderCategorias() {
                 
                 <div class="table-container" style="padding: 20px;">
                     <div class="flex-between" style="margin-bottom: 16px;">
-                        <h3 style="font-weight:bold; color:var(--dark); display:flex; align-items:center; gap:8px;"><i data-lucide="layers" style="color:#2563eb;"></i> Categorías</h3>
-                        <button onclick="abrirModalAtributo('categoria')" class="btn-primary" style="padding: 8px 16px;"><i data-lucide="plus"></i> Nueva</button>
+                        <h3 style="font-weight:bold; color:var(--dark); display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="layers" style="color:#2563eb;"></i> Categorías
+                        </h3>
+                        <button onclick="abrirModalAtributo('categoria')" class="btn-primary" style="padding: 8px 16px;">
+                            <i data-lucide="plus"></i> Nueva
+                        </button>
                     </div>
                     <table class="table">
                         <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
@@ -759,8 +906,12 @@ function renderCategorias() {
 
                 <div class="table-container" style="padding: 20px;">
                     <div class="flex-between" style="margin-bottom: 16px;">
-                        <h3 style="font-weight:bold; color:var(--dark); display:flex; align-items:center; gap:8px;"><i data-lucide="tag" style="color:#10b981;"></i> Marcas</h3>
-                        <button onclick="abrirModalAtributo('marca')" class="btn-primary" style="padding: 8px 16px; background:#10b981;"><i data-lucide="plus"></i> Nueva</button>
+                        <h3 style="font-weight:bold; color:var(--dark); display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="tag" style="color:#10b981;"></i> Marcas
+                        </h3>
+                        <button onclick="abrirModalAtributo('marca')" class="btn-primary" style="padding: 8px 16px; background:#10b981;">
+                            <i data-lucide="plus"></i> Nueva
+                        </button>
                     </div>
                     <table class="table">
                         <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
@@ -769,89 +920,18 @@ function renderCategorias() {
                 </div>
 
             </div>
-        </div>`;
+        </div>
+    `;
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-// ====================================================================
-// MÓDULO DE CATEGORÍAS Y MARCAS
-// ====================================================================
-
-function renderCategorias() {
-    if(!mainContent) return;
-    
-    // 1. Generar filas de Categorías
-    const filasCat = state.categorias.map(c => `
-        <tr style="${c.estado == 0 ? 'opacity: 0.6; background: #f8fafc;' : ''}">
-            <td style="font-weight:600;">${c.nombre}</td>
-            <td style="text-align:center;">
-                <span style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold;background:${c.estado == 1 ? '#dcfce7' : '#f1f5f9'};color:${c.estado == 1 ? '#16a34a' : '#64748b'};">
-                    ${c.estado == 1 ? 'Activa' : 'Oculta'}
-                </span>
-            </td>
-            <td style="text-align:center;">
-                <button onclick="toggleEstadoAtributo('categoria', ${c.id_categoria}, ${c.estado})" class="btn-icon" title="${c.estado == 1 ? 'Ocultar' : 'Mostrar'}"><i data-lucide="${c.estado == 1 ? 'eye-off' : 'eye'}"></i></button>
-                <button onclick="abrirModalAtributo('categoria', ${c.id_categoria}, '${c.nombre}')" class="btn-icon" title="Editar"><i data-lucide="edit"></i></button>
-            </td>
-        </tr>
-    `).join('') || '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">No hay categorías</td></tr>';
-
-    // 2. Generar filas de Marcas
-    const filasMar = state.marcas.map(m => `
-        <tr style="${m.estado == 0 ? 'opacity: 0.6; background: #f8fafc;' : ''}">
-            <td style="font-weight:600;">${m.nombre}</td>
-            <td style="text-align:center;">
-                <span style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold;background:${m.estado == 1 ? '#dcfce7' : '#f1f5f9'};color:${m.estado == 1 ? '#16a34a' : '#64748b'};">
-                    ${m.estado == 1 ? 'Activa' : 'Oculta'}
-                </span>
-            </td>
-            <td style="text-align:center;">
-                <button onclick="toggleEstadoAtributo('marca', ${m.id_marca}, ${m.estado})" class="btn-icon" title="${m.estado == 1 ? 'Ocultar' : 'Mostrar'}"><i data-lucide="${m.estado == 1 ? 'eye-off' : 'eye'}"></i></button>
-                <button onclick="abrirModalAtributo('marca', ${m.id_marca}, '${m.nombre}')" class="btn-icon" title="Editar"><i data-lucide="edit"></i></button>
-            </td>
-        </tr>
-    `).join('') || '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">No hay marcas</td></tr>';
-
-    // 3. Dibujar la pantalla dividida (Grid)
-    mainContent.innerHTML = `
-        <div class="fade-in">
-            <h2 class="section-title">Categorías y Marcas</h2>
-            <div class="grid-2" style="gap: 32px; align-items: start;">
-                
-                <div class="table-container" style="padding: 20px;">
-                    <div class="flex-between" style="margin-bottom: 16px;">
-                        <h3 style="font-weight:bold; color:var(--dark); display:flex; align-items:center; gap:8px;"><i data-lucide="layers" style="color:#2563eb;"></i> Categorías</h3>
-                        <button onclick="abrirModalAtributo('categoria')" class="btn-primary" style="padding: 8px 16px;"><i data-lucide="plus"></i> Nueva</button>
-                    </div>
-                    <table class="table">
-                        <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
-                        <tbody>${filasCat}</tbody>
-                    </table>
-                </div>
-
-                <div class="table-container" style="padding: 20px;">
-                    <div class="flex-between" style="margin-bottom: 16px;">
-                        <h3 style="font-weight:bold; color:var(--dark); display:flex; align-items:center; gap:8px;"><i data-lucide="tag" style="color:#10b981;"></i> Marcas</h3>
-                        <button onclick="abrirModalAtributo('marca')" class="btn-primary" style="padding: 8px 16px; background:#10b981;"><i data-lucide="plus"></i> Nueva</button>
-                    </div>
-                    <table class="table">
-                        <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
-                        <tbody>${filasMar}</tbody>
-                    </table>
-                </div>
-
-            </div>
-        </div>`;
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-}
-
-// ================= MODAL DE CATEGORÍAS/MARCAS =================
 window.abrirModalAtributo = function(tipo, id = null, nombreActual = '') {
     const isEdit = id !== null;
     const tituloTexto = tipo === 'categoria' ? 'Categoría' : 'Marca';
     const color = tipo === 'categoria' ? '#2563eb' : '#10b981';
     
     const titulo = `<i data-lucide="${tipo === 'categoria' ? 'layers' : 'tag'}" style="color: ${color};"></i> ${isEdit ? 'Editar' : 'Nueva'} ${tituloTexto}`;
+    
     const contenido = `
         <div style="display: flex; flex-direction: column; gap: 16px;">
             <input type="hidden" id="attr-tipo" value="${tipo}">
@@ -866,10 +946,10 @@ window.abrirModalAtributo = function(tipo, id = null, nombreActual = '') {
         <button onclick="closeModal()" class="btn-outline">Cancelar</button>
         <button onclick="guardarAtributoBD()" class="btn-primary" style="${tipo==='marca'?'background:#10b981; border-color:#10b981;':''}">Guardar</button>
     `;
+    
     openModal(titulo, contenido, footer, 'modal-md');
 };
 
-// ================= GUARDADO OPTIMISTA =================
 window.guardarAtributoBD = function() {
     const tipo = document.getElementById('attr-tipo').value;
     const id = document.getElementById('attr-id').value;
@@ -877,7 +957,6 @@ window.guardarAtributoBD = function() {
 
     if(!nombre) return showNotification("El nombre es obligatorio", true);
 
-    // Actualización visual rápida
     const lista = tipo === 'categoria' ? state.categorias : state.marcas;
     const campoId = tipo === 'categoria' ? 'id_categoria' : 'id_marca';
     
@@ -894,7 +973,6 @@ window.guardarAtributoBD = function() {
     renderCategorias();
     showNotification("Guardado Correctamente");
 
-    // Procesamiento en background
     (async () => {
         try {
             const formData = new FormData();
@@ -904,7 +982,6 @@ window.guardarAtributoBD = function() {
 
             await fetch('includes/api/guardar_cat_mar.php', { method: 'POST', body: formData });
             
-            // Refrescar silenciosamente para obtener los IDs reales
             const urlCat = 'includes/api/listar_categorias.php?t=' + Date.now();
             const urlMar = 'includes/api/listar_marcas.php?t=' + Date.now();
             
@@ -913,20 +990,17 @@ window.guardarAtributoBD = function() {
             } else {
                 const r = await fetch(urlMar); const d = await r.json(); state.marcas = d.data || [];
             }
-            // Solo redibujar si el usuario sigue en esa pestaña
             if(document.getElementById('tab-categorias').classList.contains('active')) renderCategorias();
             
         } catch (e) { showNotification("Error de red", true); }
     })();
 };
 
-// ================= CAMBIAR ESTADO OPTIMISTA =================
 window.toggleEstadoAtributo = async function(tipo, id, estadoActual) {
     const nuevoEstado = estadoActual == 1 ? 0 : 1; 
     const lista = tipo === 'categoria' ? state.categorias : state.marcas;
     const campoId = tipo === 'categoria' ? 'id_categoria' : 'id_marca';
 
-    // Actualización visual
     const index = lista.findIndex(item => item[campoId] == id);
     if (index !== -1) {
         lista[index].estado = nuevoEstado;
@@ -934,13 +1008,11 @@ window.toggleEstadoAtributo = async function(tipo, id, estadoActual) {
         showNotification(nuevoEstado == 1 ? 'Activado Correctamente' : 'Ocultado Correctamente');
     }
 
-    // Backend
     try {
         const formData = new FormData();
         formData.append('id', id);
         formData.append('estado', nuevoEstado);
         formData.append('tipo', tipo);
-
         await fetch('includes/api/cambiar_estado_cat_mar.php', { method: 'POST', body: formData });
     } catch(e) {
         showNotification("Error de conexión", true);
@@ -949,18 +1021,18 @@ window.toggleEstadoAtributo = async function(tipo, id, estadoActual) {
 };
 
 // ====================================================================
-// MÓDULO DE BANNERS
+// MÓDULO DE BANNERS (Con Drag & Drop y Soporte MP4)
 // ====================================================================
-
-// ====================================================================
-// MÓDULO DE BANNERS (Con Drag & Drop de Ordenamiento)
-// ====================================================================
-
 function renderBanners() {
     if(!mainContent) return;
     
-    // Le agregamos el atributo draggable="true" a la fila y los eventos de arrastre
-    const filas = state.banners.map((b, index) => `
+    const filas = state.banners.map((b, index) => {
+        const esVideo = b.ruta_imagen && b.ruta_imagen.toLowerCase().endsWith('.mp4');
+        const vistaPrevia = esVideo 
+            ? `<video src="../assets/img_banners/${b.ruta_imagen}" style="width: 100%; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);" autoplay loop muted playsinline></video>` 
+            : `<img src="../assets/img_banners/${b.ruta_imagen}" style="width: 100%; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);" onerror="this.src='https://via.placeholder.com/800x300?text=Sin+Imagen'">`;
+
+        return `
         <tr draggable="true"
             data-index="${index}"
             ondragstart="iniciarArrastre(event)"
@@ -976,64 +1048,79 @@ function renderBanners() {
             </td>
             
             <td style="width: 200px; pointer-events: none;">
-                <img src="../assets/img_banners/${b.ruta_imagen}" style="width: 100%; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);" onerror="this.src='https://via.placeholder.com/800x300?text=Sin+Imagen'">
+                ${vistaPrevia}
             </td>
+            
             <td style="pointer-events: none;">
                 <p style="font-weight:600; font-size:14px; margin-bottom:4px;">${b.titulo}</p>
                 <span style="font-size:12px; color:#2563eb;"><i data-lucide="link" style="width:12px; height:12px;"></i> ${b.enlace}</span>
             </td>
+            
             <td style="text-align:center; pointer-events: none;">
                 <span style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold;background:${b.estado == 1 ? '#dcfce7' : '#f1f5f9'};color:${b.estado == 1 ? '#16a34a' : '#64748b'};">
                     ${b.estado == 1 ? 'Activo' : 'Oculto'}
                 </span>
             </td>
+            
             <td style="text-align:center;">
-                <button onclick="toggleEstadoBanner(${b.id_banner}, ${b.estado})" class="btn-icon" title="${b.estado == 1 ? 'Ocultar' : 'Mostrar'}"><i data-lucide="${b.estado == 1 ? 'eye-off' : 'eye'}"></i></button>
-                <button onclick="abrirModalBanner(${b.id_banner})" class="btn-icon" title="Editar"><i data-lucide="edit"></i></button>
+                <button onclick="toggleEstadoBanner(${b.id_banner}, ${b.estado})" class="btn-icon" title="${b.estado == 1 ? 'Ocultar' : 'Mostrar'}">
+                    <i data-lucide="${b.estado == 1 ? 'eye-off' : 'eye'}"></i>
+                </button>
+                <button onclick="abrirModalBanner(${b.id_banner})" class="btn-icon" title="Editar">
+                    <i data-lucide="edit"></i>
+                </button>
             </td>
         </tr>
-    `).join('') || '<tr><td colspan="5" style="text-align:center; padding: 24px; color:#94a3b8;">No hay banners registrados</td></tr>';
+    `}).join('') || '<tr><td colspan="5" style="text-align:center; padding: 24px; color:#94a3b8;">No hay banners registrados</td></tr>';
 
     mainContent.innerHTML = `
         <div class="fade-in">
             <div class="flex-between" style="margin-bottom: 24px;">
-                <h2 class="section-title" style="margin:0;"><i data-lucide="monitor-play" style="color:#2563eb;"></i> Banners Principales</h2>
-                <button onclick="abrirModalBanner()" class="btn-primary"><i data-lucide="plus"></i> Nuevo Banner</button>
+                <h2 class="section-title" style="margin:0;">
+                    <i data-lucide="monitor-play" style="color:#2563eb;"></i> Banners Principales
+                </h2>
+                <button onclick="abrirModalBanner()" class="btn-primary">
+                    <i data-lucide="plus"></i> Nuevo Banner
+                </button>
             </div>
             <div class="table-container">
                 <table class="table" id="tabla-banners">
-                    <thead><tr><th></th><th>Vista Previa</th><th>Detalles</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
-                    <tbody>${filas}</tbody>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Vista Previa</th>
+                            <th>Detalles</th>
+                            <th style="text-align:center;">Estado</th>
+                            <th style="text-align:center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filas}
+                    </tbody>
                 </table>
             </div>
-        </div>`;
+        </div>
+    `;
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-// ================= LÓGICA DE DRAG & DROP =================
 let dragStartIndex = -1;
 
 window.iniciarArrastre = function(e) {
     dragStartIndex = +e.currentTarget.getAttribute('data-index');
     e.dataTransfer.effectAllowed = 'move';
-    // Efecto visual de transparencia al arrastrar
     setTimeout(() => { e.target.style.opacity = '0.3'; }, 0);
 };
 
-window.permitirSoltar = function(e) {
-    e.preventDefault(); // Indispensable para que el navegador permita soltar
-};
+window.permitirSoltar = function(e) { e.preventDefault(); };
 
 window.entrarZonaArrastre = function(e) {
     e.preventDefault();
-    const tr = e.currentTarget;
-    // Dibuja una línea azul indicando dónde caerá
-    tr.style.borderTop = "3px solid #2563eb"; 
+    e.currentTarget.style.borderTop = "3px solid #2563eb"; 
 };
 
 window.salirZonaArrastre = function(e) {
-    const tr = e.currentTarget;
-    tr.style.borderTop = ""; // Quita la línea al salir
+    e.currentTarget.style.borderTop = ""; 
 };
 
 window.soltarBanner = function(e) {
@@ -1044,29 +1131,22 @@ window.soltarBanner = function(e) {
 
     const dragEndIndex = +tr.getAttribute('data-index');
 
-    // Si lo movió a una posición distinta
     if (dragStartIndex !== dragEndIndex && dragStartIndex !== -1) {
-        // Sacamos el banner de su posición original y lo metemos en la nueva
         const bannerMovido = state.banners.splice(dragStartIndex, 1)[0];
         state.banners.splice(dragEndIndex, 0, bannerMovido);
-
-        renderBanners(); // Redibujamos la tabla instantáneamente
-        guardarNuevoOrdenBanners(); // Enviamos la orden de guardado al servidor
+        renderBanners();
+        guardarNuevoOrdenBanners();
     }
 };
 
 window.finalizarArrastre = function(e) {
-    // 1. Le devuelve el color sólido a la fila que estabas moviendo
     e.target.style.opacity = '1';
-    
-    // 2. Limpia cualquier línea azul que se haya quedado "pegada" por error
     document.querySelectorAll('#tabla-banners tr').forEach(tr => {
         tr.style.borderTop = "";
     });
 };
 
 window.guardarNuevoOrdenBanners = async function() {
-    // Creamos un array pequeño solo con los IDs y su nuevo orden
     const nuevoOrden = state.banners.map((b, index) => ({
         id_banner: b.id_banner,
         orden: index
@@ -1089,85 +1169,99 @@ window.abrirModalBanner = function(id = null) {
     const banner = isEdit ? state.banners.find(b => b.id_banner == id) : {};
     
     const titulo = `<i data-lucide="image" style="color: #2563eb;"></i> ${isEdit ? 'Editar' : 'Nuevo'} Banner`;
+    
+    const esVideoInit = banner.ruta_imagen && banner.ruta_imagen.toLowerCase().endsWith('.mp4');
+    let previewInitHtml = '';
+    
+    if(banner.ruta_imagen) {
+        if(esVideoInit) {
+            previewInitHtml = `<video src="../assets/img_banners/${banner.ruta_imagen}" style="width:100%; height:auto; border-radius:8px; border:1px solid var(--border);" autoplay loop muted playsinline></video>`;
+        } else {
+            previewInitHtml = `<img src="../assets/img_banners/${banner.ruta_imagen}" style="width:100%; height:auto; border-radius:8px; border:1px solid var(--border);">`;
+        }
+    }
+
     const contenido = `
         <form id="form-banner" style="display: flex; flex-direction: column; gap: 16px;">
             <input type="hidden" id="ban-id" value="${banner.id_banner || ''}">
             <input type="hidden" id="ban-img-actual" value="${banner.ruta_imagen || ''}">
             
-            <div><label class="form-label">Título (Referencia interna)</label><input type="text" id="ban-titulo" class="form-input" value="${banner.titulo || ''}" placeholder="Ej: Cyber Wow 2026" required></div>
-            <div><label class="form-label">Enlace al hacer clic</label><input type="text" id="ban-enlace" class="form-input" value="${banner.enlace || '#'}" placeholder="Ej: /categoria.php?id=1"></div>
+            <div>
+                <label class="form-label">Título (Referencia interna)</label>
+                <input type="text" id="ban-titulo" class="form-input" value="${banner.titulo || ''}" placeholder="Ej: Cyber Wow 2026" required>
+            </div>
             
             <div>
-                <label class="form-label">Imagen del Banner (Recomendado: 1920x600px)</label>
+                <label class="form-label">Enlace al hacer clic</label>
+                <input type="text" id="ban-enlace" class="form-input" value="${banner.enlace || '#'}" placeholder="Ej: /categoria.php?id=1">
+            </div>
+            
+            <div>
+                <label class="form-label">Imagen o Video (Recomendado: 1920x600px)</label>
                 <div id="drop-zone-banner" class="upload-box" onclick="document.getElementById('ban-imagen').click()" style="padding: 30px; text-align: center; cursor:pointer; border: 2px dashed var(--border); border-radius: 12px; background: white; transition: all 0.2s ease;">
                     <i data-lucide="upload-cloud" style="color: #3b82f6; width: 32px; height: 32px; margin-bottom: 8px;"></i>
-                    <span style="font-size: 14px; color: #64748b; display:block;">Clic o <strong style="color: #2563eb;">arrastra la imagen</strong> aquí</span>
+                    <span style="font-size: 14px; color: #64748b; display:block;">Clic o <strong style="color: #2563eb;">arrastra el archivo</strong> aquí</span>
                 </div>
-                <input type="file" id="ban-imagen" class="hidden" accept="image/*">
+                <input type="file" id="ban-imagen" class="hidden" accept="image/*,video/mp4">
                 
                 <div id="preview-banner" style="margin-top:12px;">
-                    ${banner.ruta_imagen ? `<img src="../assets/img_banners/${banner.ruta_imagen}" style="width:100%; height:auto; border-radius:8px; border:1px solid var(--border);">` : ''}
+                    ${previewInitHtml}
                 </div>
             </div>
         </form>
     `;
-    const footer = `<button onclick="closeModal()" class="btn-outline">Cancelar</button><button onclick="guardarBannerBD()" class="btn-primary">Guardar</button>`;
+    const footer = `
+        <button onclick="closeModal()" class="btn-outline">Cancelar</button>
+        <button onclick="guardarBannerBD()" class="btn-primary">Guardar</button>
+    `;
     
     openModal(titulo, contenido, footer, 'modal-md');
 
-    // ==========================================
-    // LÓGICA DE ARRASTRAR Y SOLTAR (DRAG & DROP)
-    // ==========================================
     const input = document.getElementById('ban-imagen');
     const preview = document.getElementById('preview-banner');
     const dropZone = document.getElementById('drop-zone-banner');
 
-    // Función reutilizable para leer y mostrar la imagen
     const manejarArchivo = (file) => {
         if(file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                preview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:auto; border-radius:8px; border:1px solid var(--border); fade-in;">`;
+            if (file.type.startsWith('video/')) {
+                const url = URL.createObjectURL(file);
+                preview.innerHTML = `<video src="${url}" style="width:100%; height:auto; border-radius:8px; border:1px solid var(--border);" autoplay loop muted playsinline></video>`;
+            } else {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:auto; border-radius:8px; border:1px solid var(--border); fade-in;">`;
+                }
+                reader.readAsDataURL(file);
             }
-            reader.readAsDataURL(file);
         }
     };
 
-    // 1. Clic normal (ya existía)
     input.addEventListener('change', function(e) {
         manejarArchivo(this.files[0]);
     });
 
-    // 2. Arrancamos con los eventos de arrastre
     dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault(); // Evita que el navegador abra la imagen
-        dropZone.style.borderColor = '#2563eb'; // Cambiamos a azul
-        dropZone.style.background = '#eff6ff'; // Fondo azul claro
-        dropZone.style.transform = 'scale(1.02)'; // Pequeño zoom
+        e.preventDefault();
+        dropZone.style.borderColor = '#2563eb';
+        dropZone.style.background = '#eff6ff';
+        dropZone.style.transform = 'scale(1.02)';
     });
 
-    // Cuando sales de la zona sin soltar
     dropZone.addEventListener('dragleave', (e) => {
         e.preventDefault();
-        dropZone.style.borderColor = 'var(--border)'; // Reseteamos bordes
-        dropZone.style.background = 'white'; // Reseteamos fondo
+        dropZone.style.borderColor = 'var(--border)';
+        dropZone.style.background = 'white';
         dropZone.style.transform = 'scale(1)';
     });
 
-    // ¡EL MOMENTO CLAVE: SOLTAR LA IMAGEN!
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        // Reseteamos estilos visuales
         dropZone.style.borderColor = 'var(--border)';
         dropZone.style.background = 'white';
         dropZone.style.transform = 'scale(1)';
 
-        // Verificamos que soltaron archivos válidos
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            // MÁGICA: Transferimos el archivo arrastrado al input oculto
             input.files = e.dataTransfer.files;
-            
-            // Mostramos la previsualización al instante
             manejarArchivo(input.files[0]);
         }
     });
@@ -1182,20 +1276,14 @@ const procesarImagenBannerEfe = (file) => {
             img.src = event.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                
-                // Las medidas exactas que quieres obligar a tener
                 const targetWidth = 1920;
                 const targetHeight = 600;
 
                 canvas.width = targetWidth;
                 canvas.height = targetHeight;
                 const ctx = canvas.getContext('2d');
-                
-                // Dibuja TODA la imagen original obligándola a entrar en 1920x600
-                // ctx.drawImage(imagen, x, y, ancho_destino, alto_destino)
                 ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
-                // Convertimos el resultado a WebP al 80% de calidad
                 canvas.toBlob((blob) => {
                     const nuevoArchivo = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
                         type: 'image/webp',
@@ -1216,82 +1304,102 @@ window.guardarBannerBD = function() {
     const fileInput = document.getElementById('ban-imagen');
 
     if(!titulo) return showNotification("El título es obligatorio", true);
-    if(!id && (!fileInput.files || fileInput.files.length === 0)) return showNotification("Debes subir una imagen", true);
+    if(!id && (!fileInput.files || fileInput.files.length === 0)) return showNotification("Debes subir una imagen o video", true);
 
-    // Actualización Optimista
     const bannerTemp = {
         id_banner: id || 'temp_' + Date.now(), 
-        titulo: titulo, enlace: enlace, estado: 1, 
+        titulo: titulo,
+        enlace: enlace,
+        estado: 1, 
         ruta_imagen: imagenActual || 'cargando.jpg'
     };
 
     const index = state.banners.findIndex(b => b.id_banner == id);
-    if (index !== -1) { bannerTemp.estado = state.banners[index].estado; state.banners[index] = bannerTemp; } 
-    else { state.banners.unshift(bannerTemp); }
+    if (index !== -1) {
+        bannerTemp.estado = state.banners[index].estado;
+        state.banners[index] = bannerTemp;
+    } else {
+        state.banners.unshift(bannerTemp);
+    }
 
-    closeModal(); renderBanners(); showNotification("Banner Guardado");
+    closeModal();
+    renderBanners();
+    showNotification("Banner Guardado");
 
-    // Envío de fondo
     (async () => {
         try {
             const formData = new FormData();
-            
-            // Empaquetamos los datos como siempre
             formData.append('id_banner', id); 
             formData.append('titulo', titulo); 
             formData.append('enlace', enlace); 
             formData.append('imagen_actual', imagenActual);
             
-            const fileInput = document.getElementById('ban-imagen');
-            
-            // ¡MAGIA AQUÍ! Si subieron una foto nueva, la re-encuadramos antes de subirla
             if (fileInput && fileInput.files.length > 0) {
-                if (typeof procesarImagenBannerEfe === 'function') {
-                    // Usamos el nuevo motor de re-encuadre de EFE
-                    const archivoProcesado = await procesarImagenBannerEfe(fileInput.files[0]);
+                const archivoSubido = fileInput.files[0];
+                
+                if (archivoSubido.type.startsWith('video/')) {
+                    formData.append('imagen', archivoSubido);
+                } else if (typeof procesarImagenBannerEfe === 'function') {
+                    const archivoProcesado = await procesarImagenBannerEfe(archivoSubido);
                     formData.append('imagen', archivoProcesado);
                 } else {
-                    // Fallback de seguridad si algo falla
-                    formData.append('imagen', fileInput.files[0]);
+                    formData.append('imagen', archivoSubido);
                 }
             }
 
-            // Enviamos la foto que YA ESTÁ PERFECTAMENTE MEDIDA EN 1920x600 y WebP
             const res = await fetch('includes/api/guardar_banner.php', { method: 'POST', body: formData });
             const result = await res.json();
             
             if(result.status !== 'success') {
-                console.error("Error del servidor: ", result.msg);
                 showNotification("Error interno al guardar banner", true);
             }
             
-            // Recarga silenciosa
             const r = await fetch('includes/api/listar_banners.php?t=' + Date.now());
-            const d = await r.json(); state.banners = d.data || [];
+            const d = await r.json();
+            state.banners = d.data || [];
             if(document.getElementById('tab-banners').classList.contains('active')) renderBanners();
             
         } catch (e) {
-            console.error("Error en segundo plano:", e);
             showNotification("Error de red al guardar banner", true);
         }
     })();
 };
 
 window.toggleEstadoBanner = async function(id, estadoActual) {
-    if (productosProcesando.has(id)) return; productosProcesando.add(id);
+    if (productosProcesando.has(id)) return;
+    productosProcesando.add(id);
     const nuevoEstado = estadoActual == 1 ? 0 : 1; 
 
     const index = state.banners.findIndex(b => b.id_banner == id);
-    if (index !== -1) { state.banners[index].estado = nuevoEstado; renderBanners(); showNotification(nuevoEstado == 1 ? 'Banner Visible' : 'Banner Oculto'); }
+    if (index !== -1) {
+        state.banners[index].estado = nuevoEstado;
+        renderBanners();
+        showNotification(nuevoEstado == 1 ? 'Banner Visible' : 'Banner Oculto');
+    }
 
     try {
-        const formData = new FormData(); formData.append('id', id); formData.append('estado', nuevoEstado);
+        const formData = new FormData();
+        formData.append('id', id);
+        formData.append('estado', nuevoEstado);
         await fetch('includes/api/cambiar_estado_banner.php', { method: 'POST', body: formData });
-    } catch(e) { if (index !== -1) { state.banners[index].estado = estadoActual; renderBanners(); } }
-    finally { productosProcesando.delete(id); }
+    } catch(e) {
+        if (index !== -1) {
+            state.banners[index].estado = estadoActual;
+            renderBanners();
+        }
+    } finally {
+        productosProcesando.delete(id);
+    }
 };
 
-function renderLeads() { mainContent.innerHTML = `<div class="fade-in"><h2 class="section-title">Historial de Leads</h2><p>Módulo en construcción...</p></div>`; }
+function renderLeads() {
+    mainContent.innerHTML = `
+        <div class="fade-in">
+            <h2 class="section-title">Historial de Leads</h2>
+            <p>Módulo en construcción...</p>
+        </div>
+    `;
+}
 
 window.switchTab = function(tabId) {
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -1303,23 +1411,28 @@ window.switchTab = function(tabId) {
     if(tabId === 'categorias') renderCategorias();
     if(tabId === 'banners') renderBanners();
     if(tabId === 'leads') renderLeads();
+
+    // ==== LÓGICA RESPONSIVE: Cierra el menú al cambiar de sección ====
+    if (window.innerWidth <= 768) {
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar && sidebar.classList.contains('active')) {
+            window.toggleSidebar();
+        }
+    }
 };
 
-// ================= CARGA MASIVA CSV =================
 window.subirProductosCSV = async function(event) {
     const fileInput = event.target;
     if (!fileInput.files.length) return;
 
-    // ----- INDICADOR VISUAL DE CARGA -----
     const dropZone = document.getElementById('csv-drop-zone');
     if (dropZone) {
         dropZone.innerHTML = '<i data-lucide="loader"></i> Procesando archivo...';
-        dropZone.style.pointerEvents = 'none'; // Evitar doble clic
+        dropZone.style.pointerEvents = 'none';
         dropZone.style.opacity = '0.6';
         dropZone.style.background = '#f8fafc';
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
-    // -------------------------------------
 
     const formData = new FormData();
     formData.append('archivo_csv', fileInput.files[0]);
@@ -1332,23 +1445,20 @@ window.subirProductosCSV = async function(event) {
             body: formData
         });
         
-        // Convertimos el texto crudo primero por si PHP devuelve algún error extraño
         const textoPHP = await response.text();
         const result = JSON.parse(textoPHP);
 
         if (result.status === 'success') {
             showNotification(result.msg);
-            await refrescarSoloProductos(); // Recarga la tabla para mostrar los nuevos
+            await refrescarSoloProductos();
         } else {
             showNotification('Error: ' + result.msg, true);
         }
     } catch (error) {
-        console.error(error);
         showNotification('Error de conexión o formato al subir el CSV', true);
     } finally {
-        fileInput.value = ''; // Limpia el input
+        fileInput.value = ''; 
         
-        // ----- RESTAURAR BOTÓN A SU ESTADO ORIGINAL -----
         if (dropZone) {
             dropZone.innerHTML = '<i data-lucide="upload-cloud"></i> Arrastra tu CSV o haz clic';
             dropZone.style.pointerEvents = 'auto';
@@ -1356,7 +1466,30 @@ window.subirProductosCSV = async function(event) {
             dropZone.style.background = 'white';
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
-        // ------------------------------------------------
+    }
+};
+
+// ================= INTERFAZ MÓVIL Y MENÚ RESPONSIVE =================
+window.toggleSidebar = function() {
+    const sidebar = document.querySelector('.sidebar');
+    let overlay = document.querySelector('.sidebar-overlay');
+
+    // Si el overlay no existe en el HTML, lo creamos al vuelo
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        overlay.onclick = window.toggleSidebar;
+        document.body.appendChild(overlay);
+    }
+
+    if (sidebar) sidebar.classList.toggle('active');
+
+    if (sidebar && sidebar.classList.contains('active')) {
+        overlay.style.display = 'block';
+        setTimeout(() => overlay.classList.add('active'), 10);
+    } else {
+        overlay.classList.remove('active');
+        setTimeout(() => overlay.style.display = 'none', 300);
     }
 };
 

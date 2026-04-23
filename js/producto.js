@@ -6,6 +6,14 @@ const urlParams = new URLSearchParams(window.location.search);
 const productoId = urlParams.get('id');
 var TODOS_LOS_PRODUCTOS = []; // Guardamos todos para los recomendados
 
+function generarPlaceholderSVG_Local(marca) {
+    const inicial = (marca || 'E').charAt(0).toUpperCase();
+    return `<svg viewBox="0 0 200 200" style="width:80%; height:80%; max-width:140px;" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="200" rx="16" fill="#f1f5f9"/>
+    <text x="50%" y="55%" text-anchor="middle" font-family="system-ui" font-weight="900" font-size="60" fill="#cbd5e1">${inicial}</text>
+  </svg>`;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     if (!productoId) {
         document.getElementById('contenedor-detalle').innerHTML = '<h2 style="text-align:center; padding: 50px;">Producto no especificado.</h2>';
@@ -19,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (result.status === 'success') {
             TODOS_LOS_PRODUCTOS = result.data;
             const prod = TODOS_LOS_PRODUCTOS.find(p => p.id_producto == productoId);
-            
+
             if (prod) {
                 renderizarProductoCompleto(prod);
             } else {
@@ -76,33 +84,21 @@ function renderizarProductoCompleto(prod) {
         `;
     }
 
-    // 2. BUSCAMOS PRODUCTOS SIMILARES (Misma categoría, distinto ID)
+    // 2. BUSCAMOS PRODUCTOS SIMILARES (Máximo 4)
     const similares = TODOS_LOS_PRODUCTOS
         .filter(p => p.categoria === prod.categoria && p.id_producto !== prod.id_producto)
-        .slice(0, 8); // Aumentamos a 8 para el swipe
+        .slice(0, 4);
 
     let htmlSimilares = '';
     if (similares.length > 0) {
         const tarjetas = similares.map(p => {
-            const pFinal = parseFloat(p.precio_oferta) > 0 ? parseFloat(p.precio_oferta) : parseFloat(p.precio_regular);
-            return `
-            <article class="product-card product-card-efe" style="cursor: pointer; min-width: 160px; max-width: 180px; flex-shrink: 0; scroll-snap-align: start;" onclick="window.location.href='producto.php?id=${p.id_producto}'">
-                <div class="product-card-efe__image">
-                    <img src="assets/img_productos/${p.img_principal || 'placeholder.png'}" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'font-size:60px; text-align:center;\\'>📦</div>';">
-                </div>
-                <div class="product-card-efe__info" style="padding: 10px;">
-                    <span class="product-card__brand">${p.marca}</span>
-                    <h3 class="product-card-efe__title" style="font-size:13px; height:38px;">${p.nombre}</h3>
-                    <div class="product-card-efe__price" style="font-size:16px; margin: 5px 0;">S/ ${pFinal.toLocaleString('es-PE', {minimumFractionDigits: 2})}</div>
-                </div>
-            </article>
-            `;
+            return window.createProductCardHTML(p);
         }).join('');
 
         htmlSimilares = `
-            <div class="recommended-section" style="margin-top: 40px;">
-                <h3 class="recommended-title" style="text-align:center; font-size: 22px; font-weight:700; margin-bottom: 20px;">También te podría interesar</h3>
-                <div class="products-grid recommended-swipe-mobile" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; padding-bottom: 15px;">
+            <div class="recommended-section" style="margin: 60px auto 40px; padding: 40px 15px; border-top: 1px solid #f1f5f9; max-width: 1400px;">
+                <h3 class="recommended-title" style="text-align:center; font-size: 24px; font-weight:800; color:var(--clr-dark); margin-bottom: 30px;">También te podría interesar</h3>
+                <div class="products-grid recommended-swipe-mobile">
                     ${tarjetas}
                 </div>
             </div>
@@ -110,25 +106,30 @@ function renderizarProductoCompleto(prod) {
     }
 
     // 3. PREPARAMOS LA GALERÍA Y FAVORITOS
-    let imagenes = prod.galeria ? prod.galeria.split(',') : [prod.img_principal || 'placeholder.png'];
-    imagenes = imagenes.filter(img => img.trim() !== '').slice(0, 5);
-    if(imagenes.length === 0) imagenes = ['placeholder.png'];
+    const principal = prod.img_principal || 'placeholder.png';
+    let galeriaArr = prod.galeria ? prod.galeria.split(',').map(img => img.trim()).filter(img => img !== '') : [];
+    // Aseguramos que la principal sea la primera y el resto sigan sin duplicarse
+    let imagenes = [principal, ...galeriaArr.filter(img => img !== principal)].slice(0, 5);
 
     const esFav = typeof window.esFavorito === 'function' ? window.esFavorito(prod.id_producto) : false;
 
     // GALERÍA DESKTOP CLÁSICA
     const galeriaDesktop = `
-        <div class="gallery-desktop" style="display:flex; gap:20px; width:100%;">
-            <div class="gallery-thumbnails">
-                ${imagenes.map((img, idx) => `
-                    <div class="thumb-item ${idx === 0 ? 'active' : ''}" onclick="cambiarImagenPrincipal(this, '${img}')">
-                        <img src="assets/img_productos/${img}" onerror="this.src='https://via.placeholder.com/80?text=📦'">
+        <div class="gallery-desktop" style="display:flex; gap:12px; height: 500px;">
+            <div class="gallery-thumbnails" style="display:flex; flex-direction:column; gap:8px; width: 70px; flex-shrink: 0;">
+                ${imagenes.map((img, i) => `
+                    <div class="thumbnail ${i === 0 ? 'active' : ''}" 
+                         style="width: 60px; height: 60px; border-radius: 8px; cursor: pointer; padding: 4px; background: #fff;"
+                         onclick="cambiarImagenPrincipal(this, '${img}')">
+                        <img src="assets/img_productos/${img}" style="width:100%; height:100%; object-fit:contain;" onerror="this.src='https://via.placeholder.com/80?text=📦'">
                     </div>
                 `).join('')}
             </div>
-            <div class="detail-main-img-container" style="flex:1;">
-                <img src="assets/img_productos/${imagenes[0]}" id="imagen-principal-detalle" class="detail-main-img" onclick="abrirZoomImagen(this.src)" onerror="this.src='https://via.placeholder.com/500?text=📦'">
-                <button class="zoom-btn" onclick="abrirZoomImagen(document.getElementById('imagen-principal-detalle').src)"><i data-lucide="zoom-in"></i></button>
+            <div class="detail-main-img-container" style="flex:1; background:#fff; border: 1px solid #f1f5f9; border-radius:12px; position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                <img src="assets/img_productos/${imagenes[0]}" id="imagen-principal-detalle" class="detail-main-img" style="max-height:100%; max-width:100%; object-fit:contain; cursor:zoom-in;" onclick="abrirZoomImagen(this.src)">
+                <div class="zoom-icon" style="position:absolute; bottom:15px; right:15px; background:rgba(0,0,0,0.05); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#64748b; cursor:pointer;" onclick="abrirZoomImagen(document.getElementById('imagen-principal-detalle').src)">
+                    <i data-lucide="zoom-in"></i>
+                </div>
             </div>
         </div>
     `;
@@ -142,7 +143,7 @@ function renderizarProductoCompleto(prod) {
                 `).join('')}
             </div>
             <div class="mobile-carousel-dots" style="display:flex; justify-content:center; gap:8px; margin-top:15px;" id="mobile-dots-${prod.id_producto}">
-                ${imagenes.map((_, i) => `<div class="dot ${i===0?'active':''}" style="width:8px; height:8px; border-radius:50%; background:${i===0?'var(--clr-primary)':'#cbd5e1'};"></div>`).join('')}
+                ${imagenes.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" style="width:8px; height:8px; border-radius:50%; background:${i === 0 ? 'var(--clr-primary)' : '#cbd5e1'};"></div>`).join('')}
             </div>
         </div>
     `;
@@ -150,7 +151,7 @@ function renderizarProductoCompleto(prod) {
     // ================= LÓGICA DE RUTA DINÁMICA (BREADCRUMBS) =================
     const urlAnterior = document.referrer.toLowerCase();
     const vieneDeInicio = urlAnterior.includes('index.php') || urlAnterior.endsWith('/') || urlAnterior === '';
-    
+
     let rutaHTML = '';
     if (vieneDeInicio) {
         rutaHTML = `
@@ -187,10 +188,10 @@ function renderizarProductoCompleto(prod) {
                 <h1 class="detail-title">${prod.nombre}</h1>
                 <p class="detail-sku">SKU: ${prod.sku || prod.id_producto}</p>
                 
-                <div class="detail-price-box">
-                    ${precioAnterior ? `<span class="detail-old-price">S/ ${precioAnterior.toLocaleString('es-PE', {minimumFractionDigits:2})}</span>` : ''}
-                    <h2 class="detail-current-price ${precioAnterior ? 'detail-current-price--oferta' : ''}">
-                        S/ ${precioFinal.toLocaleString('es-PE', {minimumFractionDigits:2})}
+                <div class="detail-price-box" style="background: #f8fafc; padding: 25px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #f1f5f9;">
+                    ${precioAnterior ? `<span class="detail-old-price" style="text-decoration: line-through; color: #94a3b8; font-size: 18px; margin-bottom: 5px; display: block;">S/ ${precioAnterior.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>` : ''}
+                    <h2 class="detail-current-price" style="font-size: 46px; font-weight: 800; color: #E8232A; margin: 0; line-height: 1; font-family: 'Rajdhani', sans-serif;">
+                        S/ ${precioFinal.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
                     </h2>
                 </div>
                 
@@ -201,10 +202,10 @@ function renderizarProductoCompleto(prod) {
                         <button class="qty-btn-efe" onclick="cambiarQtyDetail(1)">+</button>
                     </div>
                     <button class="btn-efe-primary" onclick="agregarAlCarritoDesdeDetalle('${prod.id_producto}')">
-                        <i data-lucide="shopping-cart"></i> AGREGAR
+                        <i data-lucide="shopping-cart"></i> AGREGAR AL CARRITO
                     </button>
-                    <button class="btn-favorite ${esFav ? 'active' : ''}" id="btn-fav-${prod.id_producto}" onclick="toggleFavorito('${prod.id_producto}')">
-                        <i data-lucide="heart" ${esFav ? 'fill="currentColor"' : ''}></i>
+                    <button class="btn-favorite ${esFav ? 'active' : ''}" id="btn-fav-${prod.id_producto}" onclick="toggleFavorito('${prod.id_producto}')" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; cursor: pointer; transition: 0.3s;">
+                        <i data-lucide="heart" ${esFav ? 'fill="var(--clr-accent)" stroke="var(--clr-accent)"' : ''}></i>
                     </button>
                 </div>
             </div>
@@ -237,23 +238,23 @@ function agregarAlCarritoDesdeDetalle(id) {
     const input = document.getElementById('qty-detail');
     let cantidad = input ? parseInt(input.value) : 1;
     // Llamamos directamente a la nueva función global
-    if(typeof agregarAlCarrito === 'function'){
+    if (typeof agregarAlCarrito === 'function') {
         agregarAlCarrito(id, cantidad);
     }
 }
 
 // ================= FUNCIONES NUEVAS: GALERÍA MÓVIL Y SPECS =================
-window.handleMobileGalleryScroll = function(container, totalImages) {
+window.handleMobileGalleryScroll = function (container, totalImages) {
     const scrollLeft = container.scrollLeft;
     const width = container.offsetWidth;
     const currentIndex = Math.round(scrollLeft / width);
-    
+
     // Actualizar dots
     const dotsContainer = container.nextElementSibling;
-    if(dotsContainer) {
+    if (dotsContainer) {
         const dots = dotsContainer.querySelectorAll('.dot');
         dots.forEach((dot, index) => {
-            if(index === currentIndex) {
+            if (index === currentIndex) {
                 dot.style.background = 'var(--clr-primary)';
             } else {
                 dot.style.background = '#cbd5e1';
@@ -262,72 +263,113 @@ window.handleMobileGalleryScroll = function(container, totalImages) {
     }
 };
 
-window.toggleSpecs = function() {
+window.toggleSpecs = function () {
     const hiddenSpecs = document.querySelectorAll('.spec-hidden');
-    const btnVerMas = document.getElementById('btn-ver-mas-specs');
-    
+    const rowBtn = document.getElementById('btn-ver-mas-specs');
+    if (!rowBtn) return;
+
+    // Obtener el elemento interno donde está el texto (el td)
+    const btnCell = rowBtn.querySelector('td');
+    const isExpanded = rowBtn.getAttribute('data-expanded') === 'true';
+
     hiddenSpecs.forEach(row => {
-        row.style.display = 'table-row';
+        row.style.display = isExpanded ? 'none' : 'table-row';
     });
-    
-    if (btnVerMas) {
-        btnVerMas.style.display = 'none';
+
+    if (isExpanded) {
+        rowBtn.setAttribute('data-expanded', 'false');
+        btnCell.innerHTML = `Ver más características <i data-lucide="chevron-down" style="width:16px; height:16px; vertical-align:middle;"></i>`;
+    } else {
+        rowBtn.setAttribute('data-expanded', 'true');
+        btnCell.innerHTML = `Ver menos características <i data-lucide="chevron-up" style="width:16px; height:16px; vertical-align:middle;"></i>`;
     }
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 };
 
 // ================= FUNCIONES NUEVAS: GALERÍA DESKTOP, ZOOM Y FAVORITOS =================
 
-window.cambiarImagenPrincipal = function(elementoMiniaura, nombreImagen) {
-    document.querySelectorAll('.thumb-item').forEach(el => el.classList.remove('active'));
-    elementoMiniaura.classList.add('active');
+window.cambiarImagenPrincipal = function (elementoMiniatura, nombreImagen) {
+    document.querySelectorAll('.thumbnail').forEach(el => el.classList.remove('active'));
+    elementoMiniatura.classList.add('active');
     document.getElementById('imagen-principal-detalle').src = `assets/img_productos/${nombreImagen}`;
 };
 
-window.abrirZoomImagen = function(src) {
+let currentZoom = 1;
+const MAX_ZOOM = 3;
+const MIN_ZOOM = 1;
+
+window.abrirZoomImagen = function (src) {
     let modal = document.getElementById('zoom-modal-overlay');
-    if(!modal) {
+    if (!modal) {
         modal = document.createElement('div');
         modal.id = 'zoom-modal-overlay';
         modal.className = 'zoom-modal';
-        // HTML simple: solo botón de cerrar e imagen
         modal.innerHTML = `
             <button class="zoom-close" onclick="cerrarZoomImagen()">×</button>
-            <img id="zoom-img-target" src="">
+            <div class="zoom-container">
+                <img id="zoom-img-target" src="">
+            </div>
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoomIn()"><i data-lucide="plus"></i></button>
+                <button class="zoom-btn" onclick="zoomOut()"><i data-lucide="minus"></i></button>
+            </div>
         `;
         document.body.appendChild(modal);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     }
     const img = document.getElementById('zoom-img-target');
     img.src = src;
-    
-    // ✨ Limpieza: Nos aseguramos de quitar cualquier rastro de la lupa antigua
-    img.style.transform = 'none';
-    img.style.cursor = 'default';
-    
+
+    currentZoom = 1;
+    updateZoom();
+
     modal.classList.add('active');
 };
 
-window.cerrarZoomImagen = function() {
-    const modal = document.getElementById('zoom-modal-overlay');
-    if(modal) modal.classList.remove('active');
+window.zoomIn = function () {
+    if (currentZoom < MAX_ZOOM) {
+        currentZoom += 0.5;
+        updateZoom();
+    }
 };
 
-window.esFavorito = function(id) {
+window.zoomOut = function () {
+    if (currentZoom > MIN_ZOOM) {
+        currentZoom -= 0.5;
+        updateZoom();
+    }
+};
+
+function updateZoom() {
+    const img = document.getElementById('zoom-img-target');
+    if (img) {
+        img.style.transform = `scale(${currentZoom})`;
+    }
+}
+
+window.cerrarZoomImagen = function () {
+    const modal = document.getElementById('zoom-modal-overlay');
+    if (modal) modal.classList.remove('active');
+};
+
+window.esFavorito = function (id) {
     let favs = JSON.parse(localStorage.getItem('favoritos_electrohogar') || '[]');
     return favs.includes(id.toString());
 };
 
-window.toggleFavorito = function(id) {
+window.toggleFavorito = function (id) {
     let favs = JSON.parse(localStorage.getItem('favoritos_electrohogar') || '[]');
     const strId = id.toString();
     const index = favs.indexOf(strId);
     const btn = document.getElementById(`btn-fav-${id}`);
 
-    if(index > -1) {
+    if (index > -1) {
         favs.splice(index, 1);
-        if(btn) { btn.classList.remove('active'); btn.innerHTML = '<i data-lucide="heart"></i>'; }
+        if (btn) { btn.classList.remove('active'); btn.innerHTML = '<i data-lucide="heart"></i>'; }
     } else {
         favs.push(strId);
-        if(btn) { btn.classList.add('active'); btn.innerHTML = '<i data-lucide="heart" fill="currentColor"></i>'; }
+        if (btn) { btn.classList.add('active'); btn.innerHTML = '<i data-lucide="heart" fill="currentColor"></i>'; }
     }
     localStorage.setItem('favoritos_electrohogar', JSON.stringify(favs));
     if (typeof lucide !== 'undefined') lucide.createIcons();

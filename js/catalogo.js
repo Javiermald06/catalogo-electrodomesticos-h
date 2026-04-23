@@ -38,7 +38,7 @@ async function cargarCatalogo() {
 
             // Lógica de filtrado inicial combinada (URL Params)
             let productosFiltrados = [...PRODUCTOS];
-            
+
             if (categoriaActiva) {
                 productosFiltrados = productosFiltrados.filter(p => p.categoria === categoriaActiva);
             }
@@ -47,7 +47,7 @@ async function cargarCatalogo() {
             }
             if (buscaActiva) {
                 const q = buscaActiva.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                productosFiltrados = productosFiltrados.filter(p => 
+                productosFiltrados = productosFiltrados.filter(p =>
                     p.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(q) ||
                     p.marca.toLowerCase().includes(q) ||
                     p.categoria.toLowerCase().includes(q)
@@ -57,13 +57,13 @@ async function cargarCatalogo() {
             // Actualizar Breadcrumbs dinámicamente (Estilo Moderno)
             document.title = `ElectroHogar - ${categoriaActiva || 'Catálogo'}`;
             const breadContainer = document.querySelector('.breadcrumbs');
-            
+
             if (breadContainer) {
                 // Le damos formato flexbox para que la flechita quede perfectamente alineada
                 breadContainer.style.display = 'flex';
                 breadContainer.style.alignItems = 'center';
                 breadContainer.style.gap = '8px';
-                
+
                 if (categoriaActiva) {
                     breadContainer.innerHTML = `
                         <a href="index.php" class="bread-link">Inicio</a>
@@ -88,7 +88,7 @@ async function cargarCatalogo() {
                 };
                 inicializarFiltrosDinamicos(productosFiltrados, categoriaActiva || '', filtrosJson, extras);
             }
-            
+
             // Dibujar la cuadrícula inicial
             renderProductosGrid(productosFiltrados);
         }
@@ -97,10 +97,10 @@ async function cargarCatalogo() {
     } finally {
         // ✨ OPTIMIZACIÓN: Ocultar el preloader SOLO DESPUÉS de pintar el catálogo
         const loader = document.getElementById('global-loader');
-        if(loader) {
+        if (loader) {
             setTimeout(() => {
                 loader.classList.add('hide');
-                setTimeout(() => loader.style.display = 'none', 400); 
+                setTimeout(() => loader.style.display = 'none', 400);
             }, 100);
         }
     }
@@ -129,45 +129,7 @@ function renderProductosGrid(datos) {
 
     // Dibujar tarjetas. Fíjate en el onclick para abrir el detalle.
     grid.innerHTML = productosPagina.map(p => {
-        const badgeHtml = p.enOferta 
-            ? `<span class="product-card-efe__badge">-${p.descuento}%</span>` 
-            : '';
-
-        let precioHtml = '';
-        if (p.enOferta) {
-            precioHtml = `
-                <div class="product-card-efe__price product-card-efe__price--offer">
-                    S/ ${parseFloat(p.precio).toLocaleString('es-PE', {minimumFractionDigits: 2})}
-                    <span class="product-card-efe__discount-tag">-${p.descuento}%</span>
-                </div>
-                <div class="product-card-efe__price-old">
-                    S/ ${parseFloat(p.precioAntes).toLocaleString('es-PE', {minimumFractionDigits: 2})}
-                </div>
-            `;
-        } else {
-            precioHtml = `
-                <div class="product-card-efe__price">
-                    S/ ${parseFloat(p.precio).toLocaleString('es-PE', {minimumFractionDigits: 2})}
-                </div>
-            `;
-        }
-
-        return `
-        <div class="product-card-efe" onclick="window.location.href='producto.php?id=${p.id_producto}'">
-            <div class="product-card-efe__image">
-                ${badgeHtml}
-                <img src="assets/img/${p.img_principal || 'placeholder.png'}" alt="${p.nombre}" onerror="this.src='assets/img/placeholder.png'">
-            </div>
-            <div class="product-card-efe__info">
-                <span class="product-card-efe__brand">${p.marca.toUpperCase()}</span>
-                <h3 class="product-card-efe__title">${p.nombre}</h3>
-                ${precioHtml}
-            </div>
-            <button class="product-card-efe__btn" onclick="event.stopPropagation(); agregarAlCarrito('${p.id}')">
-                <i data-lucide="shopping-cart" class="icon-sm"></i> Cotizar por WhatsApp
-            </button>
-        </div>
-        `;
+        return window.createProductCardHTML(p);
     }).join('');
 
     renderPagination(datos.length);
@@ -218,15 +180,15 @@ function renderPagination(totalItems) {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-window.changePage = function(page) {
+window.changePage = function (page) {
     const totalItems = (typeof PRODUCTOS_CATALOGO !== 'undefined' && PRODUCTOS_CATALOGO.length > 0) ? PRODUCTOS_CATALOGO.length : PRODUCTOS.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
-    
+
     if (page < 1 || page > totalPages) return;
-    
+
     currentPage = page;
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    
+
     // Si tenemos filtros activos, repintar con los productos filtrados
     if (typeof aplicarFiltrosFinales === 'function') {
         aplicarFiltrosFinales(false); // No resetear página
@@ -237,15 +199,15 @@ window.changePage = function(page) {
 
 function cambiarQtyDetail(n) {
     const input = document.getElementById('qty-detail');
-    if(!input) return;
+    if (!input) return;
     let val = parseInt(input.value) + n;
-    if(val >= 1) input.value = val;
+    if (val >= 1) input.value = val;
 }
 
 function cotizarActualPorWhatsApp(id) {
     const input = document.getElementById('qty-detail');
     const cant = input ? parseInt(input.value) : 1;
-    if(typeof agregarAlCarrito === 'function'){
+    if (typeof agregarAlCarrito === 'function') {
         agregarAlCarrito(id, cant);
     }
 }

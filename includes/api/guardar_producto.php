@@ -13,28 +13,51 @@ $precio_regular = $_POST['precio_regular'] ?? 0;
 $precio_oferta = $_POST['precio_oferta'] ?? 0;
 $especificaciones = $_POST['especificaciones_agrupadas'] ?? '';
 
-$imagenesSubidas = [];
+// 1. Procesar Orden de Imágenes
+$imagenes_finales = [];
+$orden_json = $_POST['imagenes_orden'] ?? '[]';
+$orden = json_decode($orden_json, true);
+
 $directorioDestino = '../../assets/img_productos/'; 
+$nuevas_subidas = [];
 
-// 1. Subida de Imágenes
+// Procesar archivos nuevos
 if (!empty($_FILES['imagenes']['name'][0])) {
-    $limite = count($_FILES['imagenes']['name']);
-    if ($limite > 5) $limite = 5;
-
-    for ($i = 0; $i < $limite; $i++) {
-        $nombreArchivoTemp = $_FILES['imagenes']['tmp_name'][$i];
-        
-        if ($nombreArchivoTemp != "") {
+    foreach ($_FILES['imagenes']['tmp_name'] as $i => $tmpName) {
+        if ($tmpName != "") {
             $extension = pathinfo($_FILES['imagenes']['name'][$i], PATHINFO_EXTENSION);
             $nuevoNombre = uniqid('prod_') . '.' . $extension;
             $rutaFinal = $directorioDestino . $nuevoNombre;
-
-            if (move_uploaded_file($nombreArchivoTemp, $rutaFinal)) {
-                $imagenesSubidas[] = $nuevoNombre;
+            if (move_uploaded_file($tmpName, $rutaFinal)) {
+                $nuevas_subidas[] = $nuevoNombre;
             }
         }
     }
 }
+
+// Reconstruir la lista final basada en el orden
+$idx_nueva = 0;
+foreach ($orden as $item) {
+    if (strpos($item, 'blob:') === 0 || strpos($item, 'new_') === 0) {
+        // Es una imagen nueva
+        if (isset($nuevas_subidas[$idx_nueva])) {
+            $imagenes_finales[] = $nuevas_subidas[$idx_nueva];
+            $idx_nueva++;
+        }
+    } else {
+        // Es una imagen existente (nombre de archivo)
+        $imagenes_finales[] = $item;
+    }
+}
+
+// Si no se envió orden (por seguridad/compatibilidad), usar las subidas
+if (empty($imagenes_finales) && !empty($nuevas_subidas)) {
+    $imagenes_finales = $nuevas_subidas;
+}
+
+// Limitar a 5 imágenes
+$imagenes_finales = array_slice($imagenes_finales, 0, 5);
+
 
 try {
     $pdo->beginTransaction();
@@ -61,18 +84,18 @@ try {
     // ==========================================================
     // 3. GUARDAR IMÁGENES EN LA TABLA CORRECTA (galeria_imagenes)
     // ==========================================================
-    if (!empty($imagenesSubidas)) {
+    if (!empty($imagenes_finales)) {
         // Borramos las fotos viejas para que no se acumulen basura
         $stmtDelImg = $pdo->prepare("DELETE FROM galeria_imagenes WHERE id_producto = ?");
         $stmtDelImg->execute([$id_producto_real]);
 
-        // Insertamos las nuevas en tu tabla relacional
-        $sqlImg = "INSERT INTO galeria_imagenes (id_producto, ruta_imagen, img_principal) VALUES (?, ?, ?)";
+        // Insertamos las nuevas con el ORDEN solicitado
+        $sqlImg = "INSERT INTO galeria_imagenes (id_producto, ruta_imagen, img_principal, orden) VALUES (?, ?, ?, ?)";
         $stmtImg = $pdo->prepare($sqlImg);
         
-        foreach ($imagenesSubidas as $index => $ruta) {
+        foreach ($imagenes_finales as $index => $ruta) {
             $esPrincipal = ($index === 0) ? 1 : 0; 
-            $stmtImg->execute([$id_producto_real, $ruta, $esPrincipal]);
+            $stmtImg->execute([$id_producto_real, $ruta, $esPrincipal, $index]);
         }
     }
 
