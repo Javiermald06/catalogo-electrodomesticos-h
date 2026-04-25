@@ -1,0 +1,82 @@
+<?php
+session_start();
+
+// Bloquear caché para que no se pueda volver atrás después de cerrar sesión
+header("Cache-Control: no-cache, must-revalidate");
+header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+
+// Verificar si el administrador está logueado
+if (!isset($_SESSION['id_admin'])) {
+    header("Location: login.html");
+    exit();
+}
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroAdmin - Panel de Control</title>
+    <link rel="icon" type="image/png" href="assets\img\Logo_electrohogar.png">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        
+        <div id="toast" class="toast hidden">
+            <i data-lucide="check-circle" style="color: #4ade80; width: 20px;"></i>
+            <span id="toast-msg">Operación exitosa</span>
+        </div>
+
+        <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+        <aside class="sidebar" id="admin-sidebar">
+            <div class="sidebar-header" style="justify-content: center; padding: 24px 16px;">
+                <img src="assets/img/Logo-removebg-preview.png" alt="Logo ElectroHogar" style="max-width: 100%; height: 50px; object-fit: contain;" onerror="this.style.display='none'">
+            </div>
+            <nav class="sidebar-nav">
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-btn active"><i data-lucide="layout-dashboard"></i> Métricas & Tráfico</button>
+                <button onclick="switchTab('productos')" id="tab-productos" class="nav-btn"><i data-lucide="package"></i> Catálogo de Productos</button>
+                <button onclick="switchTab('categorias')" id="tab-categorias" class="nav-btn"><i data-lucide="layers"></i> Categorías y Marcas</button>
+                <button onclick="switchTab('banners')" id="tab-banners" class="nav-btn"><i data-lucide="monitor-play"></i> Banners Principales</button>
+            </nav>
+            <div style="padding: 16px; border-top: 1px solid #1e293b;">
+                <a href="index.php" class="nav-btn" style="text-decoration:none; color:#f87171;"><i data-lucide="log-out"></i> Volver a Tienda</a>
+            </div>
+        </aside>
+
+        <main class="main-area">
+            <header class="top-header">
+                <button class="menu-toggle" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
+                
+                <div class="header-title">Panel de Control <span class="badge-modo">Modo Catálogo</span></div>
+                <div class="header-user"><span class="user-name">Hola, Javier</span><div class="user-avatar">J</div></div>
+            </header>
+            
+            <div class="content-area">
+                <div class="content-wrapper" id="main-content">
+                    </div>
+            </div>
+        </main>
+
+        <div id="modal-container" class="modal-overlay hidden">
+            <div id="modal-box" class="modal-box modal-md modal-enter">
+                <div class="modal-header">
+                    <h2 id="modal-title" style="display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: bold; color: var(--dark);">Título</h2>
+                    <button onclick="closeModal()" class="btn-icon"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body" id="modal-body">
+                    </div>
+                <div class="modal-footer" id="modal-footer">
+                    </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <script src="js/admin.js"></script>
+</body>
+</html>

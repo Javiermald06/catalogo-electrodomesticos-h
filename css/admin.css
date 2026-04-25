@@ -145,7 +145,8 @@ body { font-family: 'Outfit', sans-serif; overflow: hidden; background: var(--bg
     
     /* 1. RECUPERAR ESPACIO VITAL (Reducción de Paddings) */
     .content-area { padding: 12px; }
-    .grid-4, .grid-2 { grid-template-columns: 1fr; gap: 16px !important; }
+    .grid-4 { grid-template-columns: repeat(2, 1fr); gap: 12px !important; }
+    .grid-2 { grid-template-columns: 1fr; gap: 16px !important; }
     /* El !important sobrescribe el padding en línea que genera el JS */
     .table-container { padding: 12px !important; border-radius: 12px; } 
     
@@ -236,3 +237,90 @@ body { font-family: 'Outfit', sans-serif; overflow: hidden; background: var(--bg
     #tabla-banners td:nth-child(5) { grid-column: 4; grid-row: 2; text-align: right !important; }
     #tabla-banners td:nth-child(5) button.btn-icon { margin: 0 0 0 4px; }
 }
+/* ===== NUEVOS ESTILOS PARA ACORDEONES ===== */
+.accordion-section {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.accordion-header {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    background: white;
+    transition: background 0.2s;
+    user-select: none;
+}
+
+.accordion-header:hover {
+    background: #f8fafc;
+}
+
+.accordion-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease;
+    padding: 0 20px;
+}
+
+.accordion-section.active .accordion-content {
+    max-height: 1000px;
+    padding: 0 20px 20px 20px;
+    border-top: 1px solid var(--border);
+}
+
+.accordion-icon {
+    transition: transform 0.3s ease;
+    color: #94a3b8;
+}
+
+.accordion-section.active .accordion-icon {
+    transform: rotate(180deg);
+}
+
+.btn-order {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: #eff6ff;
+    color: #3b82f6;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-order:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-order:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Estilos para el arrastre de banners */
+.sortable-ghost {
+    opacity: 0.4;
+    background-color: #dbeafe !important;
+    border: 2px dashed #3b82f6 !important;
+}
+
+.drag-handle:active {
+    cursor: grabbing !important;
+}
+

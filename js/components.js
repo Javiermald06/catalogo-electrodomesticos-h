@@ -64,11 +64,30 @@ window.createProductCardHTML = function(p) {
                     <button class="product-card__btn" onclick="event.stopPropagation(); typeof agregarAlCarrito === 'function' ? agregarAlCarrito('${id}') : console.log('Link Cart')">
                         Agregar al carrito
                     </button>
-                    <button class="product-card__wishlist" onclick="event.stopPropagation()">
-                        <i data-lucide="heart"></i>
-                    </button>
                 </div>
             </div>
         </article>
     `;
 };
+
+// Lógica de Auto-scroll para categorías activas (Mobile)
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const activeLink = document.querySelector('.cat-link.active');
+        const catNav = document.querySelector('.cat-nav');
+        
+        if (activeLink && catNav) {
+            const navWidth = catNav.offsetWidth;
+            const linkOffset = activeLink.offsetLeft;
+            const linkWidth = activeLink.offsetWidth;
+            
+            // Centrar el link activo en la barra de navegación
+            const scrollPos = linkOffset - (navWidth / 2) + (linkWidth / 2);
+            
+            catNav.scrollTo({
+                left: scrollPos,
+                behavior: 'smooth'
+            });
+        }
+    }, 300); // Pequeño delay para asegurar que el DOM esté listo
+});

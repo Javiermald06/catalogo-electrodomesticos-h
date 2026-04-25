@@ -204,9 +204,6 @@ function renderizarProductoCompleto(prod) {
                     <button class="btn-efe-primary" onclick="agregarAlCarritoDesdeDetalle('${prod.id_producto}')">
                         <i data-lucide="shopping-cart"></i> AGREGAR AL CARRITO
                     </button>
-                    <button class="btn-favorite ${esFav ? 'active' : ''}" id="btn-fav-${prod.id_producto}" onclick="toggleFavorito('${prod.id_producto}')" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; cursor: pointer; transition: 0.3s;">
-                        <i data-lucide="heart" ${esFav ? 'fill="var(--clr-accent)" stroke="var(--clr-accent)"' : ''}></i>
-                    </button>
                 </div>
             </div>
         </div>

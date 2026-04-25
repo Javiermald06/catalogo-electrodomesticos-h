@@ -52,23 +52,4 @@
     </div>
 </footer>
 
-<div class="cart-overlay" id="cart-overlay" onclick="cerrarCarrito()"></div>
-<aside class="cart-sidebar" id="cart-sidebar" aria-label="Tu carrito de compras">
-    <div class="cart-header">
-        <h2>Tu Carrito</h2>
-        <button class="close-cart" onclick="cerrarCarrito()" aria-label="Cerrar carrito">✕</button>
-    </div>
-    
-    <div class="cart-items" id="cart-items">
-    </div>
-    
-    <div class="cart-footer">
-        <div class="cart-total">
-            <span>Total Estimado:</span>
-            <span id="cart-total-price">S/ 0</span>
-        </div>
-        <button class="btn-buy-now" style="width: 100%; margin-top: 15px; padding: 16px;" onclick="enviarPedidoCarrito()">
-            📱 Enviar Pedido por WhatsApp
-        </button>
-    </div>
-</aside>
+<script src="js/carrito.js"></script>

@@ -13,6 +13,82 @@
     <link rel="stylesheet" href="css/catalogo.css">
     <link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Estilos de Emergencia - Prioridad Máxima */
+        @media (max-width: 900px) {
+            .quantity-selector-efe {
+                width: 140px !important;
+                height: 50px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 10px !important;
+                background: #fff !important;
+                border: 2px solid #e2e8f0 !important;
+                border-radius: 12px !important;
+                padding: 0 8px !important;
+            }
+
+            .qty-btn-efe {
+                width: 40px !important;
+                height: 40px !important;
+                background: #f1f5f9 !important; /* ✨ Gris claro premium */
+                color: var(--clr-primary) !important; /* ✨ Símbolo en azul */
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 10px !important;
+                font-size: 22px !important;
+                font-weight: 700 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                flex-shrink: 0 !important;
+                padding: 0 !important;
+                line-height: 1 !important;
+                cursor: pointer !important;
+            }
+
+            .qty-input-efe {
+                width: 30px !important;
+                font-size: 18px !important;
+                font-weight: 800 !important;
+                text-align: center !important;
+                border: none !important;
+                background: transparent !important;
+                color: var(--clr-dark) !important;
+                flex: 1 !important;
+            }
+
+            .detail-actions-box {
+                gap: 12px !important;
+                padding: 15px !important;
+            }
+
+            .btn-efe-primary {
+                height: 50px !important;
+                font-size: 13px !important;
+                font-weight: 700 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 10px !important;
+                padding: 0 15px !important;
+            }
+
+            .detail-gallery-wrapper {
+                display: block !important;
+                width: 100% !important;
+                margin-top: 20px !important;
+            }
+
+            .mobile-slide img {
+                max-height: 350px !important;
+                width: auto !important;
+                max-width: 100% !important;
+                margin: 0 auto !important;
+                display: block !important;
+            }
+        }
+    </style>
 </head>
 
 <body>

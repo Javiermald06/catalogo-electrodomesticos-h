@@ -120,7 +120,7 @@
       <div class="carousel-wrapper">
         <button class="carousel-btn prev" data-target="ofertas-car"
           aria-label="Desplazar ofertas a la izquierda">‹</button>
-        <div class="carousel" id="ofertas-car"></div>
+        <div class="products-grid recommended-swipe-mobile" id="ofertas-car"></div>
         <button class="carousel-btn next" data-target="ofertas-car"
           aria-label="Desplazar ofertas a la derecha">›</button>
       </div>

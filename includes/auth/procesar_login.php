@@ -19,7 +19,7 @@ if ($admin && password_verify($pass, $admin['password_hash'])) {
     session_start();
     $_SESSION['id_admin'] = $admin['id_admin'];
     $_SESSION['usuario'] = $admin['usuario'];
-    echo json_encode(['status' => 'success', 'redirect' => 'admin.html']);
+    echo json_encode(['status' => 'success', 'redirect' => 'admin.php']);
 } else {
     echo json_encode(['status' => 'error', 'msg' => 'Usuario o contraseña incorrectos']);
 }

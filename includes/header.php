@@ -1,4 +1,6 @@
+<script src="https://unpkg.com/lucide@latest"></script>
 <header class="main-header">
+
     <!-- Logo (Restaurado a su versión original) -->
     <div class="logo-area" onclick="window.location.href='index.php'" style="cursor: pointer;">
         <div class="logo-icon" aria-hidden="true"></div>

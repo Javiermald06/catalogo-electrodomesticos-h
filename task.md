@@ -1,4 +1,0 @@
-- [ ] Relocate "Ver todo" link in index.php
-    - [ ] Modify js/main.js to remove "Ver todo" card and add header link
-    - [ ] Update styles.css with header link styling
-- [ ] Verify visual improvement in browser

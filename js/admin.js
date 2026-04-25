@@ -579,19 +579,19 @@ function renderDashboard() {
         <div class="fade-in">
             <h2 class="section-title">Rendimiento General</h2>
             <div class="grid-4">
-                <div class="card">
-                    <div style="width:40px;height:40px;background:#3B82F6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
-                        <i data-lucide="package"></i>
+                <div class="card" style="padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center;">
+                    <div style="width:32px;height:32px;background:#3B82F6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:8px;">
+                        <i data-lucide="package" style="width:16px;"></i>
                     </div>
-                    <p style="color:#64748b;font-size:14px;">Productos Totales</p>
-                    <p style="font-size:24px;font-weight:bold;">${state.productos.length}</p>
+                    <p style="color:#64748b;font-size:12px; margin: 0;">Productos</p>
+                    <p style="font-size:20px;font-weight:bold; margin: 4px 0 0 0;">${state.productos.length}</p>
                 </div>
-                <div class="card">
-                    <div style="width:40px;height:40px;background:#10B981;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
-                        <i data-lucide="message-circle"></i>
+                <div class="card" style="padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center;">
+                    <div style="width:32px;height:32px;background:#10B981;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:8px;">
+                        <i data-lucide="message-circle" style="width:16px;"></i>
                     </div>
-                    <p style="color:#64748b;font-size:14px;">Leads Generados</p>
-                    <p style="font-size:24px;font-weight:bold;">${state.leads.length}</p>
+                    <p style="color:#64748b;font-size:12px; margin: 0;">Leads</p>
+                    <p style="font-size:20px;font-weight:bold; margin: 4px 0 0 0;">${state.leads.length}</p>
                 </div>
             </div>
         </div>
@@ -798,6 +798,19 @@ function renderProductos() {
         </tr>
     `}).join('');
 
+    // Intentar actualizar solo el tbody si ya estamos en la vista de productos
+    const existingTable = document.getElementById('tabla-productos-admin');
+    if (existingTable) {
+        const tbody = existingTable.querySelector('tbody');
+        if (tbody) {
+            tbody.innerHTML = filas || '<tr><td colspan="5" style="text-align:center; padding: 48px; color:#94a3b8; font-size: 15px;"><i data-lucide="folder-search" style="width: 48px; height: 48px; display:block; margin: 0 auto 12px auto; color:#cbd5e1; stroke-width:1.5;"></i>No se encontraron productos aquí.</td></tr>';
+            const countLabel = document.getElementById('productos-count-label');
+            if(countLabel) countLabel.textContent = `${productosFiltro.length} resultados`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            return;
+        }
+    }
+
     mainContent.innerHTML = `
         <div class="fade-in">
             <div class="flex-between" style="margin-bottom: 24px; gap: 32px;">
@@ -807,14 +820,14 @@ function renderProductos() {
                     </button>
                     <div>
                         <h2 class="section-title" style="margin:0; font-size: 20px;">${tituloTabla}</h2>
-                        <p style="color:#64748b; font-size:13px; margin-top:2px;">${productosFiltro.length} resultados</p>
+                        <p id="productos-count-label" style="color:#64748b; font-size:13px; margin-top:2px;">${productosFiltro.length} resultados</p>
                     </div>
                 </div>
                 
                 <div style="display:flex; gap:12px; align-items:center; flex-wrap: wrap; justify-content: flex-end;">
                     <div class="search-box" style="position: relative;">
                         <i data-lucide="search" style="position: absolute; left: 12px; top: 11px; color: #94a3b8; width: 18px; height: 18px;"></i>
-                        <input type="text" class="form-input" placeholder="Buscar aquí..." oninput="buscarProductosAdmin(event)" value="${busquedaProductosAdmin}" style="padding-left: 38px; width: 220px; padding-top: 10px; padding-bottom: 10px; border-radius: 10px;" autofocus>
+                        <input type="text" class="form-input" placeholder="Buscar aquí..." oninput="buscarProductosAdmin(event)" value="${busquedaProductosAdmin}" style="padding-left: 38px; width: 220px; padding-top: 10px; padding-bottom: 10px; border-radius: 10px;">
                     </div>
 
                     <button onclick="abrirModalProducto()" class="btn-primary" style="height: fit-content; padding: 10px 16px; border-radius: 10px;">
@@ -824,7 +837,7 @@ function renderProductos() {
             </div>
             
             <div class="table-container">
-                <table class="table">
+                <table class="table" id="tabla-productos-admin">
                     <thead>
                         <tr>
                             <th>Producto</th>
@@ -887,39 +900,53 @@ function renderCategorias() {
     mainContent.innerHTML = `
         <div class="fade-in">
             <h2 class="section-title">Categorías y Marcas</h2>
-            <div class="grid-2" style="gap: 32px; align-items: start;">
-                
-                <div class="table-container" style="padding: 20px;">
-                    <div class="flex-between" style="margin-bottom: 16px;">
-                        <h3 style="font-weight:bold; color:var(--dark); display:flex; align-items:center; gap:8px;">
-                            <i data-lucide="layers" style="color:#2563eb;"></i> Categorías
-                        </h3>
-                        <button onclick="abrirModalAtributo('categoria')" class="btn-primary" style="padding: 8px 16px;">
-                            <i data-lucide="plus"></i> Nueva
+            
+            <!-- SECCIÓN CATEGORÍAS (Acordeón) -->
+            <div class="accordion-section" id="acc-categorias">
+                <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">
+                    <h3 style="display:flex; align-items:center; gap:10px;">
+                        <i data-lucide="layers" style="color:#2563eb; width:18px;"></i> Categorías (${state.categorias.length})
+                    </h3>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <button onclick="event.stopPropagation(); abrirModalAtributo('categoria')" class="btn-primary" style="padding: 6px 12px; font-size:12px;">
+                            <i data-lucide="plus" style="width:14px;"></i> Nueva
                         </button>
+                        <i data-lucide="chevron-down" class="accordion-icon"></i>
                     </div>
-                    <table class="table">
-                        <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
-                        <tbody>${filasCat}</tbody>
-                    </table>
                 </div>
-
-                <div class="table-container" style="padding: 20px;">
-                    <div class="flex-between" style="margin-bottom: 16px;">
-                        <h3 style="font-weight:bold; color:var(--dark); display:flex; align-items:center; gap:8px;">
-                            <i data-lucide="tag" style="color:#10b981;"></i> Marcas
-                        </h3>
-                        <button onclick="abrirModalAtributo('marca')" class="btn-primary" style="padding: 8px 16px; background:#10b981;">
-                            <i data-lucide="plus"></i> Nueva
-                        </button>
+                <div class="accordion-content">
+                    <div class="table-container" style="border:none;">
+                        <table class="table">
+                            <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
+                            <tbody>${filasCat}</tbody>
+                        </table>
                     </div>
-                    <table class="table">
-                        <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
-                        <tbody>${filasMar}</tbody>
-                    </table>
                 </div>
-
             </div>
+
+            <!-- SECCIÓN MARCAS (Acordeón) -->
+            <div class="accordion-section" id="acc-marcas">
+                <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">
+                    <h3 style="display:flex; align-items:center; gap:10px;">
+                        <i data-lucide="tag" style="color:#10b981; width:18px;"></i> Marcas (${state.marcas.length})
+                    </h3>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <button onclick="event.stopPropagation(); abrirModalAtributo('marca')" class="btn-primary" style="padding: 6px 12px; font-size:12px; background:#10b981; border-color:#10b981;">
+                            <i data-lucide="plus" style="width:14px;"></i> Nueva
+                        </button>
+                        <i data-lucide="chevron-down" class="accordion-icon"></i>
+                    </div>
+                </div>
+                <div class="accordion-content">
+                    <div class="table-container" style="border:none;">
+                        <table class="table">
+                            <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
+                            <tbody>${filasMar}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     `;
     if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -1033,18 +1060,12 @@ function renderBanners() {
             : `<img src="../assets/img_banners/${b.ruta_imagen}" style="width: 100%; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);" onerror="this.src='https://via.placeholder.com/800x300?text=Sin+Imagen'">`;
 
         return `
-        <tr draggable="true"
-            data-index="${index}"
-            ondragstart="iniciarArrastre(event)"
-            ondragover="permitirSoltar(event)"
-            ondrop="soltarBanner(event)"
-            ondragenter="entrarZonaArrastre(event)"
-            ondragleave="salirZonaArrastre(event)"
-            ondragend="finalizarArrastre(event)"
-            style="${b.estado == 0 ? 'opacity: 0.6; background: #f8fafc;' : 'background: white;'} cursor: grab; transition: all 0.2s;">
+        <tr data-id="${b.id_banner}" style="${b.estado == 0 ? 'opacity: 0.6; background: #f8fafc;' : 'background: white;'} transition: all 0.2s;">
             
-            <td style="width: 40px; text-align: center; color: #94a3b8; cursor: grab;">
-                <i data-lucide="grip-vertical"></i>
+            <td style="width: 40px; text-align: center; color: #94a3b8;">
+                <div class="drag-handle" style="cursor: grab; padding: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="grip-vertical"></i>
+                </div>
             </td>
             
             <td style="width: 200px; pointer-events: none;">
@@ -1102,41 +1123,46 @@ function renderBanners() {
         </div>
     `;
     if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    // Inicializar SortableJS para reordenar banners
+    const el = document.querySelector('#tabla-banners tbody');
+    if (el && typeof Sortable !== 'undefined') {
+        new Sortable(el, {
+            handle: '.drag-handle',
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            onEnd: function() {
+                const rows = Array.from(el.querySelectorAll('tr'));
+                const nuevoOrdenIds = rows.map(row => row.getAttribute('data-id'));
+                
+                // Reordenar el estado local
+                const bannersReordenados = [];
+                nuevoOrdenIds.forEach(id => {
+                    const b = state.banners.find(item => item.id_banner == id);
+                    if(b) bannersReordenados.push(b);
+                });
+                
+                state.banners = bannersReordenados;
+                guardarNuevoOrdenBanners();
+                
+                // Refrescar para actualizar los índices en los botones de subir/bajar si se desea
+                // Pero Sortable ya movió el DOM, así que solo actualizamos los botones
+                renderBanners(); 
+            }
+        });
+    }
 }
 
-let dragStartIndex = -1;
+window.moverBanner = function(index, direccion) {
+    const nuevoIndex = index + direccion;
+    if (nuevoIndex < 0 || nuevoIndex >= state.banners.length) return;
 
-window.iniciarArrastre = function(e) {
-    dragStartIndex = +e.currentTarget.getAttribute('data-index');
-    e.dataTransfer.effectAllowed = 'move';
-    setTimeout(() => { e.target.style.opacity = '0.3'; }, 0);
-};
+    const temp = state.banners[index];
+    state.banners[index] = state.banners[nuevoIndex];
+    state.banners[nuevoIndex] = temp;
 
-window.permitirSoltar = function(e) { e.preventDefault(); };
-
-window.entrarZonaArrastre = function(e) {
-    e.preventDefault();
-    e.currentTarget.style.borderTop = "3px solid #2563eb"; 
-};
-
-window.salirZonaArrastre = function(e) {
-    e.currentTarget.style.borderTop = ""; 
-};
-
-window.soltarBanner = function(e) {
-    e.preventDefault();
-    const tr = e.currentTarget;
-    tr.style.borderTop = "";
-    tr.style.opacity = '1';
-
-    const dragEndIndex = +tr.getAttribute('data-index');
-
-    if (dragStartIndex !== dragEndIndex && dragStartIndex !== -1) {
-        const bannerMovido = state.banners.splice(dragStartIndex, 1)[0];
-        state.banners.splice(dragEndIndex, 0, bannerMovido);
-        renderBanners();
-        guardarNuevoOrdenBanners();
-    }
+    renderBanners();
+    guardarNuevoOrdenBanners();
 };
 
 window.finalizarArrastre = function(e) {

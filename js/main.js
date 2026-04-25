@@ -256,7 +256,36 @@ function initCarouselButtons() {
 
 function initScrollSpy() {
   const catNav = document.getElementById('categorias');
+  if (!catNav) return;
 
+  // 1. INTERCEPTOR DE CLICS PARA SCROLL SUAVE (Evita saltos "en seco")
+  document.querySelectorAll('.cat-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      const targetId = link.getAttribute('href');
+      if (targetId && targetId.startsWith('#')) {
+        const targetEl = document.querySelector(targetId);
+        if (targetEl) {
+          e.preventDefault();
+          
+          // Desplazamiento suave a la sección
+          const headerOffset = 130; // Altura del header + cat-nav
+          const elementPosition = targetEl.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+
+          // Marcar como activo inmediatamente al hacer clic
+          document.querySelectorAll('.cat-link').forEach(l => l.classList.remove('active'));
+          link.classList.add('active');
+        }
+      }
+    });
+  });
+
+  // 2. SCROLL SPY CON INTERSECTION OBSERVER (Actualiza mientras el usuario navega)
   let activeSections = new Set();
 
   const observer = new IntersectionObserver((entries) => {
@@ -272,38 +301,37 @@ function initScrollSpy() {
       let closestSection = null;
       let minDistance = Infinity;
 
-      // Encontrar la sección visible que está más arriba en la pantalla principal
+      // Encontrar la sección más cercana a la parte superior de la ventana
       activeSections.forEach(id => {
         const sec = document.getElementById(id);
         if (sec) {
           const rect = sec.getBoundingClientRect();
-          if (Math.abs(rect.top) < minDistance) {
+          const dist = Math.abs(rect.top - 140);
+          if (dist < minDistance) {
             closestSection = id;
-            minDistance = Math.abs(rect.top);
+            minDistance = dist;
           }
         }
       });
 
-      if (!closestSection) closestSection = Array.from(activeSections)[0];
-
-      // Actualizar DOM dinámicamente para asegurar que NINGÚN otro elemento tenga active
-      document.querySelectorAll('.cat-link').forEach(link => {
-        if (link.getAttribute('href') === '#' + closestSection) {
-          if (!link.classList.contains('active')) {
-            link.classList.add('active');
-            link.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      if (closestSection) {
+        document.querySelectorAll('.cat-link').forEach(link => {
+          if (link.getAttribute('href') === '#' + closestSection) {
+            if (!link.classList.contains('active')) {
+              link.classList.add('active');
+              // Auto-centrar la categoría en la barra horizontal
+              link.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+          } else {
+            link.classList.remove('active');
           }
-        } else {
-          link.classList.remove('active');
-        }
-      });
-    } else {
-      // Si no hay secciones en pantalla
-      document.querySelectorAll('.cat-link').forEach(link => {
-        link.classList.remove('active');
-      });
+        });
+      }
     }
-  }, { rootMargin: '-10% 0px -50% 0px', threshold: 0.1 });
+  }, { 
+    rootMargin: '-150px 0px -40% 0px', // Ajustado para el área visible real
+    threshold: [0, 0.1, 0.5] 
+  });
 
   document.querySelectorAll('.cat-section').forEach(el => observer.observe(el));
 }

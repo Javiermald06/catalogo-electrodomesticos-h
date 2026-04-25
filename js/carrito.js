@@ -4,10 +4,12 @@
 
 // 1. Cargamos el carrito desde la memoria del navegador (o creamos uno vacío)
 let carrito = JSON.parse(localStorage.getItem('carrito_electrohogar') || '[]');
+let sesionUsuario = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     inyectarHTMLCarrito();
     actualizarContadorCarrito();
+    verificarSesion();
 });
 
 // 2. Función que dibuja el panel lateral del carrito en cualquier página
@@ -23,12 +25,17 @@ function inyectarHTMLCarrito() {
             </div>
             <div class="cart-items" id="cart-items"></div>
             <div class="cart-footer">
+                <div id="user-info-cart" style="display:none; padding:10px; background:var(--gray); border-radius:8px; margin-bottom:10px; font-size:13px; color:var(--clr-dark);">
+                    👤 <span id="user-name-display"></span> 
+                    <button onclick="cerrarSesion()" style="background:none; border:none; color:var(--red); cursor:pointer; font-size:12px; margin-left:10px; text-decoration:underline;">Cerrar Sesión</button>
+                </div>
                 <div class="cart-total"><span>Total:</span> <span id="cart-total-price">S/ 0.00</span></div>
-                <button class="btn-whatsapp-large" style="width:100%; margin-top:15px; display:flex; align-items:center; justify-content:center; gap:10px;" onclick="enviarPedidoCarrito()">
+                <button class="btn-whatsapp-large" id="btn-finalizar-pedido" style="width:100%; margin-top:15px; display:flex; align-items:center; justify-content:center; gap:10px;" onclick="iniciarFlujoValidacion()">
                     <i data-lucide="message-circle"></i> Pedir por WhatsApp
                 </button>
             </div>
         </div>
+
     `;
     document.body.insertAdjacentHTML('beforeend', html);
     if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -159,26 +166,77 @@ function eliminarDelCarrito(index) {
     guardarCarrito();
 }
 
-async function enviarPedidoCarrito() {
-    if (carrito.length === 0) return;
-    let total = 0;
-    let mensaje = "Hola ElectroHogar, me gustaría realizar el siguiente pedido:\n\n";
-
-    carrito.forEach(item => {
-        const subtotal = item.precio * item.cantidad;
-        total += subtotal;
-        mensaje += `🔹 ${item.cantidad}x *${item.nombre}* (S/ ${subtotal.toLocaleString('es-PE', { minimumFractionDigits: 2 })})\n`;
-    });
-
-    mensaje += `\n💰 *Total Estimado: S/ ${total.toLocaleString('es-PE', { minimumFractionDigits: 2 })}*\n\n¿Podrían confirmarme el stock y los métodos de pago?`;
+async function verificarSesion() {
+    const token = localStorage.getItem('electrohogar_token');
+    if (!token) return;
 
     try {
-        await fetch('includes/api/guardar_lead.php', {
+        const res = await fetch('includes/api/validar_sesion.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ carrito: carrito, total: total, fecha: new Date().toISOString() })
+            body: JSON.stringify({ token })
         });
-    } catch (error) { console.error("Error guardando lead", error); }
+        const data = await res.json();
 
-    window.open(`https://wa.me/51989919237?text=${encodeURIComponent(mensaje)}`, '_blank');
+        if (data.status === 'success') {
+            sesionUsuario = data.user;
+            mostrarUsuarioEnCarrito();
+        } else {
+            localStorage.removeItem('electrohogar_token');
+        }
+    } catch (e) {
+        console.error("Error validando sesión", e);
+    }
+}
+
+function mostrarUsuarioEnCarrito() {
+    const container = document.getElementById('user-info-cart');
+    if (container && sesionUsuario) {
+        container.style.display = 'block';
+        document.getElementById('user-name-display').innerText = `Hola, ${sesionUsuario.nombre}`;
+    }
+}
+
+function cerrarSesion() {
+    localStorage.removeItem('electrohogar_token');
+    sesionUsuario = null;
+    document.getElementById('user-info-cart').style.display = 'none';
+}
+
+async function iniciarFlujoValidacion() {
+    if (carrito.length === 0) return;
+    
+    // Capturamos el carrito actual
+    const itemsParaEnviar = [...carrito];
+    
+    // Enviamos directo a WhatsApp sin pedir datos ni guardar en DB
+    enviarWhatsAppFinal(itemsParaEnviar);
+    
+    // Opcional: Limpiar carrito tras enviar
+    carrito = [];
+    guardarCarrito();
+    cerrarCarrito();
+}
+
+
+
+function enviarWhatsAppFinal(items) {
+    let total = 0;
+    const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+    let mensaje = "Hola ElectroHogar. Aquí está mi pedido:\n\n";
+
+    items.forEach(item => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
+        // Construimos el link del producto (asumiendo que catalogo.php puede mostrar detalle por ID)
+        const productLink = `${baseUrl}/catalogo.php?id=${item.id}`;
+        mensaje += `${item.cantidad}x *${item.nombre}*\n🔗 ${productLink}\n💰 Subtotal: S/ ${subtotal.toLocaleString('es-PE', { minimumFractionDigits: 2 })}\n\n`;
+    });
+
+    mensaje += `*Total: S/ ${total.toLocaleString('es-PE', { minimumFractionDigits: 2 })}*`;
+    
+    const waUrl = `https://wa.me/51989919237?text=${encodeURIComponent(mensaje)}`;
+    
+    // Usamos location.href para evitar bloqueos de popup en móviles tras validación async
+    window.location.href = waUrl;
 }
