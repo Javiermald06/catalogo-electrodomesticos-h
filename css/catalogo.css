@@ -972,62 +972,76 @@ button {
 
     /* === TARJETAS PARA CELULAR === */
     #catalogo-grid .product-card {
-        padding: 8px !important;
+        padding: 10px !important;
         border-radius: 12px !important;
-        height: 100% !important; /* ✨ Altura completa para nivelar */
         display: flex !important;
         flex-direction: column !important;
         background: #fff;
         width: 100% !important;
+        min-height: auto !important; /* Quitar restricciones de altura */
     }
 
     #catalogo-grid .product-card__content {
         display: flex !important;
         flex-direction: column !important;
-        flex-grow: 1 !important; /* ✨ Empuja el contenido para llenar la tarjeta */
+        gap: 5px !important; /* Espacio mínimo entre marca, título y precio */
     }
 
     #catalogo-grid .product-card__actions {
-        margin-top: auto !important; /* ✨ Alinea todos los botones a la base */
-        padding-top: 8px;
+        margin-top: 5px !important; /* Pegado al contenido */
+        padding-top: 0;
     }
 
     #catalogo-grid .product-card__img-container {
-        height: 130px !important; /* ✨ Un poco más grande */
-        margin-bottom: 6px !important;
+        height: 140px !important; 
+        margin-bottom: 5px !important;
+    }
+
+    .product-card__brand {
+        font-size: 11px !important;
+        margin-bottom: -4px;
     }
 
     #catalogo-grid .product-card__title {
-        font-size: 11px !important;
-        height: 28px !important;
+        font-size: 13.5px !important;
+        height: auto !important;
+        max-height: 36px !important;
         line-height: 1.2 !important;
-        margin: 2px 0 4px 0 !important;
+        margin: 0 !important;
+        color: var(--text-dark);
+        font-weight: 600;
     }
 
     .product-card__price {
-        font-size: 16px;
-        margin-bottom: 2px;
+        font-size: 20px !important;
+        margin-bottom: 0;
+        line-height: 1;
+        font-weight: 800;
     }
 
     .product-card__price-row {
-        gap: 4px;
+        gap: 6px;
+        align-items: center;
     }
 
     .product-card__discount-tag {
-        font-size: 9px;
+        font-size: 10px;
         padding: 1px 5px;
+        font-weight: 800;
     }
 
     .product-card__price--old {
-        font-size: 11px;
-        margin-bottom: 6px;
+        font-size: 13px !important;
+        margin-bottom: 4px;
+        font-weight: 500;
     }
 
     .product-card__btn {
-        font-size: 11px;
-        padding: 9px 6px;
+        font-size: 13px !important;
+        padding: 12px 8px !important;
         border-radius: 8px;
-        gap: 4px;
+        gap: 6px;
+        font-weight: 700;
     }
 
     .product-card__btn .icon-sm {

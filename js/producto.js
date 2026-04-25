@@ -188,9 +188,9 @@ function renderizarProductoCompleto(prod) {
                 <h1 class="detail-title">${prod.nombre}</h1>
                 <p class="detail-sku">SKU: ${prod.sku || prod.id_producto}</p>
                 
-                <div class="detail-price-box" style="background: #f8fafc; padding: 25px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #f1f5f9;">
-                    ${precioAnterior ? `<span class="detail-old-price" style="text-decoration: line-through; color: #94a3b8; font-size: 18px; margin-bottom: 5px; display: block;">S/ ${precioAnterior.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>` : ''}
-                    <h2 class="detail-current-price" style="font-size: 46px; font-weight: 800; color: #E8232A; margin: 0; line-height: 1; font-family: 'Rajdhani', sans-serif;">
+                <div class="detail-price-box" style="background: #f8fafc; padding: 15px 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #f1f5f9;">
+                    ${precioAnterior ? `<span class="detail-old-price" style="text-decoration: line-through; color: #94a3b8; font-size: 16px; margin-bottom: 4px; display: block;">S/ ${precioAnterior.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>` : ''}
+                    <h2 class="detail-current-price" style="font-size: 42px; font-weight: 800; color: #E8232A; margin: 0; line-height: 1; font-family: 'Rajdhani', sans-serif;">
                         S/ ${precioFinal.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
                     </h2>
                 </div>

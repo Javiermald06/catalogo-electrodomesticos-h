@@ -180,8 +180,8 @@ function renderExploraCategorias() {
   // Evitar duplicados (Failsafe)
   if (document.querySelector('.circular-categories-section')) return;
 
-  const container = document.getElementById('sections-container');
-  if (!container) return;
+  const ofertas = document.getElementById('ofertas');
+  if (!ofertas) return;
 
   const navItems = SECCIONES_DINAMICAS.map(sec => `
         <a href="#${sec.id}" class="circular-cat-item">
@@ -201,8 +201,8 @@ function renderExploraCategorias() {
       </section>
     `;
 
-  // Insert Before the actual sections
-  container.insertAdjacentHTML('beforebegin', html);
+  // Insertar ENCIMA de las Ofertas del Día
+  ofertas.insertAdjacentHTML('beforebegin', html);
 }
 
 function renderSecciones() {
@@ -319,8 +319,14 @@ function initScrollSpy() {
           if (link.getAttribute('href') === '#' + closestSection) {
             if (!link.classList.contains('active')) {
               link.classList.add('active');
-              // Auto-centrar la categoría en la barra horizontal
-              link.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+              // Auto-centrar la categoría en la barra horizontal de forma manual (evita saltos de ventana)
+              const navWidth = catNav.offsetWidth;
+              const linkOffset = link.offsetLeft;
+              const linkWidth = link.offsetWidth;
+              catNav.scrollTo({
+                left: linkOffset - (navWidth / 2) + (linkWidth / 2),
+                behavior: 'smooth'
+              });
             }
           } else {
             link.classList.remove('active');
@@ -369,9 +375,11 @@ function initHeaderScrollLogic() {
 
     // Mostrar u ocultar la barra categórica pegadiza.
     if (catNav) {
-      // La mostramos solo si hemos pasado la sección de carrusel de ofertas/explorar categorías
-      const firstSection = document.getElementById('sections-container');
-      if (firstSection && currentScrollY >= (firstSection.offsetTop - 200)) {
+      // La mostramos en cuanto la sección "Explora" comience a salir por arriba
+      const exploraSec = document.querySelector('.circular-categories-section');
+      const triggerPos = exploraSec ? (exploraSec.offsetTop - 60) : 500;
+      
+      if (currentScrollY >= triggerPos) {
         catNav.classList.add('cat-nav-visible');
       } else {
         catNav.classList.remove('cat-nav-visible');
@@ -490,6 +498,7 @@ window.addEventListener('datosBuscadorListos', (e) => {
   makeDragScrollable('.circular-categories-wrapper');
   makeDragScrollable('.cat-nav');
   makeDragScrollable('.carousel');
+  makeDragScrollable('.recommended-swipe-mobile');
 
   // ✨ FAILSAFE: Quitar el loader si ya renderizamos
   const loader = document.getElementById('global-loader');
@@ -515,6 +524,7 @@ function initHomeSiReady() {
     makeDragScrollable('.circular-categories-wrapper');
     makeDragScrollable('.cat-nav');
     makeDragScrollable('.carousel');
+    makeDragScrollable('.recommended-swipe-mobile');
 
     const loader = document.getElementById('global-loader');
     if (loader) loader.classList.add('hide');
