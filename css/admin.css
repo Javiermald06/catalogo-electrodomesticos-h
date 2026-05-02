@@ -369,3 +369,38 @@ body { font-family: 'Outfit', sans-serif; overflow: hidden; background: var(--bg
     cursor: grabbing !important;
 }
 
+/* REJILLA DINÁMICA PARA CATEGORÍAS Y MARCAS (ADMIN) */
+@media (min-width: 769px) {
+    .grid-admin-cats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+    
+    .accordion-section.always-open-desktop {
+        margin-bottom: 0;
+    }
+    
+    .accordion-section.always-open-desktop .accordion-header {
+        cursor: default;
+        pointer-events: none; /* Desactiva clics en la cabecera en PC */
+    }
+
+    .accordion-section.always-open-desktop .accordion-header button {
+        pointer-events: auto; /* Permite clics en el botón "Nueva" */
+    }
+    
+    .accordion-section.always-open-desktop .accordion-icon {
+        display: none;
+    }
+    
+    .accordion-section.always-open-desktop .accordion-content {
+        max-height: none !important;
+        padding: 0 20px 20px 20px !important;
+        border-top: 1px solid var(--border) !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+}
+

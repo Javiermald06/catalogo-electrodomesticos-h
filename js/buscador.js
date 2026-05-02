@@ -7,6 +7,52 @@ var SECCIONES_DINAMICAS = [];
 var MARCAS_DINAMICAS = []; // Lista completa de marcas (incluye inactivas)
 let selectedSuggestionIndex = -1;
 
+// Lógica Global de Cierre (Cerrar al scrollear o cliquear fuera)
+window.addEventListener('scroll', () => {
+    if (window.innerWidth <= 768) {
+        const searchContainer = document.getElementById('search-container-main');
+        if (searchContainer && searchContainer.classList.contains('active')) {
+            searchContainer.classList.remove('active');
+            const input = document.getElementById('buscador-principal');
+            if (input) input.blur();
+            const caja = document.getElementById('caja-sugerencias');
+            if (caja) caja.classList.remove('active');
+        }
+    }
+}, { passive: true });
+
+document.addEventListener('click', (e) => {
+    const searchContainer = document.getElementById('search-container-main');
+    const mobileSearchBtn = document.querySelector('.mobile-search-btn');
+    const caja = document.getElementById('caja-sugerencias');
+    const input = document.getElementById('buscador-principal');
+
+    // Cerrar buscador principal
+    if (searchContainer && searchContainer.classList.contains('active')) {
+        if (!searchContainer.contains(e.target) && (!mobileSearchBtn || !mobileSearchBtn.contains(e.target))) {
+            searchContainer.classList.remove('active');
+            if (caja) caja.classList.remove('active');
+        }
+    }
+
+    // Cerrar sugerencias al hacer clic fuera del input y la caja
+    if (caja && caja.classList.contains('active')) {
+        if (input && !input.contains(e.target) && !caja.contains(e.target)) {
+            caja.classList.remove('active');
+        }
+    }
+});
+
+// Obtener la ruta base del script para que las imágenes funcionen en cualquier página
+const getBuscadorBaseUrl = () => {
+    const scripts = document.getElementsByTagName('script');
+    for (let s of scripts) {
+        if (s.src.includes('js/buscador.js')) return s.src.replace('js/buscador.js', '');
+    }
+    return '';
+};
+const BUSCADOR_BASE_URL = getBuscadorBaseUrl();
+
 // 1. CARGA DE DATOS GLOBAL (Para que las sugerencias funcionen en cualquier página)
 async function inicializarDatosBuscador() {
     try {
@@ -25,7 +71,7 @@ async function inicializarDatosBuscador() {
                     categoria_real: p.categoria,
                     precio: tieneOferta ? precioOfe : precioReg,
                     precioAntes: tieneOferta ? precioReg : null,
-                    img: p.img_principal || p.img || p.imagen || p.ruta_imagen || null,
+                    img: p.img_principal || (p.galeria ? p.galeria.split(',')[0] : null),
                     enOferta: tieneOferta,
                     descuento: pctDescuento,
                     badge: tieneOferta ? 'oferta' : null,
@@ -62,7 +108,8 @@ async function inicializarDatosBuscador() {
                 });
             }
 
-            // Guardar para acceso inmediato (evitar race conditions)
+            // Guardar en una variable global inmutable para el buscador
+            window.ALL_PRODUCTS = PRODUCTOS;
             window.PRODUCTOS_STORAGE = PRODUCTOS;
             window.SECCIONES_STORAGE = SECCIONES_DINAMICAS;
             window.MARCAS_STORAGE = MARCAS_DINAMICAS;
@@ -182,9 +229,10 @@ window.mostrarSugerencias = function(query) {
         return false;
     };
 
+    const source = window.ALL_PRODUCTS || PRODUCTOS || [];
     const sugerenciasCat = SECCIONES_DINAMICAS.filter(s => cumpleFiltro(s.titulo)).slice(0, 4);
     const sugerenciasMarcas = MARCAS_DINAMICAS.filter(m => cumpleFiltro(m)).slice(0, 4);
-    const sugerenciasProds = PRODUCTOS.filter(p => cumpleFiltro(p.nombre)).slice(0, 6);
+    const sugerenciasProds = source.filter(p => cumpleFiltro(p.nombre)).slice(0, 6);
 
     renderSugerencias(sugerenciasCat, sugerenciasMarcas, sugerenciasProds);
 };
@@ -230,7 +278,9 @@ function renderSugerencias(cats, marcas, prods) {
                 <div class="suggestion-group">
                     <div class="suggestion-group-title">Productos</div>
                     ${prods.map(p => {
-                        const imgPath = p.img ? `assets/img_productos/${p.img}` : 'assets/img/placeholder.png';
+                        const firstImg = p.img ? p.img.split(',')[0].trim() : null;
+                        const imgPath = firstImg ? `assets/img_productos/${firstImg}` : 'assets/img/placeholder.png';
+
                         return `
                             <div class="suggestion-item suggestion-item--product" onclick="seleccionarSugerencia('${p.id}', 'producto')">
                                 <img src="${imgPath}" class="suggestion-thumb" alt="${p.nombre}" onerror="this.src='assets/img/placeholder.png'">

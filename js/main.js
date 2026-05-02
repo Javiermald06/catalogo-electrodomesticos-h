@@ -210,7 +210,10 @@ function initHomeSiReady() {
   }
 }
 
+// Lógica de cierre de buscador movida a buscador.js para soporte global
+
 document.addEventListener('DOMContentLoaded', async () => {
+
   // Los banners son independientes del buscador por ahora
   await cargarBannersPublicos();
 

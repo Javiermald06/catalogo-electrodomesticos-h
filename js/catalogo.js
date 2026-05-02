@@ -58,10 +58,11 @@ async function cargarCatalogo() {
             const breadContainer = document.querySelector('.breadcrumbs');
             
             // Definir texto de la categoría o búsqueda
-            let displayTitle = 'Catálogo Completo';
+            let displayTitle = 'Electrohogar';
             if (categoriaActiva) displayTitle = categoriaActiva;
             if (buscaActiva) displayTitle = `Búsqueda: "${buscaActiva}"`;
             if (marcaActiva && !categoriaActiva) displayTitle = `Marca: ${marcaActiva}`;
+
 
             // Actualizar Título Principal <h1>
             if (tituloPrincipal) {
@@ -263,6 +264,7 @@ function configurarSortModal() {
 
             // Cerrar modal
             sortModal.classList.remove('active');
+            document.body.style.overflow = '';
 
             // Aplicar filtros con nuevo orden
             if (typeof aplicarFiltrosFinales === 'function') {

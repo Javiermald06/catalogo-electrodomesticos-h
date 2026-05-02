@@ -1,3 +1,4 @@
+<?php include 'includes/contador.php'; ?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -119,7 +120,7 @@
     <section class="carousel-section" id="ofertas" aria-labelledby="titulo-ofertas">
       <div class="section-header">
         <h2 id="titulo-ofertas" class="section-title"> Ofertas <span>del Día</span></h2>
-        <a href="#" class="see-all">Ver todas →</a>
+        <a href="catalogo.php" class="cat-see-all-link">Ver todo →</a>
       </div>
       <div class="carousel-wrapper">
         <button class="carousel-btn prev" data-target="ofertas-car"
@@ -128,7 +129,6 @@
         <button class="carousel-btn next" data-target="ofertas-car"
           aria-label="Desplazar ofertas a la derecha">›</button>
       </div>
-      <button class="btn-ver-mas-mobile" onclick="window.location.href='catalogo.php'">Ver más Ofertas del Día</button>
     </section>
 
     <aside id="promo-container" style="padding: 30px 0;" aria-label="Promoción especial">

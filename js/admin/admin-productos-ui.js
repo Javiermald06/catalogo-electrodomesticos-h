@@ -4,30 +4,44 @@
 
 let categoriaSeleccionadaAdmin = null;
 let busquedaProductosAdmin = "";
+let filtroEstadoAdmin = null; // null = todos, 0 = ocultos, 1 = activos
 
 window.abrirCategoriaProductos = function(idCategoria) {
     categoriaSeleccionadaAdmin = idCategoria;
     busquedaProductosAdmin = "";
+    filtroEstadoAdmin = null;
+    renderProductos();
+};
+
+window.abrirProductosOcultos = function() {
+    categoriaSeleccionadaAdmin = 'all';
+    busquedaProductosAdmin = "";
+    filtroEstadoAdmin = 0;
     renderProductos();
 };
 
 window.volverACategoriasProd = function() {
     categoriaSeleccionadaAdmin = null;
     busquedaProductosAdmin = "";
+    filtroEstadoAdmin = null;
     renderProductos();
 };
 
 window.buscarProductosAdmin = function(event) {
-    busquedaProductosAdmin = event.target.value.toLowerCase();
+    const input = event.target;
+    busquedaProductosAdmin = input.value.toLowerCase();
+    filtroEstadoAdmin = null;
+    
+    // Si ya estamos en la vista de tabla, renderProductos solo actualizará el tbody
+    // Si no, forzará el cambio de vista.
     renderProductos();
     
-    setTimeout(() => {
-        const inputs = document.querySelectorAll('.search-box input');
-        if (inputs.length > 0) {
-            inputs[0].focus();
-            inputs[0].setSelectionRange(inputs[0].value.length, inputs[0].value.length);
-        }
-    }, 0);
+    // Asegurar que el foco se mantenga (especialmente importante en móvil)
+    if (document.activeElement !== input) {
+        input.focus();
+        const len = input.value.length;
+        input.setSelectionRange(len, len);
+    }
 };
 
 function renderProductos() {
@@ -130,9 +144,14 @@ function renderProductos() {
     let productosFiltro = state.productos;
     let tituloTabla = "Todos los productos";
 
+    if (filtroEstadoAdmin !== null) {
+        productosFiltro = state.productos.filter(p => p.estado == filtroEstadoAdmin);
+        tituloTabla = filtroEstadoAdmin == 0 ? "Productos Ocultos" : "Productos Activos";
+    }
+
     if (busquedaProductosAdmin !== '') {
         tituloTabla = "🔍 Resultados de Búsqueda";
-        productosFiltro = state.productos.filter(p => 
+        productosFiltro = productosFiltro.filter(p => 
             p.nombre.toLowerCase().includes(busquedaProductosAdmin) || 
             (p.sku && p.sku.toLowerCase().includes(busquedaProductosAdmin))
         );
@@ -146,7 +165,7 @@ function renderProductos() {
         const cat = state.categorias.find(c => c.id_categoria == categoriaSeleccionadaAdmin);
         const badge = (cat && cat.estado == 0) ? `<span style="font-size: 11px; background: #fee2e2; color: #ef4444; padding: 4px 8px; border-radius: 6px; font-weight: bold; margin-left: 8px; vertical-align: middle;">CATEGORÍA INACTIVA</span>` : '';
         tituloTabla = (cat ? cat.nombre : "Sin categorizar") + badge;
-        productosFiltro = state.productos.filter(p => 
+        productosFiltro = productosFiltro.filter(p => 
             p.id_categoria == categoriaSeleccionadaAdmin || 
             (categoriaSeleccionadaAdmin == 0 && (!p.id_categoria || p.id_categoria == 0))
         );

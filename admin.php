@@ -30,6 +30,7 @@ $csrf_token = generar_csrf();
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;700&family=Outfit:wght@400;500;600;700&family=Michroma&display=block" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
@@ -68,8 +69,8 @@ $csrf_token = generar_csrf();
             <header class="top-header">
                 <button class="menu-toggle" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
                 
-                <div class="header-title">Panel de Control <span class="badge-modo">Modo Catálogo</span></div>
-                <div class="header-user"><span class="user-name">Hola, Javier</span><div class="user-avatar">J</div></div>
+                <div class="header-title">Panel de Control</div>
+                <div class="header-user"><span class="user-name">Hola, Sr. Ricardo</span><div class="user-avatar">R</div></div>
             </header>
             
             <div class="content-area">

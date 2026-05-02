@@ -13,7 +13,8 @@ window.createProductCardHTML = function(p) {
     const marca = (p.marca || 'GENERIC').toUpperCase();
     const precio = parseFloat(p.precio || p.precio_oferta || 0);
     const precioAnterior = p.precio_antes ? parseFloat(p.precio_antes) : (p.precio_regular ? parseFloat(p.precio_regular) : (p.precioAntes ? parseFloat(p.precioAntes) : null));
-    const imagen = p.img_principal || p.img || p.imagen || 'placeholder.png';
+    const rawImg = p.img_principal || p.img || p.imagen || (p.galeria ? p.galeria.split(',')[0] : 'placeholder.png');
+    const imagen = rawImg.split(',')[0].trim();
 
     let badgeTopHtml = '';
     let precioHtml = '';

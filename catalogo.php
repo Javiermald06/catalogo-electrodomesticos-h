@@ -30,11 +30,11 @@
 
     <main class="catalog-layout max-w-container">
 
-        <div class="sidebar-overlay" onclick="document.querySelector('.filters-sidebar').classList.remove('active'); this.classList.remove('active')"></div>
+        <div class="sidebar-overlay" onclick="document.querySelector('.filters-sidebar').classList.remove('active'); this.classList.remove('active'); document.body.style.overflow = ''"></div>
         <aside class="filters-sidebar">
             <h3 style="margin-bottom: 20px; font-weight: 500; color: #1e293b; font-size: 20px;">Filtrar por:</h3>
             <button class="btn-close-sidebar"
-                onclick="document.querySelector('.filters-sidebar').classList.remove('active'); document.querySelector('.sidebar-overlay').classList.remove('active')"
+                onclick="document.querySelector('.filters-sidebar').classList.remove('active'); document.querySelector('.sidebar-overlay').classList.remove('active'); document.body.style.overflow = ''"
                 aria-label="Cerrar filtros">
                 <i data-lucide="x"></i>
             </button>
@@ -88,14 +88,14 @@
                 <div class="view-options">
                     <!-- Botón Filtrar (Móvil + Desktop) -->
                     <button class="btn-mobile-filter"
-                        onclick="document.querySelector('.filters-sidebar').classList.add('active'); document.querySelector('.sidebar-overlay').classList.add('active')"
+                        onclick="document.querySelector('.filters-sidebar').classList.add('active'); document.querySelector('.sidebar-overlay').classList.add('active'); document.body.style.overflow = 'hidden'"
                         aria-label="Abrir filtros">
                         <i data-lucide="sliders-horizontal" style="width:16px;height:16px;"></i> Filtrar
                     </button>
 
                     <!-- Botón Ordenar (Móvil: abre modal) -->
                     <button class="btn-mobile-sort"
-                        onclick="document.getElementById('sort-modal').classList.add('active')" aria-label="Ordenar">
+                        onclick="document.getElementById('sort-modal').classList.add('active'); document.body.style.overflow = 'hidden'" aria-label="Ordenar">
                         <i data-lucide="arrow-up-down" style="width:16px;height:16px;"></i> Ordenar
                     </button>
 
@@ -123,7 +123,7 @@
             </div>
 
             <!-- MODAL ORDENAR (Estilo Bottom Sheet - Solo Móvil) -->
-            <div class="sort-modal-overlay" id="sort-modal" onclick="this.classList.remove('active')">
+            <div class="sort-modal-overlay" id="sort-modal" onclick="this.classList.remove('active'); document.body.style.overflow = ''">
                 <div class="sort-modal-sheet" onclick="event.stopPropagation()">
                     <div class="sort-modal-header">
                         <span>Ordenar por</span>

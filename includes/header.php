@@ -30,7 +30,7 @@ enviar_headers_seguridad();
     <!-- Acciones -->
     <div class="header-actions">
         <!-- Botón Lupa Exclusivo Móvil -->
-        <button class="mobile-search-btn" aria-label="Buscar" onclick="document.getElementById('search-container-main').classList.toggle('active')">
+        <button class="mobile-search-btn" aria-label="Buscar" onclick="const c = document.getElementById('search-container-main'); c.classList.toggle('active'); if(c.classList.contains('active')) { setTimeout(() => document.getElementById('buscador-principal').focus(), 100); }">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         </button>
         <a href="https://wa.me/51989919237?text=Hola%20Electrohogar" target="_blank" class="btn-contact header-cta" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
@@ -43,4 +43,5 @@ enviar_headers_seguridad();
         </button>
     </div>
 </header>
-<script src='js/buscador.js'></script>
+
+<script src='js/buscador.js'></script>

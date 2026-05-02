@@ -82,10 +82,11 @@ button {
 }
 
 .breadcrumbs {
-    padding: 24px 0;
+    padding: 16px 0;
     font-size: 14px;
     color: var(--text-muted);
     margin-top: 100px;
+    /* Reducido para que esté más cerca del header fijo */
 }
 
 .breadcrumbs strong {
@@ -347,11 +348,14 @@ button {
     font-size: 15px;
 }
 
-/* Sección Superior (Flexbox 2 columnas) */
 .detail-top-section {
     display: flex;
     gap: 50px;
     margin-bottom: 60px;
+}
+
+.detail-purchase-panel {
+    flex: 1;
 }
 
 .detail-gallery-wrapper {
@@ -382,9 +386,6 @@ button {
     transition: transform 0.3s ease;
 }
 
-.detail-purchase-panel {
-    flex: 1;
-}
 
 /* Panel de compra */
 .detail-brand-tag {
@@ -817,11 +818,13 @@ button {
 
     /* === CONTENEDOR === */
     .max-w-container {
-        padding: 0 8px !important; /* ✨ Reducido para que las tarjetas sean más grandes */
+        padding: 0 8px !important;
+        /* ✨ Reducido para que las tarjetas sean más grandes */
     }
 
     .catalog-layout {
-        display: block !important; /* ✨ Eliminar flex de columnas para usar todo el ancho */
+        display: block !important;
+        /* ✨ Eliminar flex de columnas para usar todo el ancho */
         margin-bottom: 30px;
     }
 
@@ -831,10 +834,12 @@ button {
         flex-direction: column;
         gap: 0;
         padding: 0;
-        margin-top: 12px; /* ✨ Espacio extra arriba para no estar pegado a breadcrumbs */
+        margin-top: 12px;
+        /* ✨ Espacio extra arriba para no estar pegado a breadcrumbs */
         margin-bottom: 20px;
         background: #fff;
-        border-top: 1px solid #f1f5f9; /* Línea sutil arriba */
+        border-top: 1px solid #f1f5f9;
+        /* Línea sutil arriba */
         border-bottom: 1px solid #e2e8f0;
     }
 
@@ -864,12 +869,15 @@ button {
         display: flex !important;
         align-items: center;
         justify-content: center;
-        gap: 12px; /* ✨ Más espacio entre icono y texto */
+        gap: 12px;
+        /* ✨ Más espacio entre icono y texto */
         background: #fff;
         border: none;
-        padding: 18px 16px; /* ✨ Botones más altos y cómodos */
+        padding: 18px 16px;
+        /* ✨ Botones más altos y cómodos */
         font-weight: 600;
-        font-size: 15px; /* ✨ Texto un poquito más grande */
+        font-size: 15px;
+        /* ✨ Texto un poquito más grande */
         color: #334155;
         cursor: pointer;
         font-family: inherit;
@@ -978,7 +986,8 @@ button {
 
     /* === GRILLA 2 POR FILA === */
     .products-area {
-        padding: 0 4px !important; /* ✨ Casi al borde para maximizar tamaño */
+        padding: 0 4px !important;
+        /* ✨ Casi al borde para maximizar tamaño */
     }
 
     .products-grid {
@@ -996,23 +1005,32 @@ button {
         flex-direction: column !important;
         background: #fff;
         width: 100% !important;
-        min-height: auto !important; /* Quitar restricciones de altura */
+        min-height: auto !important;
+        /* Quitar restricciones de altura */
     }
 
     #catalogo-grid .product-card__content {
         display: flex !important;
         flex-direction: column !important;
-        gap: 5px !important; /* Espacio mínimo entre marca, título y precio */
+        gap: 5px !important;
+        /* Espacio mínimo entre marca, título y precio */
     }
 
     #catalogo-grid .product-card__actions {
-        margin-top: 5px !important; /* Pegado al contenido */
+        margin-top: 5px !important;
+        /* Pegado al contenido */
         padding-top: 0;
     }
 
     #catalogo-grid .product-card__img-container {
-        height: 140px !important; 
+        height: 180px !important;
         margin-bottom: 5px !important;
+        padding: 0 !important;
+    }
+
+    #catalogo-grid .product-card__img-container img {
+        object-fit: cover !important;
+        padding: 0 !important;
     }
 
     .product-card__brand {
@@ -1031,10 +1049,15 @@ button {
     }
 
     .product-card__price {
-        font-size: 20px !important;
+        font-size: clamp(17px, 5vw, 19px) !important;
         margin-bottom: 0;
         line-height: 1;
         font-weight: 800;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        display: block;
     }
 
     .product-card__price-row {
@@ -1081,8 +1104,14 @@ button {
 
     .products-grid.list-view .product-card__img-container {
         width: 100% !important;
-        height: 140px !important;
+        height: 180px !important;
         margin-bottom: 8px !important;
+        padding: 0 !important;
+    }
+
+    .products-grid.list-view .product-card__img-container img {
+        object-fit: cover !important;
+        padding: 0 !important;
     }
 
     .products-grid.list-view .product-card__btn {
@@ -1117,9 +1146,22 @@ button {
         font-size: 13px;
     }
 
-    .internal-search {
+    .catalog-layout {
+        padding-top: 0;
+    }
+
+    .breadcrumbs {
+        margin-top: 110px;
+        /* Mas espacio desde el header */
+        margin-bottom: 30px;
+        /* Mas espacio hacia Electrohogar */
+        padding: 10px 0;
         font-size: 13px;
-        padding: 10px 12px;
+    }
+
+    .page-title {
+        font-size: 32px !important;
+        margin-bottom: 20px !important;
     }
 }
 

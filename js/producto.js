@@ -135,9 +135,9 @@ function renderizarProductoCompleto(prod) {
     // GALERÍA MOBILE CARRUSEL (Plaza Vea Style)
     const galeriaMobile = `
         <div class="gallery-mobile">
-            <div class="mobile-carousel" style="display:flex; overflow-x:auto; scroll-snap-type: x mandatory; margin: 0 -20px; padding: 0 20px;" onscroll="handleMobileGalleryScroll(this, ${imagenes.length})">
+            <div class="mobile-carousel" style="display:flex; overflow-x:auto; scroll-snap-type: x mandatory; width: 100%;" onscroll="handleMobileGalleryScroll(this, ${imagenes.length})">
                 ${imagenes.map(img => `
-                    <img src="assets/img_productos/${img}" style="width:100%; flex-shrink:0; scroll-snap-align:center; object-fit:contain; object-position:center; height:350px;" onerror="this.src='https://via.placeholder.com/500?text=📦'">
+                    <img src="assets/img_productos/${img}" style="width:100%; flex-shrink:0; scroll-snap-align:start; object-fit:contain; height:350px;" onerror="this.src='https://via.placeholder.com/500?text=📦'">
                 `).join('')}
             </div>
             <div class="mobile-carousel-dots" style="display:flex; justify-content:center; gap:8px; margin-top:15px;" id="mobile-dots-${prod.id_producto}">

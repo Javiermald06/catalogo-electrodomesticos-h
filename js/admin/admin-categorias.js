@@ -1,7 +1,6 @@
 /* ============================================================
-   admin-categorias.js � CRUD de Categor�as y Marcas
+   admin-categorias.js - CRUD de Categorías y Marcas
    ============================================================ */
-
 
 function renderCategorias() {
     if(!mainContent) return;
@@ -48,48 +47,50 @@ function renderCategorias() {
         <div class="fade-in">
             <h2 class="section-title">Categorías y Marcas</h2>
             
-            <!-- SECCIÓN CATEGORÍAS (Acordeón) -->
-            <div class="accordion-section" id="acc-categorias">
-                <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">
-                    <h3 style="display:flex; align-items:center; gap:10px;">
-                        <i data-lucide="layers" style="color:#2563eb; width:18px;"></i> Categorías (${state.categorias.length})
-                    </h3>
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <button onclick="event.stopPropagation(); abrirModalAtributo('categoria')" class="btn-primary" style="padding: 6px 12px; font-size:12px;">
-                            <i data-lucide="plus" style="width:14px;"></i> Nueva
-                        </button>
-                        <i data-lucide="chevron-down" class="accordion-icon"></i>
+            <div class="grid-admin-cats">
+                <!-- SECCIÓN CATEGORÍAS -->
+                <div class="accordion-section always-open-desktop" id="acc-categorias">
+                    <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">
+                        <h3 style="display:flex; align-items:center; gap:10px;">
+                            <i data-lucide="layers" style="color:#2563eb; width:18px;"></i> Categorías (${state.categorias.length})
+                        </h3>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <button onclick="event.stopPropagation(); abrirModalAtributo('categoria')" class="btn-primary" style="padding: 6px 12px; font-size:12px;">
+                                <i data-lucide="plus" style="width:14px;"></i> Nueva
+                            </button>
+                            <i data-lucide="chevron-down" class="accordion-icon"></i>
+                        </div>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="table-container" style="border:none;">
+                            <table class="table">
+                                <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
+                                <tbody>${filasCat}</tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <div class="accordion-content">
-                    <div class="table-container" style="border:none;">
-                        <table class="table">
-                            <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
-                            <tbody>${filasCat}</tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
 
-            <!-- SECCIÓN MARCAS (Acordeón) -->
-            <div class="accordion-section" id="acc-marcas">
-                <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">
-                    <h3 style="display:flex; align-items:center; gap:10px;">
-                        <i data-lucide="tag" style="color:#10b981; width:18px;"></i> Marcas (${state.marcas.length})
-                    </h3>
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <button onclick="event.stopPropagation(); abrirModalAtributo('marca')" class="btn-primary" style="padding: 6px 12px; font-size:12px; background:#10b981; border-color:#10b981;">
-                            <i data-lucide="plus" style="width:14px;"></i> Nueva
-                        </button>
-                        <i data-lucide="chevron-down" class="accordion-icon"></i>
+                <!-- SECCIÓN MARCAS -->
+                <div class="accordion-section always-open-desktop" id="acc-marcas">
+                    <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">
+                        <h3 style="display:flex; align-items:center; gap:10px;">
+                            <i data-lucide="tag" style="color:#10b981; width:18px;"></i> Marcas (${state.marcas.length})
+                        </h3>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <button onclick="event.stopPropagation(); abrirModalAtributo('marca')" class="btn-primary" style="padding: 6px 12px; font-size:12px; background:#10b981; border-color:#10b981;">
+                                <i data-lucide="plus" style="width:14px;"></i> Nueva
+                            </button>
+                            <i data-lucide="chevron-down" class="accordion-icon"></i>
+                        </div>
                     </div>
-                </div>
-                <div class="accordion-content">
-                    <div class="table-container" style="border:none;">
-                        <table class="table">
-                            <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
-                            <tbody>${filasMar}</tbody>
-                        </table>
+                    <div class="accordion-content">
+                        <div class="table-container" style="border:none;">
+                            <table class="table">
+                                <thead><tr><th>Nombre</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Acciones</th></tr></thead>
+                                <tbody>${filasMar}</tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
