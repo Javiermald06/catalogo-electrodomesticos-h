@@ -1,7 +1,11 @@
 <?php
 // includes/api/listar_productos_admin.php
 require_once '../conexion.php';
+require_once '../seguridad.php';
 header('Content-Type: application/json');
+
+// ─── SEGURIDAD: Solo administradores pueden ver el listado admin ───
+verificar_admin();
 
 try {
     // Consulta perfecta: Usamos subconsultas para evitar errores de agrupamiento
@@ -23,6 +27,6 @@ try {
     
     echo json_encode(['status' => 'success', 'data' => $productos]);
 } catch(PDOException $e) {
-    echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
+    respuesta_error($e, 'Error al listar productos.');
 }
 ?>

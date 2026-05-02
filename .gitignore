@@ -1,1 +1,27 @@
+# ═══════════════════════════════════════════
+# ElectroHogar — Archivos ignorados por Git
+# ═══════════════════════════════════════════
+
+# Credenciales y configuración sensible
 includes/conexion.php
+includes/config.php
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# IDEs y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Dependencias
+node_modules/
+vendor/
+
+# Archivos de respaldo
+*.bak
+*.backup

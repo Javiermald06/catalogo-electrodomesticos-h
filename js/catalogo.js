@@ -15,8 +15,7 @@ async function cargarCatalogo() {
     try {
         // 🚀 Una sola petición: productos + filtros juntos
         const catParam = categoriaActiva || '';
-        const response = await fetch(`includes/api/listar_productos.php?categoria=${encodeURIComponent(catParam)}`);
-        const result = await response.json();
+        window.fetchCached(`includes/api/listar_productos.php?categoria=${encodeURIComponent(catParam)}`, (result, isCached) => {
         const filtrosJson = { status: 'success', data: result.filtros || [] };
 
         if (result.status === 'success') {
@@ -57,6 +56,10 @@ async function cargarCatalogo() {
             // Actualizar Breadcrumbs dinámicamente (Estilo Moderno)
             document.title = `ElectroHogar - ${categoriaActiva || 'Catálogo'}`;
             const breadContainer = document.querySelector('.breadcrumbs');
+            const tituloPrincipal = document.getElementById('catalogo-titulo-principal');
+            if (tituloPrincipal) {
+                tituloPrincipal.innerText = categoriaActiva ? categoriaActiva : 'Electrohogar';
+            }
 
             if (breadContainer) {
                 // Le damos formato flexbox para que la flechita quede perfectamente alineada
@@ -88,21 +91,20 @@ async function cargarCatalogo() {
                 };
                 inicializarFiltrosDinamicos(productosFiltrados, categoriaActiva || '', filtrosJson, extras);
             }
-
             // Dibujar la cuadrícula inicial
             renderProductosGrid(productosFiltrados);
+            // ✨ OPTIMIZACIÓN: Ocultar el preloader SOLO DESPUÉS de pintar el catálogo
+            const loader = document.getElementById('global-loader');
+            if (loader) {
+                setTimeout(() => {
+                    loader.classList.add('hide');
+                    setTimeout(() => loader.style.display = 'none', 400);
+                }, 100);
+            }
         }
+        });
     } catch (e) {
         console.error("Error cargando el catálogo:", e);
-    } finally {
-        // ✨ OPTIMIZACIÓN: Ocultar el preloader SOLO DESPUÉS de pintar el catálogo
-        const loader = document.getElementById('global-loader');
-        if (loader) {
-            setTimeout(() => {
-                loader.classList.add('hide');
-                setTimeout(() => loader.style.display = 'none', 400);
-            }, 100);
-        }
     }
 }
 

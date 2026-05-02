@@ -1,5 +1,6 @@
 <?php
 require_once '../conexion.php';
+require_once '../seguridad.php';
 header('Content-Type: application/json');
 $categoria = $_GET['categoria'] ?? '';
 $max_filtros = 10; // número máximo de atributos a mostrar
@@ -95,6 +96,6 @@ try {
 
     echo json_encode(['status' => 'success', 'data' => $filtros]);
 } catch (Exception $e) {
-    echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
+    respuesta_error($e, 'Error al cargar los filtros.');
 }
 ?>

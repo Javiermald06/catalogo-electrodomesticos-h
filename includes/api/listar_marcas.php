@@ -1,6 +1,7 @@
 <?php
 // includes/api/listar_marcas.php
 require_once '../conexion.php'; 
+require_once '../seguridad.php';
 header('Content-Type: application/json');
 
 try {
@@ -10,6 +11,6 @@ try {
     
     echo json_encode(["status" => "success", "data" => $marcas]);
 } catch (PDOException $e) {
-    echo json_encode(["status" => "error", "msg" => $e->getMessage()]);
+    respuesta_error($e, 'Error al cargar las marcas.');
 }
 ?>

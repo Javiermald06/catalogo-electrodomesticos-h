@@ -1,0 +1,7 @@
+# ============================================================
+# .htaccess — Bloqueo total del directorio data/
+# Este directorio contiene archivos privados (CSV, datos internos)
+# ============================================================
+
+Order Allow,Deny
+Deny from all

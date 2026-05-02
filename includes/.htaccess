@@ -1,0 +1,14 @@
+# ============================================================
+# .htaccess — Bloqueo total del directorio includes/
+# Nadie puede acceder directamente a archivos PHP internos
+# ============================================================
+
+# Solo se permite acceso a los archivos de la carpeta api/ y auth/
+# Los archivos de configuración (config.php, conexion.php, seguridad.php)
+# quedan completamente bloqueados desde el navegador.
+
+# Bloquear acceso directo a archivos de configuración
+<FilesMatch "^(config|conexion|seguridad)\.php$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>

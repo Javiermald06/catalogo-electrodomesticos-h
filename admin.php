@@ -1,15 +1,23 @@
 <?php
-session_start();
+require_once 'includes/seguridad.php';
+
+// Iniciar sesión segura y verificar que es admin
+iniciar_sesion_segura();
 
 // Bloquear caché para que no se pueda volver atrás después de cerrar sesión
-header("Cache-Control: no-cache, must-revalidate");
-header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+enviar_headers_seguridad();
 
 // Verificar si el administrador está logueado
 if (!isset($_SESSION['id_admin'])) {
     header("Location: login.html");
     exit();
 }
+
+// Generar token CSRF para operaciones admin
+$csrf_token = generar_csrf();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -17,7 +25,7 @@ if (!isset($_SESSION['id_admin'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ElectroAdmin - Panel de Control</title>
-    <link rel="icon" type="image/png" href="assets\img\Logo_electrohogar.png">
+    <link rel="icon" type="image/png" href="assets/img/Logo_electrohogar.png">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -58,7 +66,13 @@ if (!isset($_SESSION['id_admin'])) {
             
             <div class="content-area">
                 <div class="content-wrapper" id="main-content">
+                    <div style="display:flex; gap: 20px; flex-wrap: wrap; width: 100%;">
+                        <div class="skeleton-box" style="width: 30%; height: 120px;"></div>
+                        <div class="skeleton-box" style="width: 30%; height: 120px;"></div>
+                        <div class="skeleton-box" style="width: 30%; height: 120px;"></div>
+                        <div class="skeleton-box" style="width: 100%; height: 400px; margin-top: 20px;"></div>
                     </div>
+                </div>
             </div>
         </main>
 
@@ -77,6 +91,10 @@ if (!isset($_SESSION['id_admin'])) {
 
     </div>
     
-    <script src="js/admin.js"></script>
+    <script src="js/admin/admin-core.js"></script>
+    <script src="js/admin/admin-productos.js"></script>
+    <script src="js/admin/admin-productos-ui.js"></script>
+    <script src="js/admin/admin-categorias.js"></script>
+    <script src="js/admin/admin-banners.js"></script>
 </body>
 </html>

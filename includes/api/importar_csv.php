@@ -1,11 +1,28 @@
 <?php
 // includes/api/importar_csv.php
 require_once '../conexion.php';
+require_once '../seguridad.php';
 header('Content-Type: application/json; charset=utf-8');
+
+// ─── SEGURIDAD: Solo administradores ───
+verificar_admin();
 
 // Validar que el archivo CSV haya llegado correctamente
 if (!isset($_FILES['archivo_csv']) || $_FILES['archivo_csv']['error'] !== UPLOAD_ERR_OK) {
     echo json_encode(['status' => 'error', 'msg' => 'No se recibió ningún archivo válido.']);
+    exit;
+}
+
+// ─── SEGURIDAD: Validar extensión del CSV ───
+$ext = strtolower(pathinfo($_FILES['archivo_csv']['name'], PATHINFO_EXTENSION));
+if ($ext !== 'csv') {
+    echo json_encode(['status' => 'error', 'msg' => 'Solo se permiten archivos CSV.']);
+    exit;
+}
+
+// ─── SEGURIDAD: Limitar tamaño del CSV (10 MB) ───
+if ($_FILES['archivo_csv']['size'] > 10 * 1024 * 1024) {
+    echo json_encode(['status' => 'error', 'msg' => 'El archivo excede el tamaño máximo (10 MB).']);
     exit;
 }
 
@@ -160,10 +177,6 @@ try {
 
 } catch (Exception $e) {
     $pdo->rollBack();
-    $mensajeError = $e->getMessage();
-    if (strpos($mensajeError, 'Data too long for column \'sku\'') !== false) {
-        $mensajeError .= " -> Verifique que el archivo CSV no tenga filas rotas.";
-    }
-    echo json_encode(['status' => 'error', 'msg' => 'Error de proceso BD: ' . $mensajeError]);
+    respuesta_error($e, 'Error al importar el CSV. Verifique el formato del archivo.');
 }
 ?>

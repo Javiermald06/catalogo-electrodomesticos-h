@@ -1,6 +1,11 @@
 <?php
+// includes/api/guardar_cat_mar.php
 require_once '../conexion.php';
+require_once '../seguridad.php';
 header('Content-Type: application/json');
+
+// ─── SEGURIDAD: Solo administradores ───
+verificar_admin();
 
 try {
     $id = isset($_POST['id']) ? trim($_POST['id']) : '';
@@ -25,7 +30,7 @@ try {
         $id = $pdo->lastInsertId();
     } else {
         $stmt = $pdo->prepare("UPDATE $tabla SET nombre = :nombre WHERE $campoCmp = :id");
-        $stmt->execute([':nombre' => $nombre, ':id' => $id]);
+        $stmt->execute([':nombre' => $nombre, ':id' => (int)$id]);
     }
 
     echo json_encode([
@@ -35,9 +40,6 @@ try {
     ]);
 
 } catch (Exception $e) {
-    echo json_encode([
-        'status' => 'error',
-        'message' => $e->getMessage()
-    ]);
+    respuesta_error($e, 'Error al guardar.');
 }
 ?>

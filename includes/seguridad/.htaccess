@@ -1,0 +1,3 @@
+# Bloqueo total de acceso directo a módulos de seguridad
+Order Allow,Deny
+Deny from all

@@ -5,7 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cargando Producto... | ElectroHogar</title>
-    <link rel="icon" type="image/png" href="assets\img\Logo_electrohogar.png">
+    <link rel="icon" type="image/png" href="assets/img/Logo_electrohogar.png">
+    <!-- Preconnect: elimina latencia DNS/TLS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://unpkg.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap"
         rel="stylesheet">
@@ -97,14 +101,23 @@
 
     <main style="padding-top: 80px; min-height: 70vh;" id="main-producto">
         <div id="contenedor-detalle" class="max-w-container">
-            <p style="text-align: center; padding: 50px;">Cargando información del producto...</p>
+            <div class="product-detail-container" style="display:flex; gap: 40px; margin-top: 40px; width: 100%;">
+                <div class="skeleton-img" style="flex: 1.2; height: 500px; border-radius: 16px;"></div>
+                <div style="flex: 1; display:flex; flex-direction:column; gap: 20px;">
+                    <div class="skeleton-text" style="width: 30%; height: 20px;"></div>
+                    <div class="skeleton-text" style="width: 80%; height: 40px;"></div>
+                    <div class="skeleton-text" style="width: 40%; height: 30px;"></div>
+                    <div class="skeleton-box" style="width: 100%; height: 120px;"></div>
+                    <div class="skeleton-btn" style="width: 100%; height: 50px; margin-top: 20px;"></div>
+                </div>
+            </div>
         </div>
     </main>
 
     <?php include 'includes/footer.php'; ?>
 
-    <script src="js/components.js"></script>
-    <script src="js/producto.js"></script>
+    <script src="js/components.js" defer></script>
+    <script src="js/producto.js" defer></script>
 </body>
 
 </html>

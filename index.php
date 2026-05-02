@@ -7,7 +7,11 @@
   <meta name="description"
     content="Catálogo de electrodomésticos en Tacna. Las mejores marcas en línea blanca, TVs y tecnología para el hogar.">
   <title>ElectroHogar Tacna — Catálogo</title>
-  <link rel="icon" type="image/png" href="assets\img\Logo_electrohogar.png">
+  <link rel="icon" type="image/png" href="assets/img/Logo_electrohogar.png">
+  <!-- Preconnect: elimina latencia DNS/TLS de CDNs externos -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://unpkg.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap"
     rel="stylesheet">
@@ -148,8 +152,10 @@
 
   <?php include 'includes/footer.php'; ?>
 
-  <script src="js/components.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/components.js" defer></script>
+  <script src="js/slider.js" defer></script>
+  <script src="js/main.js" defer></script>
+  <script src="js/ui-interactions.js" defer></script>
 </body>
 
 </html>

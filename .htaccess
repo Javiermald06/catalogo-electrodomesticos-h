@@ -1,0 +1,65 @@
+# ============================================================
+# .htaccess — Protección de archivos sensibles (raíz)
+# ElectroHogar — Compatible con InfinityFree y Apache
+# ============================================================
+
+# ─── Bloquear acceso a archivos sensibles ───
+# Nadie puede acceder directamente a estos archivos por URL
+<FilesMatch "\.(csv|sql|bak|log|env|ini)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# ─── Bloquear acceso directo a archivos ocultos (.git, .env, etc) ───
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule (^|/)\.(?!well-known/) - [F]
+</IfModule>
+
+# ─── Desactivar listado de directorios ───
+# Sin esto, alguien podría ver todos tus archivos entrando a /assets/ o /data/
+Options -Indexes
+
+# ─── Prevenir hotlinking de imágenes (opcional pero útil) ───
+# Evita que otros sitios usen tus imágenes directamente
+# Descomenta las siguientes líneas si quieres activarlo:
+# <IfModule mod_rewrite.c>
+#     RewriteCond %{HTTP_REFERER} !^$
+#     RewriteCond %{HTTP_REFERER} !^https?://(www\.)?tudominio\.com [NC]
+#     RewriteRule \.(jpg|jpeg|png|gif|webp)$ - [F,NC]
+# </IfModule>
+
+# ─── Rendimiento: Compresión GZIP ───
+# Comprime CSS, JS y HTML antes de enviarlos al navegador (carga más rápido)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ─── Rendimiento: Caché del navegador ───
+# El navegador guarda archivos estáticos en caché para no descargarlos cada vez
+<IfModule mod_expires.c>
+    ExpiresActive On
+    
+    # Imágenes: 30 días de caché
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType image/gif "access plus 30 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+    
+    # CSS y JS: 7 días de caché
+    ExpiresByType text/css "access plus 7 days"
+    ExpiresByType application/javascript "access plus 7 days"
+    
+    # Fuentes: 30 días
+    ExpiresByType font/woff2 "access plus 30 days"
+    ExpiresByType font/woff "access plus 30 days"
+    
+    # HTML: sin caché (siempre fresco)
+    ExpiresByType text/html "access plus 0 seconds"
+</IfModule>

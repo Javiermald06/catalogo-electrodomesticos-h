@@ -21,9 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        const response = await fetch('includes/api/listar_productos.php');
-        const result = await response.json();
-
+        window.fetchCached('includes/api/listar_productos.php', (result, isCached) => {
         if (result.status === 'success') {
             TODOS_LOS_PRODUCTOS = result.data;
             const prod = TODOS_LOS_PRODUCTOS.find(p => p.id_producto == productoId);
@@ -33,18 +31,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 document.getElementById('contenedor-detalle').innerHTML = '<h2 style="text-align:center; padding: 50px;">Producto no encontrado.</h2>';
             }
+            // ✨ OPTIMIZACIÓN: Ocultar preloader cuando terminen de cargar todos los detalles
+            const loader = document.getElementById('global-loader');
+            if (loader) {
+                setTimeout(() => {
+                    loader.classList.add('hide');
+                    setTimeout(() => loader.style.display = 'none', 400);
+                }, 100);
+            }
         }
+        });
     } catch (e) {
         console.error("Error cargando el producto:", e);
-    } finally {
-        // ✨ OPTIMIZACIÓN: Ocultar preloader cuando terminen de cargar todos los detalles
-        const loader = document.getElementById('global-loader');
-        if (loader) {
-            setTimeout(() => {
-                loader.classList.add('hide');
-                setTimeout(() => loader.style.display = 'none', 400);
-            }, 100);
-        }
     }
 });
 

@@ -1,16 +1,20 @@
 <?php
 // includes/api/guardar_producto.php
 require_once '../conexion.php';
+require_once '../seguridad.php';
 header('Content-Type: application/json');
 
+// ─── SEGURIDAD: Solo administradores pueden guardar productos ───
+verificar_admin();
+
 $id_producto = $_POST['id_producto'] ?? null;
-$nombre = $_POST['nombre'] ?? '';
-$sku = $_POST['sku'] ?? '';
+$nombre = trim($_POST['nombre'] ?? '');
+$sku = trim($_POST['sku'] ?? '');
 $id_categoria = $_POST['id_categoria'] ?? null;
 $id_marca = $_POST['id_marca'] ?? null;
-$stock = $_POST['stock'] ?? 0;
-$precio_regular = $_POST['precio_regular'] ?? 0;
-$precio_oferta = $_POST['precio_oferta'] ?? 0;
+$stock = (int)($_POST['stock'] ?? 0);
+$precio_regular = (float)($_POST['precio_regular'] ?? 0);
+$precio_oferta = (float)($_POST['precio_oferta'] ?? 0);
 $especificaciones = $_POST['especificaciones_agrupadas'] ?? '';
 
 // 1. Procesar Orden de Imágenes
@@ -21,11 +25,26 @@ $orden = json_decode($orden_json, true);
 $directorioDestino = '../../assets/img_productos/'; 
 $nuevas_subidas = [];
 
-// Procesar archivos nuevos
+// Procesar archivos nuevos con validación de imagen
 if (!empty($_FILES['imagenes']['name'][0])) {
     foreach ($_FILES['imagenes']['tmp_name'] as $i => $tmpName) {
         if ($tmpName != "") {
-            $extension = pathinfo($_FILES['imagenes']['name'][$i], PATHINFO_EXTENSION);
+            // ─── SEGURIDAD: Validar que sea una imagen real ───
+            $archivo = [
+                'name' => $_FILES['imagenes']['name'][$i],
+                'tmp_name' => $tmpName,
+                'size' => $_FILES['imagenes']['size'][$i],
+                'error' => $_FILES['imagenes']['error'][$i]
+            ];
+            
+            $errores = validar_imagen($archivo);
+            if (!empty($errores)) {
+                // Saltar archivos no válidos silenciosamente
+                continue;
+            }
+            
+            // Usar solo extensiones seguras
+            $extension = strtolower(pathinfo($_FILES['imagenes']['name'][$i], PATHINFO_EXTENSION));
             $nuevoNombre = uniqid('prod_') . '.' . $extension;
             $rutaFinal = $directorioDestino . $nuevoNombre;
             if (move_uploaded_file($tmpName, $rutaFinal)) {
@@ -45,8 +64,8 @@ foreach ($orden as $item) {
             $idx_nueva++;
         }
     } else {
-        // Es una imagen existente (nombre de archivo)
-        $imagenes_finales[] = $item;
+        // Es una imagen existente (nombre de archivo) — sanitizar
+        $imagenes_finales[] = basename($item);
     }
 }
 
@@ -72,7 +91,7 @@ try {
         $stmt->execute([$sku, $nombre, $id_categoria, $id_marca, $precio_regular, $precio_oferta, $stock]);
         $id_producto_real = $pdo->lastInsertId(); 
     } else {
-        $id_producto_real = $id_producto;
+        $id_producto_real = (int)$id_producto;
         $sql = "UPDATE productos SET sku=?, nombre=?, id_categoria=?, id_marca=?, precio_regular=?, precio_oferta=?, stock=? WHERE id_producto=?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$sku, $nombre, $id_categoria, $id_marca, $precio_regular, $precio_oferta, $stock, $id_producto_real]);
@@ -120,7 +139,6 @@ try {
 
 } catch(PDOException $e) {
     $pdo->rollBack();
-    // Este es el mensaje que te salía en rojo. ¡Ahora ya no saldrá!
-    echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
+    respuesta_error($e, 'Error al guardar el producto.');
 }
 ?>

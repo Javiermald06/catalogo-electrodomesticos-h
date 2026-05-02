@@ -10,9 +10,7 @@ let selectedSuggestionIndex = -1;
 // 1. CARGA DE DATOS GLOBAL (Para que las sugerencias funcionen en cualquier página)
 async function inicializarDatosBuscador() {
     try {
-        const response = await fetch('includes/api/listar_productos.php');
-        const result = await response.json();
-
+        window.fetchCached('includes/api/listar_productos.php', (result, isCached) => {
         if (result.status === 'success') {
             PRODUCTOS = result.data.map(p => {
                 const precioReg = parseFloat(p.precio_regular);
@@ -27,7 +25,7 @@ async function inicializarDatosBuscador() {
                     categoria_real: p.categoria,
                     precio: tieneOferta ? precioOfe : precioReg,
                     precioAntes: tieneOferta ? precioReg : null,
-                    img: p.img_principal || null,
+                    img: p.img_principal || p.img || p.imagen || p.ruta_imagen || null,
                     enOferta: tieneOferta,
                     descuento: pctDescuento,
                     badge: tieneOferta ? 'oferta' : null,
@@ -74,6 +72,7 @@ async function inicializarDatosBuscador() {
                 window.dispatchEvent(new CustomEvent('datosBuscadorListos', { detail: { productos: PRODUCTOS, secciones: SECCIONES_DINAMICAS } }));
             }
         }
+        });
     } catch (e) {
         console.error("Error cargando datos del buscador:", e);
     }

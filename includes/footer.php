@@ -1,4 +1,5 @@
-<script src="js/carrito.js"></script>
+<script src="js/carrito.js" defer></script>
+<script src="js/whatsapp-checkout.js" defer></script>
 
 <footer>
     <div class="footer-top">
@@ -51,5 +52,3 @@
         <small>© 2026 ElectroHogar Tacna. Todos los derechos reservados.</small>
     </div>
 </footer>
-
-<script src="js/carrito.js"></script>
