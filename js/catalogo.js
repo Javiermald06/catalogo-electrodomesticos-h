@@ -53,33 +53,40 @@ async function cargarCatalogo() {
                 );
             }
 
-            // Actualizar Breadcrumbs dinámicamente (Estilo Moderno)
-            document.title = `ElectroHogar - ${categoriaActiva || 'Catálogo'}`;
-            const breadContainer = document.querySelector('.breadcrumbs');
+            // 1. Actualización de Identidad de la Página (Título y Breadcrumbs)
             const tituloPrincipal = document.getElementById('catalogo-titulo-principal');
-            if (tituloPrincipal) {
-                tituloPrincipal.innerText = categoriaActiva ? categoriaActiva : 'Electrohogar';
-            }
+            const breadContainer = document.querySelector('.breadcrumbs');
+            
+            // Definir texto de la categoría o búsqueda
+            let displayTitle = 'Catálogo Completo';
+            if (categoriaActiva) displayTitle = categoriaActiva;
+            if (buscaActiva) displayTitle = `Búsqueda: "${buscaActiva}"`;
+            if (marcaActiva && !categoriaActiva) displayTitle = `Marca: ${marcaActiva}`;
 
+            // Actualizar Título Principal <h1>
+            if (tituloPrincipal) {
+                tituloPrincipal.innerText = displayTitle;
+            }
+            document.title = `ElectroHogar - ${displayTitle}`;
+
+            // Actualizar Breadcrumbs dinámicamente
             if (breadContainer) {
-                // Le damos formato flexbox para que la flechita quede perfectamente alineada
                 breadContainer.style.display = 'flex';
                 breadContainer.style.alignItems = 'center';
                 breadContainer.style.gap = '8px';
 
-                if (categoriaActiva) {
-                    breadContainer.innerHTML = `
-                        <a href="index.php" class="bread-link">Inicio</a>
-                        <i data-lucide="chevron-right" style="width: 16px; height: 16px; color: #64748b;"></i>
-                        <strong style="color: var(--blue);">${categoriaActiva}</strong>
-                    `;
+                let breadHTML = `<a href="index.php" class="bread-link">Inicio</a>`;
+                breadHTML += `<i data-lucide="chevron-right" style="width: 16px; height: 16px; color: #64748b;"></i>`;
+                
+                if (buscaActiva) {
+                    breadHTML += `<strong style="color: var(--blue);">Búsqueda</strong>`;
+                } else if (categoriaActiva) {
+                    breadHTML += `<strong style="color: var(--blue);">${categoriaActiva}</strong>`;
                 } else {
-                    breadContainer.innerHTML = `
-                        <a href="index.php" class="bread-link">Inicio</a>
-                        <i data-lucide="chevron-right" style="width: 16px; height: 16px; color: #64748b;"></i>
-                        <strong style="color: var(--blue);">Catálogo Completo</strong>
-                    `;
+                    breadHTML += `<strong style="color: var(--blue);">Catálogo</strong>`;
                 }
+                
+                breadContainer.innerHTML = breadHTML;
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             }
 
