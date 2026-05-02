@@ -4,30 +4,37 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Acceso Administrativo — ElectroHogar</title>
-  <link rel="icon" type="image/png" href="assets/img/Logo_electrohogar.png">
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="icon" type="image/png" href="assets/img/logo_electrohogar.png">
+  <link rel="preload" href="css/login.css" as="style">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;400;500;600&family=Michroma&display=block" rel="stylesheet">
   <link rel="stylesheet" href="css/login.css">
 </head>
 <body class="login-body">
 
   <div class="login-container">
     <div class="login-header">
-      <div class="logo-area" style="justify-content: center; margin-bottom: 20px;">
-      <img src="assets/img/Logo-removebg-preview.png" alt="Logo ElectroHogar" style="width: 44px; height: 44px; object-fit: contain;">
-      <div class="logo-text" style="color: var(--dark);"><span>ELECTRO</span>HOGAR</div>
-  </div>
+      <div class="logo-area" style="justify-content: center; margin-bottom: 25px;">
+          <div class="logo-icon"></div>
+          <div class="logo-text">
+              <span class="logo-electro">electro</span>
+              <span class="logo-hogar">OGAR</span>
+          </div>
+      </div>
       <h2>Panel de Control</h2>
       <p>Ingrese sus credenciales de administrador</p>
     </div>
 
-    <form id="login-form" onsubmit="validarLogin(event)">
+    <form id="login-form" onsubmit="validarLogin(event)" autocomplete="off">
       <div class="input-group">
         <label for="admin-user">Usuario</label>
-        <input type="text" id="admin-user" placeholder="Ej: admin" required autocomplete="username">
+        <input type="text" id="admin-user" required autocomplete="off">
       </div>
       <div class="input-group">
         <label for="admin-pass">Contraseña</label>
-        <input type="password" id="admin-pass" placeholder="••••••••" required autocomplete="current-password">
+        <input type="password" id="admin-pass" required autocomplete="off">
       </div>
       
       <button type="submit" class="btn-primary" style="width: 100%; margin-top: 15px; padding: 14px;">

@@ -25,8 +25,9 @@ $csrf_token = generar_csrf();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ElectroAdmin - Panel de Control</title>
-    <link rel="icon" type="image/png" href="assets/img/Logo_electrohogar.png">
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="assets/img/logo_electrohogar.png">
+    <link rel="preload" href="css/admin.css" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;700&family=Outfit:wght@400;500;600;700&family=Michroma&display=block" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <link rel="stylesheet" href="css/admin.css">
@@ -42,8 +43,14 @@ $csrf_token = generar_csrf();
         <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
         <aside class="sidebar" id="admin-sidebar">
-            <div class="sidebar-header" style="justify-content: center; padding: 24px 16px;">
-                <img src="assets/img/Logo-removebg-preview.png" alt="Logo ElectroHogar" style="max-width: 100%; height: 50px; object-fit: contain;" onerror="this.style.display='none'">
+            <div class="sidebar-header">
+                <div class="logo-area">
+                    <div class="logo-icon"></div>
+                    <div class="logo-text">
+                        <span class="logo-electro">electro</span>
+                        <span class="logo-hogar">OGAR</span>
+                    </div>
+                </div>
             </div>
             <nav class="sidebar-nav">
                 <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-btn active"><i data-lucide="layout-dashboard"></i> Métricas & Tráfico</button>
@@ -51,8 +58,9 @@ $csrf_token = generar_csrf();
                 <button onclick="switchTab('categorias')" id="tab-categorias" class="nav-btn"><i data-lucide="layers"></i> Categorías y Marcas</button>
                 <button onclick="switchTab('banners')" id="tab-banners" class="nav-btn"><i data-lucide="monitor-play"></i> Banners Principales</button>
             </nav>
-            <div style="padding: 16px; border-top: 1px solid #1e293b;">
-                <a href="index.php" class="nav-btn" style="text-decoration:none; color:#f87171;"><i data-lucide="log-out"></i> Volver a Tienda</a>
+            <div style="padding: 16px; border-top: 1px solid #1e293b; display: flex; flex-direction: column; gap: 8px;">
+                <a href="index.php" class="nav-btn" style="text-decoration:none;"><i data-lucide="external-link"></i> Ir a la Tienda</a>
+                <a href="logout.php" class="nav-btn" style="text-decoration:none; color:#f87171;"><i data-lucide="log-out"></i> Cerrar Sesión</a>
             </div>
         </aside>
 
@@ -91,6 +99,7 @@ $csrf_token = generar_csrf();
 
     </div>
     
+    <script src="js/cache.js"></script>
     <script src="js/admin/admin-core.js"></script>
     <script src="js/admin/admin-productos.js"></script>
     <script src="js/admin/admin-productos-ui.js"></script>

@@ -44,43 +44,33 @@ const closeModal = () => document.getElementById('modal-container').classList.ad
 
 // ================= CARGA DE DATOS DESDE PHP =================
 async function inicializarAdmin() {
-    const noCache = new Date().getTime();
-    const headers = { 'Cache-Control': 'no-cache, no-store, must-revalidate' };
+    // Usamos fetchCached para velocidad instantánea
+    const apis = [
+        { url: 'includes/api/listar_productos_admin.php', key: 'productos' },
+        { url: 'includes/api/listar_categorias.php', key: 'categorias' },
+        { url: 'includes/api/listar_marcas.php', key: 'marcas' },
+        { url: 'includes/api/listar_banners.php', key: 'banners' }
+    ];
 
-    try {
-        await Promise.all([
-            fetch('includes/api/listar_productos_admin.php?t=' + noCache, { headers })
-                .then(r => r.ok ? r.json() : r.text().then(t => { throw new Error(t) }))
-                .then(d => { if(d.status === 'success') state.productos = d.data || []; else throw new Error(d.msg); }),
-            
-            fetch('includes/api/listar_categorias.php?t=' + noCache, { headers })
-                .then(r => r.ok ? r.json() : r.text().then(t => { throw new Error(t) }))
-                .then(d => { if(d.status === 'success') state.categorias = d.data || []; else throw new Error(d.msg); }),
-            
-            fetch('includes/api/listar_marcas.php?t=' + noCache, { headers })
-                .then(r => r.ok ? r.json() : r.text().then(t => { throw new Error(t) }))
-                .then(d => { if(d.status === 'success') state.marcas = d.data || []; else throw new Error(d.msg); }),
-            
-            fetch('includes/api/listar_banners.php?t=' + noCache, { headers })
-                .then(r => r.ok ? r.json() : r.text().then(t => { throw new Error(t) }))
-                .then(d => { if(d.status === 'success') state.banners = d.data || []; else throw new Error(d.msg); })
-        ]);
-    } catch (error) {
-        console.error("Error al inicializar el panel:", error);
-        showNotification("Error al cargar datos: " + error.message, true);
-    }
+    let apisCargadas = 0;
 
-    const tabActiva = document.querySelector('.nav-btn.active');
-    if (tabActiva) {
-        const id = tabActiva.id.replace('tab-', '');
-        if(id === 'dashboard') renderDashboard();
-        else if(id === 'productos') renderProductos();
-        else if(id === 'categorias') renderCategorias();
-        else if(id === 'banners') renderBanners();
-        else if(id === 'leads') renderLeads();
-    } else {
-        renderDashboard(); 
-    }
+    apis.forEach(api => {
+        fetchCached(api.url, (data) => {
+            if (data.status === 'success') {
+                state[api.key] = data.data || [];
+                
+                // Si estamos en la pestaña correspondiente, re-renderizamos
+                const savedTab = localStorage.getItem('eh_admin_tab') || 'dashboard';
+                if (savedTab === api.key || savedTab === 'dashboard') {
+                    switchTab(savedTab);
+                }
+            }
+        });
+    });
+
+    // Carga inicial (la primera vez que entra o si no hay caché)
+    const savedTab = localStorage.getItem('eh_admin_tab') || 'dashboard';
+    switchTab(savedTab);
 }
 
 async function refrescarSoloProductos() {
@@ -141,6 +131,9 @@ window.switchTab = function(tabId) {
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     const btnActive = document.getElementById(`tab-${tabId}`);
     if(btnActive) btnActive.classList.add('active');
+    
+    // Guardar en localStorage
+    localStorage.setItem('eh_admin_tab', tabId);
     
     if(tabId === 'dashboard') renderDashboard();
     if(tabId === 'productos') renderProductos();

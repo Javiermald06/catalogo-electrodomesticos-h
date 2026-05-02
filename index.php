@@ -7,7 +7,7 @@
   <meta name="description"
     content="Catálogo de electrodomésticos en Tacna. Las mejores marcas en línea blanca, TVs y tecnología para el hogar.">
   <title>ElectroHogar Tacna — Catálogo</title>
-  <link rel="icon" type="image/png" href="assets/img/Logo_electrohogar.png">
+  <link rel="icon" type="image/png" href="assets/img/logo_electrohogar.png">
   <!-- Preconnect: elimina latencia DNS/TLS de CDNs externos -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
