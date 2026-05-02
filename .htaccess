@@ -3,6 +3,14 @@
 # ElectroHogar — Compatible con InfinityFree y Apache
 # ============================================================
 
+# ─── Forzar HTTPS ───
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+
 # ─── Bloquear acceso a archivos sensibles ───
 # Nadie puede acceder directamente a estos archivos por URL
 <FilesMatch "\.(csv|sql|bak|log|env|ini)$">
