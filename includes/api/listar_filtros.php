@@ -6,7 +6,7 @@ $categoria = $_GET['categoria'] ?? '';
 $max_filtros = 10; // número máximo de atributos a mostrar
 
 // Atributos que NO deben aparecer como filtros
-$excluir_filtros = ['Modelo', 'Incluye', 'Profundidad','Garantía'];
+$excluir_filtros = ['Modelo', 'Incluye', 'Profundidad','Garantía', 'Seguridad'];
 
 try {
     $topAtributos = [];
