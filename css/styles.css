@@ -2971,6 +2971,20 @@ address.footer-col ul li {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-item-price-offer {
+  color: var(--red) !important;
+}
+
+.cart-item-price-old {
+  font-size: 13px;
+  color: #94a3b8;
+  text-decoration: line-through;
+  font-weight: 400;
+  margin-top: 2px;
 }
 
 .cart-item-qty {
@@ -2997,9 +3011,7 @@ address.footer-col ul li {
 }
 
 .cart-item-remove::before {
-  content: '×';
-  font-size: 18px;
-  line-height: 0;
+  display: none !important;
 }
 
 .cart-item-remove:hover {

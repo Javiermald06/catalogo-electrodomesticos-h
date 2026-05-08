@@ -12,6 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
     verificarSesion();
 });
 
+// Escuchar cuando los datos del buscador estén listos para auto-parchar el carrito
+window.addEventListener('datosBuscadorListos', () => {
+    if (carrito.length > 0) {
+        renderizarCarrito();
+    }
+});
+
 // 2. Función que dibuja el panel lateral del carrito en cualquier página
 function inyectarHTMLCarrito() {
     if (document.getElementById('cart-overlay')) return; 
@@ -87,6 +94,8 @@ async function agregarAlCarrito(id, cantidad = 1) {
             id: id,
             nombre: prod.nombre,
             precio: precioFinal,
+            precioRegular: precioReg,
+            enOferta: precioOfe > 0 && precioOfe < precioReg,
             img: prod.img_principal || prod.img || 'placeholder.png',
             cantidad: cantidad
         });
@@ -128,6 +137,28 @@ function renderizarCarrito() {
     let total = 0;
 
     carrito.forEach((item, index) => {
+        // Autoparche más agresivo: Buscamos en todas las fuentes posibles (Buscador global o Main)
+        const globalProds = window.ALL_PRODUCTS || window.PRODUCTOS || [];
+        if (globalProds.length > 0) {
+            const prodRef = globalProds.find(p => (p.id || p.id_producto) == item.id);
+            if (prodRef) {
+                // Sincronizamos usando las llaves que usa buscador.js y listar_productos.php
+                const pReg = parseFloat(prodRef.precio_regular || prodRef.precioRegular || prodRef.precioAntes || 0);
+                const pOfe = parseFloat(prodRef.precio_oferta || prodRef.precio || 0);
+                const isOff = prodRef.enOferta !== undefined ? prodRef.enOferta : (pOfe > 0 && pReg > pOfe);
+                
+                if (isOff && pReg > 0) {
+                    item.enOferta = true;
+                    item.precioRegular = pReg;
+                    item.precio = pOfe;
+                } else if (pReg > 0) {
+                    item.enOferta = false;
+                    item.precioRegular = pReg;
+                    item.precio = pReg;
+                }
+            }
+        }
+
         const subtotal = item.precio * item.cantidad;
         total += subtotal;
         html += `
@@ -135,19 +166,27 @@ function renderizarCarrito() {
             <div class="cart-item-img"><img src="assets/img_productos/${item.img}" style="width:100%; height:100%; object-fit:contain;"></div>
             <div class="cart-item-info">
                 <div class="cart-item-title">${item.nombre}</div>
-                <div class="cart-item-price">S/ ${item.precio.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</div>
+                <div class="cart-item-price">
+                    <span class="cart-item-price-current ${item.enOferta ? 'cart-item-price-offer' : ''}">
+                        S/ ${item.precio.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                    </span>
+                    ${item.enOferta ? `<span class="cart-item-price-old">S/ ${item.precioRegular.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>` : ''}
+                </div>
                 <div class="cart-item-qty-controls">
                     <button class="cart-qty-btn" onclick="cambiarCantidadCarrito(${index}, -1)">-</button>
                     <span class="cart-qty-number">${item.cantidad}</span>
                     <button class="cart-qty-btn" onclick="cambiarCantidadCarrito(${index}, 1)">+</button>
                 </div>
-                <button class="cart-item-remove" onclick="eliminarDelCarrito(${index})">Eliminar</button>
+                <button class="cart-item-remove" onclick="eliminarDelCarrito(${index})">
+                    <i data-lucide="trash-2" style="width:14px; height:14px;"></i> Eliminar
+                </button>
             </div>
         </div>`;
     });
 
     container.innerHTML = html;
     totalPriceEl.innerText = `S/ ${total.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function cambiarCantidadCarrito(index, cambio) {

@@ -11,7 +11,7 @@
                     <span class="logo-hogar">OGAR</span>
                 </div>
             </div>
-            <p class="footer-desc">Tu tienda de electrodomésticos de confianza en Tacna, Perú. Calidad, garantía y el mejor servicio técnico post-venta.</p>
+            <p class="footer-desc">Tu tienda de electrodomésticos de confianza en Tacna, Perú. Calidad, garantía y precios justos.</p>
         </div>
         
         <nav class="footer-col" aria-label="Categorías pie de página">
