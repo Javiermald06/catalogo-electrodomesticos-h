@@ -103,18 +103,38 @@ try {
     // ==========================================================
     // 3. GUARDAR IMÁGENES EN LA TABLA CORRECTA (galeria_imagenes)
     // ==========================================================
-    if (!empty($imagenes_finales)) {
-        // Borramos las fotos viejas para que no se acumulen basura
+    if (!empty($imagenes_finales) || !empty($id_producto)) {
+        $id_producto_real = (int)($id_producto_real ?? $id_producto);
+        
+        // ─── LIMPIEZA DE IMÁGENES FÍSICAS ───
+        // Obtener las rutas actuales en la base de datos antes de borrarlas
+        $stmtOld = $pdo->prepare("SELECT ruta_imagen FROM galeria_imagenes WHERE id_producto = ?");
+        $stmtOld->execute([$id_producto_real]);
+        $imagenes_viejas = $stmtOld->fetchAll(PDO::FETCH_COLUMN);
+
+        // Borramos los registros viejos para insertar el nuevo orden
         $stmtDelImg = $pdo->prepare("DELETE FROM galeria_imagenes WHERE id_producto = ?");
         $stmtDelImg->execute([$id_producto_real]);
 
-        // Insertamos las nuevas con el ORDEN solicitado
-        $sqlImg = "INSERT INTO galeria_imagenes (id_producto, ruta_imagen, img_principal, orden) VALUES (?, ?, ?, ?)";
-        $stmtImg = $pdo->prepare($sqlImg);
-        
-        foreach ($imagenes_finales as $index => $ruta) {
-            $esPrincipal = ($index === 0) ? 1 : 0; 
-            $stmtImg->execute([$id_producto_real, $ruta, $esPrincipal, $index]);
+        if (!empty($imagenes_finales)) {
+            // Insertamos las nuevas con el ORDEN solicitado
+            $sqlImg = "INSERT INTO galeria_imagenes (id_producto, ruta_imagen, img_principal, orden) VALUES (?, ?, ?, ?)";
+            $stmtImg = $pdo->prepare($sqlImg);
+            
+            foreach ($imagenes_finales as $index => $ruta) {
+                $esPrincipal = ($index === 0) ? 1 : 0; 
+                $stmtImg->execute([$id_producto_real, $ruta, $esPrincipal, $index]);
+            }
+        }
+
+        // Borrar del servidor los archivos que ya no están en el nuevo set
+        foreach ($imagenes_viejas as $archivo_viejo) {
+            if (!in_array($archivo_viejo, $imagenes_finales)) {
+                $ruta_borrar = $directorioDestino . $archivo_viejo;
+                if (file_exists($ruta_borrar)) {
+                    unlink($ruta_borrar);
+                }
+            }
         }
     }
 

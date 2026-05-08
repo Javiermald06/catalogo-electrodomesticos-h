@@ -79,6 +79,13 @@ body {
   position: relative;
 }
 
+body.no-scroll {
+  overflow: hidden !important;
+  height: 100vh !important;
+  width: 100% !important;
+  position: fixed !important;
+}
+
 body {
   font-family: var(--font-interface);
   background-color: var(--clr-bg);
@@ -1149,7 +1156,12 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  /* Espacio controlado */
+  flex: 1; /* ✨ Ocupa todo el espacio para alinear el botón al final */
+}
+
+.product-card__actions {
+  margin-top: auto; /* ✨ Empuja el botón al fondo de la tarjeta */
+  padding-top: 10px;
 }
 
 .product-card__brand {
@@ -1231,7 +1243,6 @@ body {
   width: 100%;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 12px;
   text-transform: none;
 }
 
@@ -1392,11 +1403,20 @@ body {
   /* Por si usas iconos tipográficos luego */
 }
 
+.cat-section-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
 .cat-section-title {
   font-family: 'Rajdhani', sans-serif;
   font-size: 34px;
   font-weight: 700;
   color: var(--blue);
+}
+
+.cat-section-title span {
+  color: var(--clr-primary);
 }
 
 .cat-section-subtitle {

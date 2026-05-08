@@ -26,6 +26,23 @@ let imagenesSeleccionadas = [];
 
 const formatearMoneda = (monto) => `S/ ${parseFloat(monto).toLocaleString('es-PE', { minimumFractionDigits: 2 })}`;
 
+// Algoritmo de Distancia de Levenshtein para búsqueda difusa (usado en buscador.js)
+const calcularDistancia = (a, b) => {
+    const tmp = [];
+    for (let i = 0; i <= a.length; i++) { tmp[i] = [i]; }
+    for (let j = 0; j <= b.length; j++) { tmp[0][j] = j; }
+    for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+            tmp[i][j] = Math.min(
+                tmp[i - 1][j] + 1,
+                tmp[i][j - 1] + 1,
+                tmp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+            );
+        }
+    }
+    return tmp[a.length][b.length];
+};
+
 const showNotification = (msg, error = false) => {
     const toast = document.getElementById('toast');
     
@@ -40,6 +57,20 @@ const showNotification = (msg, error = false) => {
     setTimeout(() => toast.classList.add('hidden'), 3000);
 };
 
+// Bloqueo de scroll para móviles
+window.toggleScrollLock = function(lock) {
+    if (lock) {
+        const scrollY = window.scrollY;
+        document.body.style.top = `-${scrollY}px`;
+        document.body.classList.add('no-scroll');
+    } else {
+        const scrollY = parseInt(document.body.style.top || '0') * -1;
+        document.body.classList.remove('no-scroll');
+        document.body.style.top = '';
+        if (scrollY > 0) window.scrollTo(0, scrollY);
+    }
+};
+
 // ================= LÓGICA DE MODALES =================
 const openModal = (titulo, contenidoHTML, footerHTML, sizeClass = 'modal-md') => {
     document.getElementById('modal-title').innerHTML = titulo;
@@ -47,10 +78,14 @@ const openModal = (titulo, contenidoHTML, footerHTML, sizeClass = 'modal-md') =>
     document.getElementById('modal-footer').innerHTML = footerHTML;
     document.getElementById('modal-box').className = `modal-box ${sizeClass} modal-enter`;
     document.getElementById('modal-container').classList.remove('hidden');
+    window.toggleScrollLock(true);
     if (typeof lucide !== 'undefined') lucide.createIcons();
 };
 
-const closeModal = () => document.getElementById('modal-container').classList.add('hidden');
+const closeModal = () => {
+    document.getElementById('modal-container').classList.add('hidden');
+    window.toggleScrollLock(false);
+};
 
 // ================= CARGA DE DATOS DESDE PHP =================
 async function inicializarAdmin() {
@@ -148,7 +183,7 @@ function renderDashboard() {
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; align-items: start;">
+            <div class="grid-charts" style="margin-top: 24px;">
                 <!-- GRÁFICO DE VISITAS -->
                 <div class="card" style="padding: 24px;">
                     <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; color: #1e293b; display:flex; align-items:center; gap:8px;">
@@ -199,7 +234,12 @@ function initCharts() {
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: { boxWidth: 10, padding: 10, font: { size: 10 } }
+                        labels: { 
+                            boxWidth: 8, 
+                            padding: 10, 
+                            font: { size: 10 },
+                            usePointStyle: true
+                        }
                     }
                 },
                 cutout: '65%'
@@ -299,14 +339,20 @@ window.toggleSidebar = function() {
         document.body.appendChild(overlay);
     }
 
-    if (sidebar) sidebar.classList.toggle('active');
+    const isOpen = sidebar && sidebar.classList.contains('active');
 
-    if (sidebar && sidebar.classList.contains('active')) {
+    if (!isOpen) {
+        // Abrir
+        if (sidebar) sidebar.classList.add('active');
         overlay.style.display = 'block';
         setTimeout(() => overlay.classList.add('active'), 10);
+        window.toggleScrollLock(true);
     } else {
+        // Cerrar
+        if (sidebar) sidebar.classList.remove('active');
         overlay.classList.remove('active');
         setTimeout(() => overlay.style.display = 'none', 300);
+        window.toggleScrollLock(false);
     }
 };
 

@@ -41,22 +41,30 @@ function inicializarFiltrosDinamicos(productos, nombreCategoria, filtrosJson, ex
                    : [...new Set(productos.map(p => p.marca))];
     const listaMarcas = document.getElementById('lista-marcas');
     if (listaMarcas) {
-        // Obtener marca activa de la URL (si existe)
         const urlParamsF = new URLSearchParams(window.location.search);
         const marcaURL = urlParamsF.get('marca');
 
-        listaMarcas.innerHTML = marcas.map(m => `
-            <label class="filter-option">
-                <input type="checkbox" class="hidden-check brand-filter" value="${m}" 
-                       ${(marcaURL && marcaURL.toLowerCase() === m.toLowerCase()) ? 'checked' : ''} 
-                       onchange="actualizarEstadoFiltrosSpec()">
-                <span class="custom-radio"></span>
-                <span class="option-text">${m}</span>
-            </label>
-        `).join('');
-        
         if (marcaURL) {
-            filtrosEstado.marcas = [marcas.find(m => m.toLowerCase() === marcaURL.toLowerCase())].filter(Boolean);
+            // Si venimos por búsqueda de marca, solo mostramos esa y la bloqueamos
+            const mMatch = marcas.find(m => m.toLowerCase() === marcaURL.toLowerCase()) || marcaURL;
+            listaMarcas.innerHTML = `
+                <label class="filter-option" style="pointer-events: none; opacity: 0.9;">
+                    <input type="checkbox" class="hidden-check brand-filter" value="${mMatch}" checked disabled>
+                    <span class="custom-radio" style="background: var(--blue); border-color: var(--blue);"></span>
+                    <span class="option-text" style="font-weight: 600; color: var(--blue);">${mMatch}</span>
+                </label>
+            `;
+            filtrosEstado.marcas = [mMatch];
+        } else {
+            // Comportamiento normal: mostrar todas
+            listaMarcas.innerHTML = marcas.map(m => `
+                <label class="filter-option">
+                    <input type="checkbox" class="hidden-check brand-filter" value="${m}" 
+                           onchange="actualizarEstadoFiltrosSpec()">
+                    <span class="custom-radio"></span>
+                    <span class="option-text">${m}</span>
+                </label>
+            `).join('');
         }
     }
 

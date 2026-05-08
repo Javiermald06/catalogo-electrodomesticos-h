@@ -118,8 +118,14 @@
     </nav>
 
     <section class="carousel-section" id="ofertas" aria-labelledby="titulo-ofertas">
-      <div class="section-header">
-        <h2 id="titulo-ofertas" class="section-title"> Ofertas <span>del Día</span></h2>
+      <div class="cat-section-header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <div class="cat-section-icon"><i data-lucide="sparkles"></i></div>
+          <div>
+            <h2 id="titulo-ofertas" class="cat-section-title"> Ofertas <span>del Día</span></h2>
+            <div class="cat-section-subtitle">Aprovecha los mejores descuentos hoy</div>
+          </div>
+        </div>
         <a href="catalogo.php" class="cat-see-all-link">Ver todo →</a>
       </div>
       <div class="carousel-wrapper">

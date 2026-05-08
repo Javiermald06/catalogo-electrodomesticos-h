@@ -24,8 +24,16 @@ if (!empty($_FILES['imagen']['name'])) {
     }
     
     $ext = strtolower(pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION));
-    $ruta_imagen = uniqid('banner_') . '.' . $ext;
-    move_uploaded_file($_FILES['imagen']['tmp_name'], '../../assets/img_banners/' . $ruta_imagen);
+    $nuevo_nombre = uniqid('banner_') . '.' . $ext;
+    $directorio = '../../assets/img_banners/';
+    
+    if (move_uploaded_file($_FILES['imagen']['tmp_name'], $directorio . $nuevo_nombre)) {
+        // Borrar imagen anterior si existe y no es la misma
+        if (!empty($ruta_imagen) && file_exists($directorio . $ruta_imagen)) {
+            unlink($directorio . $ruta_imagen);
+        }
+        $ruta_imagen = $nuevo_nombre;
+    }
 }
 
 try {

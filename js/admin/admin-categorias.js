@@ -46,6 +46,7 @@ function renderCategorias() {
     mainContent.innerHTML = `
         <div class="fade-in">
             <h2 class="section-title">Categorías y Marcas</h2>
+            <br>
             
             <div class="grid-admin-cats">
                 <!-- SECCIÓN CATEGORÍAS -->

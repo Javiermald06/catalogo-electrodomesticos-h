@@ -11,6 +11,29 @@ const buscaActiva = urlParams.get('buscar');
 let currentPage = 1;
 const itemsPerPage = 12;
 
+// Bloqueo de scroll para móviles
+window.openFilters = function() {
+    document.querySelector('.filters-sidebar').classList.add('active');
+    document.querySelector('.sidebar-overlay').classList.add('active');
+    window.toggleScrollLock(true);
+};
+
+window.closeFilters = function() {
+    document.querySelector('.filters-sidebar').classList.remove('active');
+    document.querySelector('.sidebar-overlay').classList.remove('active');
+    window.toggleScrollLock(false);
+};
+
+window.openSort = function() {
+    document.getElementById('sort-modal').classList.add('active');
+    window.toggleScrollLock(true);
+};
+
+window.closeSort = function() {
+    document.getElementById('sort-modal').classList.remove('active');
+    window.toggleScrollLock(false);
+};
+
 async function cargarCatalogo() {
     try {
         // 🚀 Una sola petición: productos + filtros juntos
@@ -263,8 +286,7 @@ function configurarSortModal() {
             }
 
             // Cerrar modal
-            sortModal.classList.remove('active');
-            document.body.style.overflow = '';
+            window.closeSort();
 
             // Aplicar filtros con nuevo orden
             if (typeof aplicarFiltrosFinales === 'function') {

@@ -29,18 +29,23 @@ window.volverACategoriasProd = function() {
 
 window.buscarProductosAdmin = function(event) {
     const input = event.target;
+    // Guardar la posición actual del cursor
+    const selectionStart = input.selectionStart;
+    const selectionEnd = input.selectionEnd;
+
     busquedaProductosAdmin = input.value.toLowerCase();
     filtroEstadoAdmin = null;
     
     // Si ya estamos en la vista de tabla, renderProductos solo actualizará el tbody
-    // Si no, forzará el cambio de vista.
+    // Si no, forzará el cambio de vista (destruyendo el input actual)
     renderProductos();
     
-    // Asegurar que el foco se mantenga (especialmente importante en móvil)
-    if (document.activeElement !== input) {
-        input.focus();
-        const len = input.value.length;
-        input.setSelectionRange(len, len);
+    // IMPORTANTE: Después de renderizar, buscamos el NUEVO input en el DOM
+    const newInput = document.getElementById('admin-search-input');
+    if (newInput) {
+        newInput.focus();
+        // Restaurar la posición del cursor
+        newInput.setSelectionRange(selectionStart, selectionEnd);
     }
 };
 
@@ -112,7 +117,7 @@ function renderProductos() {
                     <div style="display:flex; gap:12px; align-items:center; flex-wrap: wrap; justify-content: flex-end;">
                         <div class="search-box" style="position: relative;">
                             <i data-lucide="search" style="position: absolute; left: 12px; top: 11px; color: #94a3b8; width: 18px; height: 18px;"></i>
-                            <input type="text" class="form-input" placeholder="Buscar producto o SKU..." oninput="buscarProductosAdmin(event)" value="${busquedaProductosAdmin}" style="padding-left: 38px; width: 220px; padding-top: 10px; padding-bottom: 10px; border-radius: 10px;" autofocus>
+                            <input type="text" id="admin-search-input" class="form-input" placeholder="Buscar producto o SKU..." oninput="buscarProductosAdmin(event)" value="${busquedaProductosAdmin}" style="padding-left: 38px; width: 220px; padding-top: 10px; padding-bottom: 10px; border-radius: 10px;" autofocus>
                         </div>
 
                         <input type="file" id="input-csv" accept=".csv" style="display: none;" onchange="subirProductosCSV(event)">
@@ -151,10 +156,29 @@ function renderProductos() {
 
     if (busquedaProductosAdmin !== '') {
         tituloTabla = "🔍 Resultados de Búsqueda";
-        productosFiltro = productosFiltro.filter(p => 
-            p.nombre.toLowerCase().includes(busquedaProductosAdmin) || 
-            (p.sku && p.sku.toLowerCase().includes(busquedaProductosAdmin))
-        );
+        const q = busquedaProductosAdmin.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+        productosFiltro = productosFiltro.filter(p => {
+            const nombreNorm = p.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const skuNorm = (p.sku || "").toLowerCase();
+
+            // 1. Match exacto o prefijo (Máxima prioridad)
+            if (nombreNorm.includes(q) || skuNorm.includes(q)) return true;
+
+            // 2. Match difuso por palabras (Si la búsqueda tiene al menos 3 letras)
+            if (q.length >= 3) {
+                const palabrasNombre = nombreNorm.split(/\s+/);
+                return palabrasNombre.some(palabra => {
+                    if (palabra.length < 3) return false;
+                    // Compara la query con el inicio de la palabra para ver si hubo un typo
+                    const dist = calcularDistancia(q, palabra.substring(0, q.length));
+                    const maxError = q.length <= 5 ? 1 : 2;
+                    return dist <= maxError;
+                });
+            }
+            return false;
+        });
+
         if (categoriaSeleccionadaAdmin !== null && categoriaSeleccionadaAdmin !== 'all') {
             const cat = state.categorias.find(c => c.id_categoria == categoriaSeleccionadaAdmin);
             const badge = (cat && cat.estado == 0) ? `<span style="font-size: 11px; background: #fee2e2; color: #ef4444; padding: 4px 8px; border-radius: 6px; font-weight: bold; margin-left: 8px; vertical-align: middle;">CATEGORÍA INACTIVA</span>` : '';
@@ -249,7 +273,7 @@ function renderProductos() {
                 <div style="display:flex; gap:12px; align-items:center; flex-wrap: wrap; justify-content: flex-end;">
                     <div class="search-box" style="position: relative;">
                         <i data-lucide="search" style="position: absolute; left: 12px; top: 11px; color: #94a3b8; width: 18px; height: 18px;"></i>
-                        <input type="text" class="form-input" placeholder="Buscar aquí..." oninput="buscarProductosAdmin(event)" value="${busquedaProductosAdmin}" style="padding-left: 38px; width: 220px; padding-top: 10px; padding-bottom: 10px; border-radius: 10px;">
+                        <input type="text" id="admin-search-input" class="form-input" placeholder="Buscar aquí..." oninput="buscarProductosAdmin(event)" value="${busquedaProductosAdmin}" style="padding-left: 38px; width: 220px; padding-top: 10px; padding-bottom: 10px; border-radius: 10px;">
                     </div>
 
                     <button onclick="abrirModalProducto()" class="btn-primary" style="height: fit-content; padding: 10px 16px; border-radius: 10px;">

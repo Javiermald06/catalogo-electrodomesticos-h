@@ -7,6 +7,20 @@ var SECCIONES_DINAMICAS = [];
 var MARCAS_DINAMICAS = []; // Lista completa de marcas (incluye inactivas)
 let selectedSuggestionIndex = -1;
 
+// Bloqueo de scroll para móviles (Global)
+window.toggleScrollLock = function(lock) {
+    if (lock) {
+        const scrollY = window.scrollY;
+        document.body.style.top = `-${scrollY}px`;
+        document.body.classList.add('no-scroll');
+    } else {
+        const scrollY = parseInt(document.body.style.top || '0') * -1;
+        document.body.classList.remove('no-scroll');
+        document.body.style.top = '';
+        if (scrollY > 0) window.scrollTo(0, scrollY);
+    }
+};
+
 // Lógica Global de Cierre (Cerrar al scrollear o cliquear fuera)
 window.addEventListener('scroll', () => {
     if (window.innerWidth <= 768) {

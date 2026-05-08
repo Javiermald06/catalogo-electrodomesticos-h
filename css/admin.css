@@ -143,6 +143,28 @@ body { font-family: 'Outfit', sans-serif; overflow: hidden; background: var(--bg
 #contenedor-specs::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 #contenedor-specs::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
 
+/* Dashboard Charts Grid */
+.grid-charts {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .grid-charts {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .grid-charts .card {
+    padding: 16px !important;
+  }
+  /* Asegurar que los canvas de Chart.js no desborden */
+  canvas {
+    max-width: 100% !important;
+  }
+}
+
 /* ============================================================
    RESPONSIVE DESIGN (Admin Panel)
    ============================================================ */
@@ -189,7 +211,12 @@ body { font-family: 'Outfit', sans-serif; overflow: hidden; background: var(--bg
     .user-name { display: none; }
     
     /* 1. RECUPERAR ESPACIO VITAL (Reducción de Paddings) */
-    .content-area { padding: 12px; }
+    .content-area { 
+        padding: 12px 12px 80px 12px; /* Aumentado bottom padding para la barra de navegación del celular */
+    }
+    .sidebar {
+        padding-bottom: 60px; /* Espacio para el botón de Ir a la tienda */
+    }
     .grid-4 { grid-template-columns: repeat(2, 1fr); gap: 12px !important; }
     .grid-2 { grid-template-columns: 1fr; gap: 16px !important; }
     /* El !important sobrescribe el padding en línea que genera el JS */
@@ -320,7 +347,7 @@ body { font-family: 'Outfit', sans-serif; overflow: hidden; background: var(--bg
 }
 
 .accordion-section.active .accordion-content {
-    max-height: 1000px;
+    max-height: 5000px;
     padding: 0 20px 20px 20px;
     border-top: 1px solid var(--border);
 }
