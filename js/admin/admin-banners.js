@@ -1,5 +1,5 @@
 /* ============================================================
-   admin-banners.js � CRUD de Banners, Drag & Drop, Orden
+   admin-banners.js � CRUD de Banners, Drag & Drop, Orden
    ============================================================ */
 
 // ====================================================================
@@ -10,9 +10,24 @@ function renderBanners() {
     
     const filas = state.banners.map((b, index) => {
         const esVideo = b.ruta_imagen && b.ruta_imagen.toLowerCase().endsWith('.mp4');
-        const vistaPrevia = esVideo 
+        let vistaPrevia = esVideo 
             ? `<video src="../assets/img_banners/${b.ruta_imagen}" style="width: 100%; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);" autoplay loop muted playsinline></video>` 
             : `<img src="../assets/img_banners/${b.ruta_imagen}" style="width: 100%; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);" onerror="this.src='https://via.placeholder.com/800x300?text=Sin+Imagen'">`;
+
+        if (b.ruta_imagen_mobile) {
+            vistaPrevia = `
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <div style="flex: 3; position: relative;" title="PC">
+                        ${vistaPrevia}
+                        <div style="position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.7); color: white; border-radius: 4px; padding: 2px 4px; font-size: 10px; display: flex; align-items: center; gap: 2px;"><i data-lucide="monitor" style="width:10px;height:10px;"></i> PC</div>
+                    </div>
+                    <div style="flex: 1.5; position: relative;" title="Móvil">
+                        <img src="../assets/img_banners/${b.ruta_imagen_mobile}" style="width: 100%; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);" onerror="this.src='https://via.placeholder.com/400x400?text=Error'">
+                        <div style="position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.7); color: #10b981; border-radius: 4px; padding: 2px 4px; font-size: 10px; display: flex; align-items: center; gap: 2px;"><i data-lucide="smartphone" style="width:10px;height:10px;"></i></div>
+                    </div>
+                </div>
+            `;
+        }
 
         return `
         <tr data-id="${b.id_banner}" style="${b.estado == 0 ? 'opacity: 0.6; background: #f8fafc;' : 'background: white;'} transition: all 0.2s;">
@@ -162,14 +177,20 @@ window.abrirModalBanner = function(id = null) {
         }
     }
 
+    let previewMobileHtml = '';
+    if (banner.ruta_imagen_mobile) {
+        previewMobileHtml = `<img src="../assets/img_banners/${banner.ruta_imagen_mobile}" style="width:100%; height:auto; max-height:150px; object-fit:contain; border-radius:8px; border:1px solid var(--border);">`;
+    }
+
     const contenido = `
         <form id="form-banner" style="display: flex; flex-direction: column; gap: 16px;">
             <input type="hidden" id="ban-id" value="${banner.id_banner || ''}">
             <input type="hidden" id="ban-img-actual" value="${banner.ruta_imagen || ''}">
+            <input type="hidden" id="ban-img-mobile-actual" value="${banner.ruta_imagen_mobile || ''}">
             
             <div>
                 <label class="form-label">Título (Referencia interna)</label>
-                <input type="text" id="ban-titulo" class="form-input" value="${banner.titulo || ''}" placeholder="Ej: Cyber Wow 2026" required>
+                <input type="text" id="ban-titulo" class="form-input" value="${banner.titulo || ''}" placeholder="Ej: Cyber Wow" required>
             </div>
             
             <div>
@@ -177,16 +198,29 @@ window.abrirModalBanner = function(id = null) {
                 <input type="text" id="ban-enlace" class="form-input" value="${banner.enlace || '#'}" placeholder="Ej: /categoria.php?id=1">
             </div>
             
-            <div>
-                <label class="form-label">Imagen o Video (Recomendado: 1920x600px)</label>
-                <div id="drop-zone-banner" class="upload-box" onclick="document.getElementById('ban-imagen').click()" style="padding: 30px; text-align: center; cursor:pointer; border: 2px dashed var(--border); border-radius: 12px; background: white; transition: all 0.2s ease;">
-                    <i data-lucide="upload-cloud" style="color: #3b82f6; width: 32px; height: 32px; margin-bottom: 8px;"></i>
-                    <span style="font-size: 14px; color: #64748b; display:block;">Clic o <strong style="color: #2563eb;">arrastra el archivo</strong> aquí</span>
+            <div style="display: flex; gap: 16px;">
+                <div style="flex: 1;">
+                    <label class="form-label">Principal (PC) - 1920x600px</label>
+                    <div id="drop-zone-banner" class="upload-box" onclick="document.getElementById('ban-imagen').click()" style="padding: 20px; text-align: center; cursor:pointer; border: 2px dashed var(--border); border-radius: 12px; background: white; transition: all 0.2s ease;">
+                        <i data-lucide="upload-cloud" style="color: #3b82f6; width: 24px; height: 24px; margin-bottom: 8px;"></i>
+                        <span style="font-size: 12px; color: #64748b; display:block;">Clic o <strong style="color: #2563eb;">arrastra</strong></span>
+                    </div>
+                    <input type="file" id="ban-imagen" class="hidden" accept="image/*,video/mp4">
+                    <div id="preview-banner" style="margin-top:12px;">
+                        ${previewInitHtml}
+                    </div>
                 </div>
-                <input type="file" id="ban-imagen" class="hidden" accept="image/*,video/mp4">
-                
-                <div id="preview-banner" style="margin-top:12px;">
-                    ${previewInitHtml}
+
+                <div style="flex: 1;">
+                    <label class="form-label">Móvil - 800x400px (Opcional)</label>
+                    <div id="drop-zone-banner-mobile" class="upload-box" onclick="document.getElementById('ban-imagen-mobile').click()" style="padding: 20px; text-align: center; cursor:pointer; border: 2px dashed var(--border); border-radius: 12px; background: white; transition: all 0.2s ease;">
+                        <i data-lucide="smartphone" style="color: #10b981; width: 24px; height: 24px; margin-bottom: 8px;"></i>
+                        <span style="font-size: 12px; color: #64748b; display:block;">Clic o <strong style="color: #10b981;">arrastra</strong></span>
+                    </div>
+                    <input type="file" id="ban-imagen-mobile" class="hidden" accept="image/*">
+                    <div id="preview-banner-mobile" style="margin-top:12px;">
+                        ${previewMobileHtml}
+                    </div>
                 </div>
             </div>
         </form>
@@ -198,6 +232,9 @@ window.abrirModalBanner = function(id = null) {
     
     openModal(titulo, contenido, footer, 'modal-md');
 
+    lucide.createIcons();
+
+    // Logic for PC banner
     const input = document.getElementById('ban-imagen');
     const preview = document.getElementById('preview-banner');
     const dropZone = document.getElementById('drop-zone-banner');
@@ -217,37 +254,37 @@ window.abrirModalBanner = function(id = null) {
         }
     };
 
-    input.addEventListener('change', function(e) {
-        manejarArchivo(this.files[0]);
-    });
-
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = '#2563eb';
-        dropZone.style.background = '#eff6ff';
-        dropZone.style.transform = 'scale(1.02)';
-    });
-
-    dropZone.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = 'var(--border)';
-        dropZone.style.background = 'white';
-        dropZone.style.transform = 'scale(1)';
-    });
-
+    input.addEventListener('change', function(e) { manejarArchivo(this.files[0]); });
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = '#2563eb'; dropZone.style.background = '#eff6ff'; });
+    dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--border)'; dropZone.style.background = 'white'; });
     dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = 'var(--border)';
-        dropZone.style.background = 'white';
-        dropZone.style.transform = 'scale(1)';
+        e.preventDefault(); dropZone.style.borderColor = 'var(--border)'; dropZone.style.background = 'white';
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) { input.files = e.dataTransfer.files; manejarArchivo(input.files[0]); }
+    });
 
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            input.files = e.dataTransfer.files;
-            manejarArchivo(input.files[0]);
+    // Logic for Mobile banner
+    const inputMob = document.getElementById('ban-imagen-mobile');
+    const previewMob = document.getElementById('preview-banner-mobile');
+    const dropZoneMob = document.getElementById('drop-zone-banner-mobile');
+
+    const manejarArchivoMob = (file) => {
+        if(file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewMob.innerHTML = `<img src="${e.target.result}" style="width:100%; height:auto; max-height:150px; object-fit:contain; border-radius:8px; border:1px solid var(--border); fade-in;">`;
+            }
+            reader.readAsDataURL(file);
         }
+    };
+
+    inputMob.addEventListener('change', function(e) { manejarArchivoMob(this.files[0]); });
+    dropZoneMob.addEventListener('dragover', (e) => { e.preventDefault(); dropZoneMob.style.borderColor = '#10b981'; dropZoneMob.style.background = '#ecfdf5'; });
+    dropZoneMob.addEventListener('dragleave', (e) => { e.preventDefault(); dropZoneMob.style.borderColor = 'var(--border)'; dropZoneMob.style.background = 'white'; });
+    dropZoneMob.addEventListener('drop', (e) => {
+        e.preventDefault(); dropZoneMob.style.borderColor = 'var(--border)'; dropZoneMob.style.background = 'white';
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) { inputMob.files = e.dataTransfer.files; manejarArchivoMob(inputMob.files[0]); }
     });
 };
-
 const procesarImagenBannerEfe = (file) => {
     return new Promise((resolve) => {
         const reader = new FileReader();
@@ -283,6 +320,7 @@ window.guardarBannerBD = function() {
     const enlace = document.getElementById('ban-enlace').value.trim();
     const imagenActual = document.getElementById('ban-img-actual').value;
     const fileInput = document.getElementById('ban-imagen');
+    const fileInputMobile = document.getElementById('ban-imagen-mobile');
 
     if(!titulo) return showNotification("El título es obligatorio", true);
     if(!id && (!fileInput.files || fileInput.files.length === 0)) return showNotification("Debes subir una imagen o video", true);
@@ -314,6 +352,7 @@ window.guardarBannerBD = function() {
             formData.append('titulo', titulo); 
             formData.append('enlace', enlace); 
             formData.append('imagen_actual', imagenActual);
+            formData.append('imagen_mobile_actual', document.getElementById('ban-img-mobile-actual').value);
             
             if (fileInput && fileInput.files.length > 0) {
                 const archivoSubido = fileInput.files[0];
@@ -328,6 +367,9 @@ window.guardarBannerBD = function() {
                 }
             }
 
+            if (fileInputMobile && fileInputMobile.files.length > 0) {
+                formData.append('imagen_mobile', fileInputMobile.files[0]);
+            }
             const res = await fetch('includes/api/guardar_banner.php', { method: 'POST', body: formData });
             const result = await res.json();
             
