@@ -137,16 +137,10 @@
       </div>
     </section>
 
-    <aside id="promo-container" style="padding: 30px 0;" aria-label="Promoción especial">
-      <div class="promo-banner">
-        <div class="promo-text">
-          <span class="promo-tag">Oferta especial · Solo esta semana</span>
-          <h3 class="promo-title">Hasta 30% OFF<br>en Toda la Tienda</h3>
-          <p class="promo-sub">Envío gratis en compras mayores a S/ 500 en Tacna</p>
-        </div>
-        <button class="promo-cta">Aprovechar Oferta →</button>
-      </div>
-    </aside>
+    <!-- Separador entre Ofertas y Productos -->
+    <div style="padding: 20px 0 40px 0; display: flex; justify-content: center;">
+      <hr style="border: 0; height: 1px; background: #e2e8f0; width: 90%; max-width: 1200px;">
+    </div>
 
     <div id="sections-container"></div>
 
