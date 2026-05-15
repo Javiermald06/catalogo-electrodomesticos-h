@@ -93,15 +93,23 @@ async function inicializarDatosBuscador() {
                 };
             });
 
+            // Mapa de imágenes de categoría desde la API
+            const catImagenMap = result.categorias_con_imagen || {};
+
             // Generar categorías únicas para el buscador
             const categoriasUnicas = [...new Set(PRODUCTOS.map(p => p.categoria_real))];
-            const iconMap = { 'Lavadoras': '🫧', 'Smart TVs': '🖥️', 'Baño': '🚿', 'Cocina': '🍳', 'Refrigeradoras': '❄️', 'Audio': '🔊', 'Aspiradoras': '🌀', 'Planchas': '👔' };
 
-            SECCIONES_DINAMICAS = categoriasUnicas.map(catNombre => ({
-                id: catNombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-'),
-                titulo: catNombre,
-                icono: iconMap[catNombre] || '✨'
-            }));
+            SECCIONES_DINAMICAS = categoriasUnicas.map(catNombre => {
+                const imgData = catImagenMap[catNombre] || {};
+                return {
+                    id: catNombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-'),
+                    titulo: catNombre,
+                    imagen: imgData.imagen || null,
+                    img_scale: imgData.img_scale || 1,
+                    img_pos_x: imgData.img_pos_x || 50,
+                    img_pos_y: imgData.img_pos_y || 50
+                };
+            });
 
             // Usar listas globales de la API si están disponibles (incluyen inacitvos)
             if (result.marcas_disponibles) {
@@ -114,10 +122,14 @@ async function inicializarDatosBuscador() {
                 // Actualizar SECCIONES_DINAMICAS para incluir categorías sin productos activos
                 const catsExtra = result.categorias_disponibles.filter(c => !categoriasUnicas.includes(c));
                 catsExtra.forEach(catNombre => {
+                    const imgData = catImagenMap[catNombre] || {};
                     SECCIONES_DINAMICAS.push({
                         id: catNombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-'),
                         titulo: catNombre,
-                        icono: iconMap[catNombre] || '✨'
+                        imagen: imgData.imagen || null,
+                        img_scale: imgData.img_scale || 1,
+                        img_pos_x: imgData.img_pos_x || 50,
+                        img_pos_y: imgData.img_pos_y || 50
                     });
                 });
             }
