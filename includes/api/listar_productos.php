@@ -17,6 +17,10 @@ try {
             p.*, 
             m.nombre as marca, 
             c.nombre as categoria,
+            c.imagen as cat_imagen,
+            c.img_scale as cat_img_scale,
+            c.img_pos_x as cat_img_pos_x,
+            c.img_pos_y as cat_img_pos_y,
             gi_main.ruta_imagen as img_principal
         FROM productos p
         INNER JOIN marcas m ON p.id_marca = m.id_marca
@@ -156,12 +160,31 @@ try {
         foreach($catList as $c) $categorias_disponibles[$c] = 1;
     }
 
+    // ═══════════════════════════════════════════
+    // CATEGORÍAS CON IMAGEN (Para círculos del index)
+    // ═══════════════════════════════════════════
+    $sqlCatImg = "SELECT nombre, imagen, img_scale, img_pos_x, img_pos_y FROM categorias WHERE estado = 1";
+    $stmtCatImg = $pdo->query($sqlCatImg);
+    $categorias_con_imagen = $stmtCatImg->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Indexar por nombre para fácil lookup en frontend
+    $catImagenMap = [];
+    foreach ($categorias_con_imagen as $ci) {
+        $catImagenMap[$ci['nombre']] = [
+            'imagen' => $ci['imagen'],
+            'img_scale' => floatval($ci['img_scale'] ?? 1),
+            'img_pos_x' => floatval($ci['img_pos_x'] ?? 50),
+            'img_pos_y' => floatval($ci['img_pos_y'] ?? 50)
+        ];
+    }
+
     echo json_encode([
         'status' => 'success', 
         'data' => $productos,
         'filtros' => $filtros,
         'marcas_disponibles' => array_keys($marcas_disponibles),
-        'categorias_disponibles' => array_keys($categorias_disponibles)
+        'categorias_disponibles' => array_keys($categorias_disponibles),
+        'categorias_con_imagen' => $catImagenMap
     ]);
 } catch(PDOException $e) {
     respuesta_error($e, 'Error al cargar los productos.');
