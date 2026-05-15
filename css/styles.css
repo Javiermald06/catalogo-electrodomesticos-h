@@ -63,7 +63,6 @@
 
 html {
   scroll-behavior: smooth;
-  /* ✨ Navegación fluida entre secciones */
 }
 
 html,
@@ -73,9 +72,7 @@ body {
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
-  /* ✨ Bloqueo total de scroll lateral */
   overscroll-behavior-x: none;
-  /* ✨ Bloqueo solo lateral, vertical libre */
   position: relative;
 }
 
@@ -878,7 +875,7 @@ body {
   flex-shrink: 0;
   scroll-snap-align: start;
   text-decoration: none;
-  width: 86px;
+  width: 110px;
   transition: transform 0.2s;
 }
 
@@ -887,27 +884,40 @@ body {
 }
 
 .circular-cat-img-wrapper {
-  width: 76px;
-  height: 76px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  background: radial-gradient(circle, #FFEAEA 0%, #FFD6D6 100%);
+  background: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 10px rgba(232, 35, 42, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   border: 2px solid transparent;
   transition: all 0.3s;
 }
 
 .circular-cat-item:hover .circular-cat-img-wrapper {
-  border-color: var(--clr-primary);
-  box-shadow: 0 6px 16px rgba(232, 35, 42, 0.25);
+  border-color: var(--clr-secondary);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .circular-cat-img {
   font-size: 38px;
-  /* Tamaño del icono */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.circular-cat-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .circular-cat-title {
@@ -932,8 +942,8 @@ body {
   }
 
   .circular-cat-item {
-    width: 110px;
-    gap: 14px;
+    width: 150px;
+    gap: 16px;
   }
 
   .circular-cat-item:hover {
@@ -941,12 +951,12 @@ body {
   }
 
   .circular-cat-img-wrapper {
-    width: 105px;
-    height: 105px;
+    width: 140px;
+    height: 140px;
   }
 
   .circular-cat-img {
-    font-size: 52px;
+    font-size: 60px;
   }
 
   .circular-cat-title {
@@ -1156,11 +1166,13 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex: 1; /* ✨ Ocupa todo el espacio para alinear el botón al final */
+  flex: 1;
+  /* ✨ Ocupa todo el espacio para alinear el botón al final */
 }
 
 .product-card__actions {
-  margin-top: auto; /* ✨ Empuja el botón al fondo de la tarjeta */
+  margin-top: auto;
+  /* ✨ Empuja el botón al fondo de la tarjeta */
   padding-top: 10px;
 }
 
@@ -1400,7 +1412,14 @@ body {
   font-size: 28px;
   flex-shrink: 0;
   color: white;
+  overflow: hidden;
   /* Por si usas iconos tipográficos luego */
+}
+
+.cat-section-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .cat-section-icon svg {
