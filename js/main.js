@@ -30,7 +30,10 @@ async function cargarBannersPublicos() {
                       
                       ${b.enlace !== '#' ? `<a href="${escapeHtml(b.enlace)}" style="display:block; width:100%; height:100%;">` : ''}
                       
-                      <img src="assets/img_banners/${escapeHtml(b.ruta_imagen)}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;" alt="${escapeHtml(b.titulo)}" loading="lazy" onerror="this.src='https://via.placeholder.com/1920x600?text=Sin+Imagen'">
+                      <picture style="width: 100%; height: 100%; display: block;">
+                          ${b.ruta_imagen_mobile ? `<source media="(max-width: 768px)" srcset="assets/img_banners/${escapeHtml(b.ruta_imagen_mobile)}">` : ''}
+                          <img src="assets/img_banners/${escapeHtml(b.ruta_imagen)}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;" alt="${escapeHtml(b.titulo)}" loading="lazy" onerror="this.src='https://via.placeholder.com/1920x600?text=Sin+Imagen'">
+                      </picture>
                       
                       ${b.enlace !== '#' ? `</a>` : ''}
                       
@@ -72,7 +75,22 @@ function renderCarruselOfertas() {
   const container = document.getElementById('ofertas-car');
   if (!container) return;
   const ofertas = PRODUCTOS.filter(p => p.enOferta);
-  container.innerHTML = ofertas.map(crearTarjetaProducto).join('');
+  
+  // Agrupar por categoría
+  const porCategoria = {};
+  ofertas.forEach(p => {
+    if (!porCategoria[p.categoria_real]) porCategoria[p.categoria_real] = [];
+    porCategoria[p.categoria_real].push(p);
+  });
+  
+  // Top 2 por categoría (mayor descuento primero)
+  const topOfertas = [];
+  Object.values(porCategoria).forEach(grupo => {
+    grupo.sort((a, b) => b.descuento - a.descuento);
+    topOfertas.push(...grupo.slice(0, 2));
+  });
+  
+  container.innerHTML = topOfertas.map(crearTarjetaProducto).join('');
 }
 
 // ================= RENDERIZADO DINÁMICO DE CATEGORÍAS =================
@@ -80,11 +98,9 @@ function renderMenuCategorias() {
   const nav = document.getElementById('categorias');
   if (!nav) return;
 
-  // Generar menú flotante/fijo (sticky cat-nav)
+  // Generar menú flotante/fijo (sticky cat-nav) — solo nombres, sin iconos
   nav.innerHTML = SECCIONES_DINAMICAS.map(sec => `
-        <a href="#${sec.id}" class="cat-link">
-            <span class="cat-ico" aria-hidden="true">${sec.icono}</span> ${sec.titulo}
-        </a>
+        <a href="#${sec.id}" class="cat-link">${sec.titulo}</a>
     `).join('');
 }
 
@@ -95,18 +111,27 @@ function renderExploraCategorias() {
   const ofertas = document.getElementById('ofertas');
   if (!ofertas) return;
 
-  const navItems = SECCIONES_DINAMICAS.map(sec => `
+  const navItems = SECCIONES_DINAMICAS.map(sec => {
+    let contenidoCirculo;
+    if (sec.imagen) {
+      // Imagen real con escala y posición personalizadas
+      contenidoCirculo = `<img src="assets/img_categorias/${sec.imagen}" alt="${sec.titulo}" style="width:100%;height:100%;object-fit:cover;transform:scale(${sec.img_scale});object-position:${sec.img_pos_x}% ${sec.img_pos_y}%;" loading="lazy" onerror="this.parentElement.textContent='✨'">`;
+    } else {
+      contenidoCirculo = '✨';
+    }
+    return `
         <a href="#${sec.id}" class="circular-cat-item">
             <div class="circular-cat-img-wrapper">
-                <div class="circular-cat-img">${sec.icono}</div>
+                <div class="circular-cat-img">${contenidoCirculo}</div>
             </div>
             <span class="circular-cat-title">${sec.titulo}</span>
         </a>
-    `).join('');
+    `;
+  }).join('');
 
   const html = `
       <section class="carousel-section circular-categories-section">
-        <h2 class="section-title" style="padding: 0 16px; margin-bottom: 20px;">Explora nuevas categorías</h2>
+        <h2 class="section-title" style="padding: 0 16px; margin-bottom: 20px;">Explora nuestras categorías</h2>
         <div class="circular-categories-wrapper">
           ${navItems}
         </div>
@@ -132,7 +157,6 @@ function renderSecciones() {
       <section class="cat-section" id="${sec.id}">
         <div class="cat-section-header">
           <div style="display: flex; align-items: center; gap: 15px;">
-            <div class="cat-section-icon">${sec.icono}</div>
             <div>
               <div class="cat-section-title">${sec.titulo}</div>
               <div class="cat-section-subtitle">${sec.subtitulo || ''}</div>
