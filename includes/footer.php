@@ -56,6 +56,7 @@
                 </p>
                 <div class="footer-map-wrapper">
                     <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3794.424775946298!2d-70.24841172503746!3d-18.0054798829909!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x915acf7c1174b4f9%3A0x6170b6b8758c874!2sAv%20Cnel.%20Mendoza%201044%2C%20Tacna%2023001!5e0!3m2!1ses!2spe!4v1779480352066!5m2!1ses!2spe"
                         width="100%"
                         height="160"
                         style="border:0; border-radius: 8px;"
