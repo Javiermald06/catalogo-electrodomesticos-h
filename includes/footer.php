@@ -56,14 +56,13 @@
                 </p>
                 <div class="footer-map-wrapper">
                     <iframe
-                        src="https://maps.google.com/maps?q=Av.+Coronel+Mendoza+1044,+Tacna,+Peru&output=embed&z=16"
+                        src="https://www.openstreetmap.org/export/embed.html?bbox=-70.024%2C-18.020%2C-70.004%2C-18.006&layer=mapnik&marker=-18.013%2C-70.014"
                         width="100%"
-                        height="150"
+                        height="160"
                         style="border:0; border-radius: 8px;"
                         allowfullscreen=""
                         loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade"
-                        title="Ubicación en Google Maps"
+                        title="Ubicación - Av. Coronel Mendoza 1044, Tacna"
                     ></iframe>
                 </div>
             </div>
