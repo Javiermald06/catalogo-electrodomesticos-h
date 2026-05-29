@@ -74,8 +74,7 @@ if (empty($imagenes_finales) && !empty($nuevas_subidas)) {
     $imagenes_finales = $nuevas_subidas;
 }
 
-// Limitar a 5 imágenes
-$imagenes_finales = array_slice($imagenes_finales, 0, 5);
+// Sin límite de imágenes
 
 
 try {
