@@ -118,7 +118,7 @@ window.abrirModalProducto = function(idProducto = null) {
                 </div>
                 
                 <div>
-                    <label class="form-label">Imágenes del Producto (Máx. 5)</label>
+                    <label class="form-label">Imágenes del Producto</label>
                     <div id="drop-zone" class="upload-box" onclick="document.getElementById('prod-imagenes').click()" style="padding: 20px; text-align: center; margin-bottom: 8px;">
                         <i data-lucide="upload-cloud" style="color: #3b82f6; width: 32px; height: 32px; margin-bottom: 8px;"></i>
                         <span style="font-size: 14px; color: #64748b;">Clic aquí o arrastra tus imágenes</span>
@@ -195,18 +195,7 @@ window.previsualizarImagenes = function(input) {
 };
 
 function procesarNuevasImagenes(files) {
-    const totalActual = imagenesSeleccionadas.length;
-    const faltantes = 5 - totalActual;
-
-    if (faltantes <= 0) {
-        showNotification('Ya has alcanzado el máximo de 5 imágenes', true);
-        return;
-    }
-
-    const archivosAProcesar = Array.from(files).slice(0, faltantes);
-    if (files.length > faltantes) {
-        showNotification(`Solo se agregaron ${faltantes} imágenes (máximo 5 en total)`, true);
-    }
+    const archivosAProcesar = Array.from(files);
 
     archivosAProcesar.forEach(file => {
         file.tempUrl = URL.createObjectURL(file);
