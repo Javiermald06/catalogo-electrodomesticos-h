@@ -1112,10 +1112,12 @@ body {
   }
 }
 
-.product-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-md);
-  border-color: #e2e8f0;
+@media (hover: hover) {
+  .product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-md);
+    border-color: #e2e8f0;
+  }
 }
 
 /* Badge de descuento en la esquina */
@@ -1156,8 +1158,10 @@ body {
   transition: transform 0.5s ease;
 }
 
-.product-card:hover .product-card__img-container img {
-  transform: scale(1.08);
+@media (hover: hover) {
+  .product-card:hover .product-card__img-container img {
+    transform: scale(1.08);
+  }
 }
 
 /* Contenido de la tarjeta */
@@ -2029,7 +2033,6 @@ address.footer-col ul li {
     display: none;
   }
 
-  /* --- TARJETAS DE PRODUCTO EN CARRUSEL (MOBILE) --- */
   .product-card {
     min-width: 165px;
     max-width: 180px;
@@ -2040,18 +2043,36 @@ address.footer-col ul li {
     min-height: auto !important;
   }
 
+  /* ✨ Anular elevación y zoom en responsive móvil para evitar que se queden levantadas con el dedo */
+  .product-card:hover,
+  .product-card:active,
+  #catalogo-grid .product-card:hover,
+  #catalogo-grid .product-card:active {
+    transform: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+    border-color: #f1f5f9 !important;
+  }
+
+  .product-card:hover .product-card__img-container img,
+  .product-card:active .product-card__img-container img,
+  #catalogo-grid .product-card:hover .product-card__img-container img,
+  #catalogo-grid .product-card:active .product-card__img-container img {
+    transform: none !important;
+  }
+
   .product-card__img-container {
     height: 180px !important;
     padding: 0 !important;
-    /* ✨ Eliminado totalmente para que la imagen toque los bordes */
     border-radius: 12px 12px 0 0;
     overflow: hidden;
+    background: #ffffff;
   }
 
   .product-card__img-container img {
-    object-fit: cover !important;
-    /* ✨ Forzado a cubrir todo el espacio */
-    padding: 0 !important;
+    object-fit: contain !important;
+    /* ✨ Cambiado a contain para que la imagen se vea completa */
+    padding: 8px !important;
+    /* ✨ Agregado padding para evitar que toque los bordes */
   }
 
   .product-card__content {
@@ -2060,6 +2081,7 @@ address.footer-col ul li {
     /* ✨ Espacio reducido */
     display: flex;
     flex-direction: column;
+    flex: 1 !important;
   }
 
   .product-card__brand {
