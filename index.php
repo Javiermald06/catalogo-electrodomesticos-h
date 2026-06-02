@@ -9,14 +9,13 @@
     content="Catálogo de electrodomésticos en Tacna. Las mejores marcas en línea blanca, TVs y tecnología para el hogar.">
   <title>ElectroHogar Tacna — Catálogo</title>
   <link rel="icon" type="image/png" href="assets/img/logo_electrohogar.png">
-  <!-- Preconnect: elimina latencia DNS/TLS de CDNs externos -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="dns-prefetch" href="https://unpkg.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=1.3">
   <link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
 </head>
 
@@ -24,7 +23,6 @@
 
   <?php include 'includes/header.php'; ?>
 
-  <!-- GLOBAL PRELOADER (Aparece solo como bienvenida al sitio web) -->
   <div id="global-loader" class="global-loader">
     <div class="loader-pulse"></div>
     <div
@@ -34,10 +32,8 @@
 
   <main>
     <section class="hero-slider" id="main-slider" aria-label="Destacados">
-      <!-- El JS inyectará los .slide exactamente aquí -->
       <div class="slider-wrapper" id="banner-wrapper"></div>
 
-      <!-- Controles estilo Glassmorphism -->
       <button class="slider-control prev" aria-label="Anterior slide" onclick="moveHeroSlide(-1)">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -119,13 +115,7 @@
 
     <section class="carousel-section" id="ofertas" aria-labelledby="titulo-ofertas">
       <div class="cat-section-header">
-        <div style="display: flex; align-items: center; gap: 15px;">
-          <div class="cat-section-icon"><i data-lucide="sparkles"></i></div>
-          <div>
-            <h2 id="titulo-ofertas" class="cat-section-title"> Ofertas <span>del Día</span></h2>
-            <div class="cat-section-subtitle">Aprovecha los mejores descuentos hoy</div>
-          </div>
-        </div>
+        <h2 id="titulo-ofertas" class="cat-section-title">Mejores Ofertas</h2>
         <a href="catalogo.php" class="cat-see-all-link">Ver todo →</a>
       </div>
       <div class="carousel-wrapper">
@@ -137,7 +127,6 @@
       </div>
     </section>
 
-    <!-- Separador entre Ofertas y Productos -->
     <div style="padding: 20px 0 40px 0; display: flex; justify-content: center;">
       <hr style="border: 0; height: 1px; background: #e2e8f0; width: 90%; max-width: 1200px;">
     </div>
