@@ -21,7 +21,7 @@ window.toggleScrollLock = function(lock) {
     }
 };
 
-// Lógica Global de Cierre (Cerrar al scrollear o cliquear fuera)
+// Lógica Global de Cierre (Cerrar al scrollear o cliquear/tocar fuera)
 window.addEventListener('scroll', () => {
     if (window.innerWidth <= 768) {
         const searchContainer = document.getElementById('search-container-main');
@@ -31,11 +31,14 @@ window.addEventListener('scroll', () => {
             if (input) input.blur();
             const caja = document.getElementById('caja-sugerencias');
             if (caja) caja.classList.remove('active');
+            if (typeof window.toggleScrollLock === 'function') {
+                window.toggleScrollLock(false);
+            }
         }
     }
 }, { passive: true });
 
-document.addEventListener('click', (e) => {
+const cerrarBuscadorEvent = (e) => {
     const searchContainer = document.getElementById('search-container-main');
     const mobileSearchBtn = document.querySelector('.mobile-search-btn');
     const caja = document.getElementById('caja-sugerencias');
@@ -46,6 +49,9 @@ document.addEventListener('click', (e) => {
         if (!searchContainer.contains(e.target) && (!mobileSearchBtn || !mobileSearchBtn.contains(e.target))) {
             searchContainer.classList.remove('active');
             if (caja) caja.classList.remove('active');
+            if (typeof window.toggleScrollLock === 'function') {
+                window.toggleScrollLock(false);
+            }
         }
     }
 
@@ -55,7 +61,10 @@ document.addEventListener('click', (e) => {
             caja.classList.remove('active');
         }
     }
-});
+};
+
+document.addEventListener('click', cerrarBuscadorEvent);
+document.addEventListener('touchstart', cerrarBuscadorEvent, { passive: true });
 
 // Obtener la ruta base del script para que las imágenes funcionen en cualquier página
 const getBuscadorBaseUrl = () => {
