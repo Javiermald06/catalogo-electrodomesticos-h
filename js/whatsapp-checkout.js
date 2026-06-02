@@ -98,20 +98,19 @@ async function iniciarFlujoValidacion() {
 function enviarWhatsAppFinal(items) {
     let total = 0;
     const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
-    let mensaje = "Hola ElectroHogar. Aqu estǭ mi pedido:\n\n";
+    let mensaje = "Hola ElectroHogar. Este es mi pedido:\n\n";
 
     items.forEach(item => {
         const subtotal = item.precio * item.cantidad;
         total += subtotal;
-        // Construimos el link del producto (asumiendo que catalogo.php puede mostrar detalle por ID)
-        const productLink = `${baseUrl}/catalogo.php?id=${item.id}`;
-        mensaje += `${item.cantidad}x *${item.nombre}*\nY"- ${productLink}\nY' Subtotal: S/ ${subtotal.toLocaleString('es-PE', { minimumFractionDigits: 2 })}\n\n`;
+        const productLink = `${baseUrl}/producto.php?id=${item.id}`;
+        mensaje += `${item.cantidad}x *${item.nombre}*\n${productLink}\nSubtotal: S/ ${subtotal.toLocaleString('es-PE', { minimumFractionDigits: 2 })}\n\n`;
     });
 
     mensaje += `*Total: S/ ${total.toLocaleString('es-PE', { minimumFractionDigits: 2 })}*`;
     
     const waUrl = `https://wa.me/51989919237?text=${encodeURIComponent(mensaje)}`;
     
-    // Usamos location.href para evitar bloqueos de popup en mviles tras validacin async
-    window.location.href = waUrl;
+    // Abrir WhatsApp en una nueva pestaña
+    window.open(waUrl, '_blank');
 }
