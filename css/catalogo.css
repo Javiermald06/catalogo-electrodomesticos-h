@@ -1013,12 +1013,12 @@ button {
         display: flex !important;
         flex-direction: column !important;
         gap: 5px !important;
+        flex: 1 !important;
         /* Espacio mínimo entre marca, título y precio */
     }
 
     #catalogo-grid .product-card__actions {
-        margin-top: 5px !important;
-        /* Pegado al contenido */
+        margin-top: auto !important;
         padding-top: 0;
     }
 
@@ -1026,11 +1026,12 @@ button {
         height: 180px !important;
         margin-bottom: 5px !important;
         padding: 0 !important;
+        background: #ffffff !important;
     }
 
     #catalogo-grid .product-card__img-container img {
-        object-fit: cover !important;
-        padding: 0 !important;
+        object-fit: contain !important;
+        padding: 8px !important;
     }
 
     .product-card__brand {
@@ -1107,11 +1108,12 @@ button {
         height: 180px !important;
         margin-bottom: 8px !important;
         padding: 0 !important;
+        background: #ffffff !important;
     }
 
     .products-grid.list-view .product-card__img-container img {
-        object-fit: cover !important;
-        padding: 0 !important;
+        object-fit: contain !important;
+        padding: 8px !important;
     }
 
     .products-grid.list-view .product-card__btn {
