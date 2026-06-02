@@ -28,11 +28,9 @@
         <nav class="footer-col" aria-label="Información legal">
             <h4>Información</h4>
             <ul>
-                <li><a href="#">Sobre Nosotros</a></li>
-                <li><a href="#">Garantías</a></li>
-                <li><a href="#">Servicio Técnico</a></li>
-                <li><a href="#">Financiamiento</a></li>
-                <li><a href="#">Términos y Condiciones</a></li>
+                <li><a href="garantia.php">Garantía</a></li>
+                <li><a href="terminos.php">Términos y Condiciones</a></li>
+                <li><a href="cookies.php">Política de Cookies</a></li>
             </ul>
         </nav>
         
