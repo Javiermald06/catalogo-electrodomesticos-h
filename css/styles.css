@@ -1654,6 +1654,27 @@ address.footer-col ul li {
   color: var(--clr-accent);
 }
 
+.footer-facebook-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #1877F2;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.footer-facebook-link:hover {
+  color: #166fe5;
+  transform: translateX(3px);
+}
+
+.footer-icon-fb {
+  flex-shrink: 0;
+  color: #1877F2;
+}
+
 /* Sección de ubicación en footer */
 .footer-location {
   margin-top: 24px;
