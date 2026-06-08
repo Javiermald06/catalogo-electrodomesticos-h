@@ -72,7 +72,10 @@ try {
 
                 if(empty($sku) || empty($nombre)) continue;
 
-                $productosBatch[] = [$sku, $nombre, $id_cat, $id_marca, $precio_reg, $precio_oferta, $stock, 1];
+                $precio_es_cero = ($precio_reg <= 0 && $precio_oferta <= 0);
+                $estado = $precio_es_cero ? 0 : 1;
+
+                $productosBatch[] = [$sku, $nombre, $id_cat, $id_marca, $precio_reg, $precio_oferta, $stock, $estado];
                 $skusAInsertar[] = $sku;
                 
                 if (!empty($especificaciones)) {
