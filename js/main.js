@@ -105,9 +105,6 @@ function renderMenuCategorias() {
 }
 
 function renderExploraCategorias() {
-  // Evitar duplicados (Failsafe)
-  if (document.querySelector('.circular-categories-section')) return;
-
   const ofertas = document.getElementById('ofertas');
   if (!ofertas) return;
 
@@ -138,8 +135,12 @@ function renderExploraCategorias() {
       </section>
     `;
 
-  // Insertar ENCIMA de las Ofertas del Día
-  ofertas.insertAdjacentHTML('beforebegin', html);
+  const existingSection = document.querySelector('.circular-categories-section');
+  if (existingSection) {
+    existingSection.outerHTML = html;
+  } else {
+    ofertas.insertAdjacentHTML('beforebegin', html);
+  }
 }
 
 function renderSecciones() {
@@ -182,7 +183,7 @@ function renderSecciones() {
 // ================= CONEXIÓN CON PHP Y MYSQL (INICIALIZACIÓN) =================
 // Escuchar cuando el buscador global tenga los datos listos para renderizar la Home
 window.addEventListener('datosBuscadorListos', (e) => {
-  if (homeRendered) return; // Evitar doble renderizado
+  if (homeRendered && e.detail.isCached) return; // Evitar doble renderizado si ya se renderizó y esta llamada proviene de la caché
   homeRendered = true;
 
   PRODUCTOS = e.detail.productos;

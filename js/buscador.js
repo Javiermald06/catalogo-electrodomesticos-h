@@ -151,7 +151,13 @@ async function inicializarDatosBuscador() {
 
             // Notificar a main.js si está presente que los datos están listos
             if (typeof window.dispatchEvent === 'function') {
-                window.dispatchEvent(new CustomEvent('datosBuscadorListos', { detail: { productos: PRODUCTOS, secciones: SECCIONES_DINAMICAS } }));
+                window.dispatchEvent(new CustomEvent('datosBuscadorListos', { 
+                    detail: { 
+                        productos: PRODUCTOS, 
+                        secciones: SECCIONES_DINAMICAS,
+                        isCached: isCached
+                    } 
+                }));
             }
         }
         });
