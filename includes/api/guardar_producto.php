@@ -16,6 +16,7 @@ $stock = (int)($_POST['stock'] ?? 0);
 $precio_regular = (float)($_POST['precio_regular'] ?? 0);
 $precio_oferta = (float)($_POST['precio_oferta'] ?? 0);
 $especificaciones = $_POST['especificaciones_agrupadas'] ?? '';
+$estado = isset($_POST['estado']) ? (int)$_POST['estado'] : 1;
 
 // 1. Procesar Orden de Imágenes
 $imagenes_finales = [];
@@ -85,15 +86,15 @@ try {
     // ==========================================================
     if (empty($id_producto) || strpos($id_producto, 'temp_') !== false) {
         $sql = "INSERT INTO productos (sku, nombre, id_categoria, id_marca, precio_regular, precio_oferta, stock, estado) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, 1)";
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$sku, $nombre, $id_categoria, $id_marca, $precio_regular, $precio_oferta, $stock]);
+        $stmt->execute([$sku, $nombre, $id_categoria, $id_marca, $precio_regular, $precio_oferta, $stock, $estado]);
         $id_producto_real = $pdo->lastInsertId(); 
     } else {
         $id_producto_real = (int)$id_producto;
-        $sql = "UPDATE productos SET sku=?, nombre=?, id_categoria=?, id_marca=?, precio_regular=?, precio_oferta=?, stock=? WHERE id_producto=?";
+        $sql = "UPDATE productos SET sku=?, nombre=?, id_categoria=?, id_marca=?, precio_regular=?, precio_oferta=?, stock=?, estado=? WHERE id_producto=?";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$sku, $nombre, $id_categoria, $id_marca, $precio_regular, $precio_oferta, $stock, $id_producto_real]);
+        $stmt->execute([$sku, $nombre, $id_categoria, $id_marca, $precio_regular, $precio_oferta, $stock, $estado, $id_producto_real]);
         
         $stmtDel = $pdo->prepare("DELETE FROM especificaciones WHERE id_producto = ?");
         $stmtDel->execute([$id_producto_real]);

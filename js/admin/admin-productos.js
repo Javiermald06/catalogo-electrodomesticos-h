@@ -6,9 +6,25 @@ const productosProcesando = new Set();
 
 window.toggleEstadoProducto = async function(id, estadoActual) {
     if (productosProcesando.has(id)) return; 
-    productosProcesando.add(id);
 
     const nuevoEstado = estadoActual == 1 ? 0 : 1; 
+
+    // Advertencia de precio 0 si el admin quiere hacerlo visible
+    if (nuevoEstado == 1) {
+        const prod = state.productos.find(p => p.id_producto == id);
+        if (prod) {
+            const precioReg = parseFloat(prod.precio_regular) || 0;
+            const precioOfe = parseFloat(prod.precio_oferta) || 0;
+            if (precioReg <= 0 && precioOfe <= 0) {
+                const confirmar = confirm("Advertencia: El precio del producto es 0 o no está configurado. ¿Está seguro de que desea hacerlo visible en la tienda?");
+                if (!confirmar) {
+                    return;
+                }
+            }
+        }
+    }
+
+    productosProcesando.add(id);
     const mensajeInstantaneo = nuevoEstado == 1 ? 'Producto Visible' : 'Producto Oculto';
 
     const index = state.productos.findIndex(p => p.id_producto == id);
@@ -23,6 +39,7 @@ window.toggleEstadoProducto = async function(id, estadoActual) {
         formData.append('id_producto', id);
         formData.append('estado', nuevoEstado);
         await fetch('includes/api/cambiar_estado.php', { method: 'POST', body: formData });
+        if (typeof window.clearAppCache === 'function') window.clearAppCache();
     } catch(e) {
         showNotification("Error de conexión", true);
         if (index !== -1) { state.productos[index].estado = estadoActual; renderProductos(); }
@@ -368,6 +385,21 @@ window.guardarProductoBD = function() {
         return showNotification("Nombre, Categoría y Marca son obligatorios", true);
     }
 
+    let nuevoEstado = 1;
+    const index = state.productos.findIndex(p => p.id_producto == idProducto);
+    if (index !== -1) {
+        nuevoEstado = state.productos[index].estado;
+    }
+
+    const precioReg = parseFloat(precio_regular) || 0;
+    const precioOfe = parseFloat(precio_oferta) || 0;
+    if (nuevoEstado == 1 && precioReg <= 0 && precioOfe <= 0) {
+        const confirmar = confirm("Advertencia: El precio del producto es 0 o no está configurado. ¿Desea guardarlo como visible en la tienda?\n\nSi selecciona 'Cancelar', el producto se guardará como 'Oculto'.");
+        if (!confirmar) {
+            nuevoEstado = 0;
+        }
+    }
+
     const productoTemporal = {
         id_producto: idProducto || 'temp_' + Date.now(), 
         nombre: nombre,
@@ -377,12 +409,10 @@ window.guardarProductoBD = function() {
         stock: stock,
         precio_regular: precio_regular,
         precio_oferta: precio_oferta,
-        estado: 1
+        estado: nuevoEstado
     };
 
-    const index = state.productos.findIndex(p => p.id_producto == idProducto);
     if (index !== -1) {
-        productoTemporal.estado = state.productos[index].estado;
         productoTemporal.imagenes_galeria = imagenesSeleccionadas.map(img => {
             return (img instanceof File) ? 'subiendo...' : img;
         }).join(',');
@@ -410,6 +440,7 @@ window.guardarProductoBD = function() {
             formData.append('stock', stock);
             formData.append('precio_regular', precio_regular);
             formData.append('precio_oferta', precio_oferta);
+            formData.append('estado', nuevoEstado);
             formData.append('especificaciones_agrupadas', specs.join('||'));
             
             const imagenes_orden = [];
@@ -453,6 +484,8 @@ window.guardarProductoBD = function() {
             
             if(result.status !== 'success') {
                 showNotification(result.msg, true); 
+            } else {
+                if (typeof window.clearAppCache === 'function') window.clearAppCache();
             }
             
             await refrescarSoloProductos(); 
