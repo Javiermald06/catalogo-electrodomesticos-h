@@ -30,16 +30,16 @@ window.createProductCardHTML = function(p) {
         precioHtml = `
             <div class="product-card__price-wrapper">
                 <div class="product-card__price-row">
-                    <span class="product-card__price">S/ ${precio.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                    <span class="product-card__price">S/&nbsp;${precio.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
                     <span class="product-card__discount-tag">-${pct}%</span>
                 </div>
-                <span class="product-card__price--old">S/ ${precioAnterior.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                <span class="product-card__price--old">S/&nbsp;${precioAnterior.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
             </div>
         `;
     } else {
         precioHtml = `
             <div class="product-card__price-wrapper">
-                <span class="product-card__price">S/ ${precio.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                <span class="product-card__price">S/&nbsp;${precio.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
             </div>
         `;
     }

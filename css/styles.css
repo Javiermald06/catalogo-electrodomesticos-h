@@ -1218,6 +1218,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .product-card__price {
@@ -1225,6 +1226,7 @@ body {
   font-weight: 800;
   color: #E8232A;
   line-height: 1;
+  white-space: nowrap;
 }
 
 /* Tag de descuento junto al precio */
@@ -1235,6 +1237,7 @@ body {
   border-radius: 4px;
   font-size: 12px;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .product-card__price--old {
@@ -1242,6 +1245,7 @@ body {
   color: #94a3b8;
   font-size: 15px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 /* Botón de Compra (Dark navy blue - Exact match) */
