@@ -1,5 +1,5 @@
 /* ============================================================
-   admin-banners.js � CRUD de Banners, Drag & Drop, Orden
+   admin-banners.js - CRUD de Banners, Drag & Drop, Orden
    ============================================================ */
 
 // ====================================================================
@@ -154,6 +154,7 @@ window.guardarNuevoOrdenBanners = async function() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(nuevoOrden)
         });
+        if (typeof window.clearAppCache === 'function') window.clearAppCache();
         showNotification("Orden actualizado en la tienda");
     } catch (error) {
         showNotification("Error al guardar el orden", true);
@@ -375,6 +376,8 @@ window.guardarBannerBD = function() {
             
             if(result.status !== 'success') {
                 showNotification("Error interno al guardar banner", true);
+            } else {
+                if (typeof window.clearAppCache === 'function') window.clearAppCache();
             }
             
             const r = await fetch('includes/api/listar_banners.php?t=' + Date.now());
@@ -405,6 +408,7 @@ window.toggleEstadoBanner = async function(id, estadoActual) {
         formData.append('id', id);
         formData.append('estado', nuevoEstado);
         await fetch('includes/api/cambiar_estado_banner.php', { method: 'POST', body: formData });
+        if (typeof window.clearAppCache === 'function') window.clearAppCache();
     } catch(e) {
         if (index !== -1) {
             state.banners[index].estado = estadoActual;

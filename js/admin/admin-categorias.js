@@ -426,6 +426,7 @@ window.guardarAtributoBD = function() {
             }
 
             await fetch('includes/api/guardar_cat_mar.php', { method: 'POST', body: formData });
+            if (typeof window.clearAppCache === 'function') window.clearAppCache();
             
             const urlCat = 'includes/api/listar_categorias.php?t=' + Date.now();
             const urlMar = 'includes/api/listar_marcas.php?t=' + Date.now();
@@ -459,6 +460,7 @@ window.toggleEstadoAtributo = async function(tipo, id, estadoActual) {
         formData.append('estado', nuevoEstado);
         formData.append('tipo', tipo);
         await fetch('includes/api/cambiar_estado_cat_mar.php', { method: 'POST', body: formData });
+        if (typeof window.clearAppCache === 'function') window.clearAppCache();
     } catch(e) {
         showNotification("Error de conexión", true);
         if (index !== -1) { lista[index].estado = estadoActual; renderCategorias(); }

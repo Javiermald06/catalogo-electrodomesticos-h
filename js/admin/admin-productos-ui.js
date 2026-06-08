@@ -332,6 +332,7 @@ window.subirProductosCSV = async function(event) {
 
         if (result.status === 'success') {
             showNotification(result.msg);
+            if (typeof window.clearAppCache === 'function') window.clearAppCache();
             await refrescarSoloProductos();
         } else {
             showNotification('Error: ' + result.msg, true);

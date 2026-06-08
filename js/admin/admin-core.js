@@ -356,6 +356,15 @@ window.toggleSidebar = function() {
     }
 };
 
+window.clearAppCache = function() {
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const key = sessionStorage.key(i);
+        if (key && key.startsWith('eh_cache_')) {
+            sessionStorage.removeItem(key);
+        }
+    }
+};
+
 // ================= INICIADOR =================
 document.addEventListener('DOMContentLoaded', () => {
     inicializarAdmin();
