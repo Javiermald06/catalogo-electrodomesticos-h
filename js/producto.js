@@ -107,7 +107,7 @@ function renderizarProductoCompleto(prod) {
     const principal = prod.img_principal || 'placeholder.png';
     let galeriaArr = prod.galeria ? prod.galeria.split(',').map(img => img.trim()).filter(img => img !== '') : [];
     // Aseguramos que la principal sea la primera y el resto sigan sin duplicarse
-    let imagenes = [principal, ...galeriaArr.filter(img => img !== principal)].slice(0, 5);
+    let imagenes = [principal, ...galeriaArr.filter(img => img !== principal)];
 
     const esFav = typeof window.esFavorito === 'function' ? window.esFavorito(prod.id_producto) : false;
 
