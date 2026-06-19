@@ -109,7 +109,7 @@ function enviarWhatsAppFinal(items) {
 
     mensaje += `*Total: S/ ${total.toLocaleString('es-PE', { minimumFractionDigits: 2 })}*`;
     
-    const waUrl = `https://wa.me/51989919237?text=${encodeURIComponent(mensaje)}`;
+    const waUrl = `https://wa.me/51971341214?text=${encodeURIComponent(mensaje)}`;
     
     // Abrir WhatsApp en una nueva pestaña
     window.open(waUrl, '_blank');
